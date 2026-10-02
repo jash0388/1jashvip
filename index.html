@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>JASHVIP - VIP PREDICTOR</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Roboto+Mono:wght@500;700&display=swap" rel="stylesheet">
     <style>
@@ -716,15 +716,323 @@
 
         .tg-credit span { color: var(--primary); }
 
+        /* ========== TABLET BREAKPOINT ========== */
+        @media (max-width: 768px) {
+            body { padding: 10px 10px; }
+            #app { max-width: 100%; }
+            .pred-result { font-size: 50px; gap: 10px; }
+            .timer-countdown { font-size: 38px; }
+            .live-box { padding: 20px 16px 18px; border-radius: 22px; }
+            .history-panel { border-radius: 20px; }
+            table { min-width: 680px; }
+        }
+
+        /* ========== MOBILE BREAKPOINT ========== */
         @media (max-width: 480px) {
-            body { padding: 10px 8px; }
-            .timer-countdown { font-size: 34px; }
-            .pred-result { font-size: 46px; }
-            .bet-badge { font-size: 14px; padding: 6px 18px; }
-            .stat-val { font-size: 17px; }
-            .stat-lbl { font-size: 10px; }
-            .app-header { padding: 10px 14px; }
-            .app-logo { font-size: 18px; }
+            body { 
+                padding: 8px 6px; 
+                padding-bottom: 80px; /* space for floating bar */
+            }
+
+            /* -- Header: stack logo + actions vertically -- */
+            .app-header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+                padding: 10px 12px;
+                border-radius: 16px;
+                margin-bottom: 10px;
+            }
+
+            .logo-wrap {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                width: 100%;
+            }
+
+            .app-logo { font-size: 17px; gap: 3px; }
+
+            .mode-badge-live {
+                font-size: 10px;
+                padding: 3px 8px;
+            }
+
+            .header-actions {
+                display: flex;
+                justify-content: space-between;
+                width: 100%;
+                gap: 6px;
+            }
+
+            .status-pill {
+                flex: 1;
+                text-align: center;
+                font-size: 10px;
+                padding: 6px 8px;
+            }
+
+            .header-logout-btn {
+                font-size: 10px;
+                padding: 6px 10px;
+            }
+
+            /* -- Control Buttons: floating bottom bar on mobile -- */
+            .bot-control-bar {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                z-index: 1100;
+                background: rgba(255, 255, 255, 0.95);
+                backdrop-filter: blur(12px);
+                -webkit-backdrop-filter: blur(12px);
+                border-top: 1px solid var(--border-subtle);
+                padding: 8px 10px;
+                margin-bottom: 0;
+                gap: 6px;
+                box-shadow: 0 -4px 16px rgba(15, 23, 42, 0.06);
+                border-radius: 0;
+            }
+
+            .ctrl-btn {
+                padding: 11px 8px;
+                font-size: 11px;
+                border-radius: 12px;
+                min-height: 44px; /* touch-friendly */
+                gap: 4px;
+            }
+
+            .btn-logout { max-width: none; }
+
+            /* -- Stats Grid: 3 columns but tighter -- */
+            .stats-grid {
+                grid-template-columns: 1fr 1fr 1fr;
+                gap: 6px;
+                margin-bottom: 10px;
+            }
+
+            .stat-card {
+                padding: 10px 6px;
+                border-radius: 14px;
+            }
+
+            .stat-val {
+                font-size: 15px;
+                letter-spacing: -0.3px;
+            }
+
+            .stat-lbl {
+                font-size: 9px;
+                letter-spacing: 0.3px;
+                margin-top: 1px;
+            }
+
+            /* -- Live Signal Box -- */
+            .live-box {
+                padding: 16px 12px 14px;
+                border-radius: 20px;
+                margin-bottom: 12px;
+            }
+
+            .period-header {
+                margin-bottom: 4px;
+            }
+
+            .mode-indicator {
+                font-size: 9px;
+                padding: 3px 8px;
+                letter-spacing: 0.5px;
+            }
+
+            .issue-no {
+                font-size: 11px;
+            }
+
+            .timer-countdown {
+                font-size: 36px;
+                margin: 2px 0 8px;
+            }
+
+            .logic-status {
+                gap: 4px;
+                margin-bottom: 10px;
+            }
+
+            .logic-badge {
+                font-size: 10px;
+                padding: 3px 7px;
+            }
+
+            .pred-result {
+                font-size: 38px;
+                gap: 8px;
+                flex-direction: column;
+            }
+
+            .copy-btn {
+                font-size: 12px;
+                padding: 7px 16px;
+            }
+
+            .bet-badge {
+                font-size: 13px;
+                padding: 7px 18px;
+                margin-top: 8px;
+            }
+
+            .consensus-badge {
+                font-size: 11px;
+                padding: 4px 12px;
+                margin-top: 8px;
+            }
+
+            /* -- History Panel: Card layout for mobile -- */
+            .history-panel {
+                border-radius: 18px;
+                margin-bottom: 10px;
+            }
+
+            .panel-head {
+                padding: 10px 14px;
+                font-size: 12px;
+                flex-direction: column;
+                gap: 4px;
+                align-items: flex-start;
+            }
+
+            .win-rate {
+                font-size: 12px;
+            }
+
+            .table-container {
+                max-height: 380px;
+            }
+
+            /* Mobile table: hide less important columns */
+            table {
+                min-width: 100%;
+                font-size: 10px;
+            }
+
+            table th, table td {
+                padding: 7px 4px;
+                white-space: nowrap;
+            }
+
+            /* Hide individual logic columns on mobile — the Final column is enough */
+            table th:nth-child(2),
+            table th:nth-child(3),
+            table th:nth-child(4),
+            table th:nth-child(5),
+            table th:nth-child(6),
+            table th:nth-child(7),
+            table td:nth-child(2),
+            table td:nth-child(3),
+            table td:nth-child(4),
+            table td:nth-child(5),
+            table td:nth-child(6),
+            table td:nth-child(7) {
+                display: none;
+            }
+
+            th { font-size: 9px; letter-spacing: 0.3px; }
+
+            /* -- Toast -- */
+            .copy-toast {
+                min-width: 240px;
+                padding: 20px 24px;
+                border-radius: 20px;
+            }
+            .toast-icon { font-size: 30px; }
+            .toast-title { font-size: 17px; }
+            .toast-message { font-size: 12px; }
+
+            /* -- Auth modal -- */
+            .auth-card {
+                padding: 28px 20px;
+                border-radius: 22px;
+            }
+
+            .screen-header { font-size: 22px; }
+            .screen-sub { font-size: 12px; margin-bottom: 18px; }
+
+            .input-group input, .input-group select {
+                padding: 12px 14px;
+                font-size: 15px;
+                border-radius: 12px;
+            }
+
+            .cyber-btn {
+                padding: 14px;
+                font-size: 14px;
+                border-radius: 12px;
+            }
+
+            .mode-card {
+                padding: 14px 14px;
+                border-radius: 14px;
+            }
+
+            .mode-title { font-size: 14px; }
+            .mode-desc { font-size: 11px; }
+
+            /* -- Credit badge repositioned -- */
+            .tg-credit {
+                bottom: 72px; /* above floating bar */
+                right: 8px;
+                font-size: 10px;
+                padding: 3px 10px;
+            }
+        }
+
+        /* ========== VERY SMALL PHONES (iPhone SE, etc.) ========== */
+        @media (max-width: 380px) {
+            .app-logo { font-size: 15px; }
+
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 5px;
+            }
+
+            /* 3rd stat card spans full width */
+            .stat-card:nth-child(3) {
+                grid-column: 1 / -1;
+            }
+
+            .stat-val { font-size: 14px; }
+            .stat-lbl { font-size: 8px; }
+            .stat-card { padding: 8px 4px; border-radius: 12px; }
+
+            .timer-countdown { font-size: 32px; }
+            .pred-result { font-size: 34px; }
+            .bet-badge { font-size: 12px; padding: 6px 14px; }
+
+            .logic-badge { font-size: 9px; padding: 2px 6px; }
+
+            .ctrl-btn { 
+                font-size: 10px; 
+                padding: 10px 6px; 
+            }
+
+            .auth-card {
+                padding: 22px 16px;
+                border-radius: 18px;
+            }
+
+            .screen-header { font-size: 20px; }
+        }
+
+        /* ========== SAFE AREA FOR NOTCH PHONES ========== */
+        @supports (padding-bottom: env(safe-area-inset-bottom)) {
+            @media (max-width: 480px) {
+                .bot-control-bar {
+                    padding-bottom: calc(8px + env(safe-area-inset-bottom));
+                }
+                body {
+                    padding-bottom: calc(80px + env(safe-area-inset-bottom));
+                }
+            }
         }
     </style>
 </head>
