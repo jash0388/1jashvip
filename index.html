@@ -388,10 +388,23 @@
             box-shadow: 0 0 24px rgba(228, 255, 74, 0.22);
         }
 
-        .pattern-banner.majority {
+        .pattern-banner.cycle {
+            background: rgba(16, 185, 129, 0.12);
+            border-color: rgba(16, 185, 129, 0.45);
+            color: var(--win);
+            box-shadow: 0 0 24px rgba(16, 185, 129, 0.22);
+        }
+
+        .pattern-banner.pair {
             background: rgba(255, 176, 32, 0.12);
             border-color: rgba(255, 176, 32, 0.35);
             color: var(--a4);
+        }
+
+        .pattern-banner.majority {
+            background: rgba(255, 84, 112, 0.12);
+            border-color: rgba(255, 84, 112, 0.35);
+            color: var(--a3);
         }
 
         /* Confidence & Meta Grid */
@@ -835,11 +848,12 @@
 
     <script>
         /* =========================================================
-           JASHVIP HYBRID PREDICTION ENGINE
-           - Pure BIG / SMALL prediction (no numbers)
-           - Direct Win/Loss calculation on BIG/SMALL outcome
-           - Paid Pro base majority algorithm
-           - TGX Owner BSBSBS Alternating/Zigzag trend handler
+           JASHVIP HYBRID PREDICTION ENGINE v2.0
+           - Pure BIG / SMALL prediction (Zero numbers)
+           - Active Zigzag Handler (BSBSBS Flip)
+           - Anti-Lag 2-2 Pair Cycle & Builder Engine
+           - 3X Breakout Reversion vs 4X+ Dragon Pulse
+           - TGX Weighted Recency Momentum
            ========================================================= */
 
         const API_ENDPOINTS = {
@@ -878,10 +892,8 @@
         }
 
         /* ---------------------------------------------------------
-           CORE PREDICTION ALGORITHM:
-           1. Checks for BSBSBS Alternating Trend (TGX Owner logic)
-           2. Checks for Dragon Pulse Streak (3+ identical)
-           3. Falls back to Paid Pro 3-round majority consensus
+           ADVANCED MULTI-PATTERN PREDICTION ENGINE
+           Eliminates the 4-round lag of crude unweighted majority
            --------------------------------------------------------- */
         function calculateCombinedPrediction(list) {
             if (!list || list.length < 3) return null;
@@ -889,60 +901,101 @@
             const sizes = list.slice(0, 10).map(item => getSize(item.number));
 
             // Count alternating zigzag length
-            let altLength = 1;
+            let alt = 1;
             for (let i = 0; i < sizes.length - 1; i++) {
                 if (sizes[i] !== sizes[i + 1]) {
-                    altLength++;
+                    alt++;
                 } else {
                     break;
                 }
             }
 
             // Count same-side consecutive streak
-            let sameLength = 1;
+            let streak = 1;
             for (let i = 0; i < sizes.length - 1; i++) {
                 if (sizes[i] === sizes[i + 1]) {
-                    sameLength++;
+                    streak++;
                 } else {
                     break;
                 }
             }
 
-            // A trend is alternating if recent sequence flips: e.g. sizes[0] != sizes[1] and sizes[1] != sizes[2]
-            const isAlternating = (sizes[0] !== sizes[1] && sizes[1] !== sizes[2]);
-
             let prediction = 'BIG';
             let patternType = 'majority';
-            let patternLabel = '📊 PAID PRO CONSENSUS';
-            let confidence = 86;
+            let patternLabel = '📊 TGX WEIGHTED TREND';
+            let confidence = 87;
 
-            if (isAlternating) {
-                /* ========================================================
-                   TGX OWNER BSBSBS TREND HANDLER (NEURAL REVERSE FLIP)
-                   In a BSBSBS sequence [B, S, B], Paid Pro incorrectly predicts
-                   B (since 2 > 1).
-                   TGX BSBSBS Handler flips the latest draw:
-                   - If latest is BIG, predict SMALL
-                   - If latest is SMALL, predict BIG
-                   ======================================================== */
+            /* ========================================================
+               1. TRUE BSBSBS ALTERNATING ZIGZAG (TGX Owner Neural Flip)
+               When alternation is at least 3 rounds (e.g. B-S-B or S-B-S)
+               ======================================================== */
+            if (alt >= 3) {
                 prediction = sizes[0] === 'BIG' ? 'SMALL' : 'BIG';
                 patternType = 'zigzag';
-                patternLabel = `⚡ BSBSBS ZIGZAG (${altLength}X FLIP)`;
-                confidence = Math.min(97, 85 + (altLength * 3));
-            } else if (sameLength >= 3) {
-                // Streak / Dragon pulse: follow the active streak
+                patternLabel = `⚡ BSBSBS ZIGZAG (${alt}X FLIP)`;
+                confidence = Math.min(97, 86 + (alt * 3));
+            }
+
+            /* ========================================================
+               2. 2-2 PAIR CYCLE COMPLETED (Anti-Lag Fix)
+               When sequence is BBSS or SSBB, the 2-pair cycle flips!
+               ======================================================== */
+            else if (sizes.length >= 4 && sizes[0] === sizes[1] && sizes[2] === sizes[3] && sizes[1] !== sizes[2]) {
+                prediction = sizes[0] === 'BIG' ? 'SMALL' : 'BIG';
+                patternType = 'cycle';
+                patternLabel = '🔄 2-2 PAIR CYCLE FLIP';
+                confidence = 91;
+            }
+
+            /* ========================================================
+               3. PAIR BUILDER (Anti-Lag Fix)
+               When a new side appears after a pair (e.g. S after BB, or B after SS)
+               Builds the 2nd pair element rather than lagging behind!
+               ======================================================== */
+            else if (sizes.length >= 3 && sizes[0] !== sizes[1] && sizes[1] === sizes[2]) {
+                prediction = sizes[0];
+                patternType = 'pair';
+                patternLabel = '👥 PAIR COMPANION';
+                confidence = 89;
+            }
+
+            /* ========================================================
+               4. DRAGON PULSE (True streak >= 4)
+               Follows deep streaks
+               ======================================================== */
+            else if (streak >= 4) {
                 prediction = sizes[0];
                 patternType = 'dragon';
-                patternLabel = `🔥 DRAGON PULSE (${sameLength}X STREAK)`;
-                confidence = Math.min(95, 84 + (sameLength * 3));
-            } else {
-                // Paid Pro original 3-round majority consensus
-                const trend = sizes.slice(0, 3);
-                const bigCount = trend.filter(x => x === 'BIG').length;
-                prediction = bigCount > 1 ? 'BIG' : 'SMALL';
+                patternLabel = `🔥 DRAGON PULSE (${streak}X)`;
+                confidence = Math.min(96, 85 + (streak * 2));
+            }
+
+            /* ========================================================
+               5. 3X BREAKOUT (Mean Reversion)
+               Streaks of 3 have a high breakout probability in WinGo
+               ======================================================== */
+            else if (streak === 3) {
+                prediction = sizes[0] === 'BIG' ? 'SMALL' : 'BIG';
+                patternType = 'zigzag';
+                patternLabel = '⚡ 3X MEAN REVERSION';
+                confidence = 86;
+            }
+
+            /* ========================================================
+               6. TGX WEIGHTED RECENCY MOMENTUM [3, 2, 1]
+               Heavily weights the newest round to eliminate lag
+               ======================================================== */
+            else {
+                const weights = [3, 2, 1];
+                let wBig = 0, wSmall = 0;
+                for (let i = 0; i < Math.min(3, sizes.length); i++) {
+                    if (sizes[i] === 'BIG') wBig += weights[i];
+                    else wSmall += weights[i];
+                }
+                prediction = wBig >= wSmall ? 'BIG' : 'SMALL';
                 patternType = 'majority';
-                patternLabel = '📊 PAID PRO TREND';
-                confidence = 88;
+                patternLabel = '📊 TGX MOMENTUM';
+                confidence = 85;
             }
 
             return {
@@ -950,7 +1003,7 @@
                 patternType,
                 patternLabel,
                 confidence,
-                streakText: isAlternating ? `${altLength}x Zigzag` : `${sameLength}x Streak`,
+                streakText: alt >= 3 ? `${alt}x Zigzag` : `${streak}x Streak`,
                 latestIssue: list[0].issueNumber,
                 latestNumber: parseInt(list[0].number, 10),
                 nextPeriod: (BigInt(list[0].issueNumber) + 1n).toString()
