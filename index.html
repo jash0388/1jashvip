@@ -1077,10 +1077,9 @@
             patternBanner.className = `pattern-banner ${data.patternType}`;
         }
 
-        // Record round to history
+        // Record round to history (unlimited session storage)
         function recordOutcome(item) {
             historyLogs.unshift(item);
-            if (historyLogs.length > 50) historyLogs.pop();
             renderHistoryTable();
             updateStats();
         }
