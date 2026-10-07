@@ -1,0 +1,16 @@
+{
+  "name": "jashvip-cloudflare-worker",
+  "version": "3.0.0",
+  "description": "JASHVIP Ultimate AI Prediction Engine & Proxy Server on Cloudflare Workers",
+  "main": "worker.js",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "keywords": ["wingo", "prediction", "ai", "cloudflare-workers", "cors-proxy"],
+  "author": "JASHVIP Team",
+  "license": "MIT",
+  "devDependencies": {
+    "wrangler": "^3.50.0"
+  }
+}

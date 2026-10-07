@@ -1585,18 +1585,33 @@
             };
         }
 
-        // Fetch WinGo History
+        // Fetch WinGo History (Primary direct fetch + Cloudflare proxy fallback)
         async function fetchHistory() {
+            const primaryUrl = API_ENDPOINTS[currentMode] + '?t=' + Date.now();
             try {
-                const url = API_ENDPOINTS[currentMode] + '?t=' + Date.now();
-                const res = await fetch(url);
-                if (!res.ok) throw new Error('Network error');
-                const json = await res.json();
-                return json.data.list;
+                const res = await fetch(primaryUrl);
+                if (res.ok) {
+                    const json = await res.json();
+                    if (json && json.data && json.data.list) return json.data.list;
+                }
             } catch (err) {
-                console.error('Fetch error:', err);
-                return null;
+                // Primary fetch blocked (CORS or ISP), attempt fallback proxy
             }
+
+            try {
+                const customProxy = localStorage.getItem('jashvip_cf_proxy');
+                const proxyUrl = customProxy 
+                    ? `${customProxy.replace(/\/$/, '')}/api/history?mode=${currentMode}&t=${Date.now()}`
+                    : `/api/history?mode=${currentMode}&t=${Date.now()}`;
+                const res = await fetch(proxyUrl);
+                if (res.ok) {
+                    const json = await res.json();
+                    if (json && json.data && json.data.list) return json.data.list;
+                }
+            } catch (proxyErr) {
+                console.error('Fetch error on primary and proxy:', proxyErr);
+            }
+            return null;
         }
 
         // Main Engine Execution Loop
