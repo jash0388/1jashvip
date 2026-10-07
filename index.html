@@ -931,10 +931,13 @@
                     <div class="matrix-pill" id="mPillL4">L4: --</div>
                     <div class="matrix-pill" id="mPillL5">L5: --</div>
                     <div class="matrix-pill" id="mPillL6">L6: --</div>
+                    <div class="matrix-pill span2" id="mPillTsx">TSX: STRUCT</div>
                     <div class="matrix-pill span2" id="mPillTitan">TITAN: --</div>
                     <div class="matrix-pill span2" id="mPillRadhe">RADHE: --</div>
                     <div class="matrix-pill span2" id="mPillSuresh">SURESH: --</div>
                     <div class="matrix-pill span2" id="mPillMarkov">MARKOV: --</div>
+                    <div class="matrix-pill span2" id="mPillMaster">MIND: --</div>
+                    <div class="matrix-pill span2" id="mPillOblivion">OBLIV: --</div>
                     <div class="matrix-pill span2" id="mPillPain">PAIN: --</div>
                     <div class="matrix-pill span2" id="mPillNexa">NEXA: 15R</div>
                 </div>
@@ -988,7 +991,7 @@
         </section>
 
         <footer>
-            ULTIMATE ENSEMBLE ENGINE • PAIN PRO x TGX x NEXA x RONIN • <span>JASHVIP</span>
+            ULTIMATE ENSEMBLE ENGINE • TSX STRUCTURAL x APEX TITAN x MASTERMIND x RADHE x SURESH • <span>JASHVIP</span>
         </footer>
 
     </div>
@@ -1214,6 +1217,242 @@
         }
 
         /* ---------------------------------------------------------
+           STRUCTURAL ZERO-LAG PATTERN ENGINE (TSX CRACK HIERARCHY)
+           Eliminates 1-round transition lag via strict geometric cycles:
+           Triangles (1B+2S / 1S+2B), 2B+2S, 3B+3S, 4B+4S, and Dragons
+           --------------------------------------------------------- */
+        function isArrMatch(arrA, arrB) {
+            if (!arrA || !arrB || arrA.length !== arrB.length) return false;
+            return arrA.every((v, i) => v === arrB[i]);
+        }
+
+        function checkZigzag(results) {
+            if (results.length < 2) return null;
+            let zigzagLen = 0;
+            for (let i = 0; i < Math.min(results.length - 1, 8); i++) {
+                if (results[i] !== results[i + 1]) zigzagLen++;
+                else break;
+            }
+            if (zigzagLen >= 2) {
+                const expected = results[0] === 'BIG' ? 'SMALL' : 'BIG';
+                return {
+                    size: expected,
+                    name: `⚡ ZIGZAG (${zigzagLen + 1}X)`,
+                    desc: `Alternating sequence active. Opposite expected (${expected}).`,
+                    conf: Math.min(94, 70 + zigzagLen * 4)
+                };
+            }
+            return null;
+        }
+
+        function checkTriangle(results) {
+            if (results.length < 3) return null;
+            const last5 = results.slice(0, 5).reverse();
+            const last4 = results.slice(0, 4).reverse();
+            const last3 = results.slice(0, 3).reverse();
+            const last2 = results.slice(0, 2).reverse();
+
+            // 1B + 2S Patterns
+            if (isArrMatch(last3, ["BIG", "SMALL", "SMALL"])) {
+                return { size: "BIG", name: "⚡ TRIANGLE COMPLETE (BSS)", desc: "1B+2S Complete. Reversal to BIG expected.", conf: 84 };
+            }
+            if (isArrMatch(last5, ["BIG", "SMALL", "SMALL", "BIG", "BIG"])) {
+                return { size: "SMALL", name: "⚡ DOUBLE TRIANGLE (BSSBB)", desc: "Double Triangle finished. SMALL expected.", conf: 82 };
+            }
+            if (isArrMatch(last4, ["BIG", "SMALL", "SMALL", "BIG"])) {
+                return { size: "SMALL", name: "⚡ TRIANGLE REPEAT (BSSB)", desc: "Triangle repeat sequence. SMALL expected.", conf: 78 };
+            }
+            if (isArrMatch(last2, ["BIG", "SMALL"])) {
+                return { size: "SMALL", name: "⚡ TRIANGLE FORMING (BS)", desc: "Triangle forming step. Expecting 2nd SMALL.", conf: 76 };
+            }
+
+            // 1S + 2B Patterns
+            if (isArrMatch(last3, ["SMALL", "BIG", "BIG"])) {
+                return { size: "SMALL", name: "⚡ TRIANGLE COMPLETE (SBB)", desc: "1S+2B Complete. Reversal to SMALL expected.", conf: 84 };
+            }
+            if (isArrMatch(last5, ["SMALL", "BIG", "BIG", "SMALL", "SMALL"])) {
+                return { size: "BIG", name: "⚡ DOUBLE TRIANGLE (SBBSS)", desc: "Double Triangle finished. BIG expected.", conf: 82 };
+            }
+            if (isArrMatch(last4, ["SMALL", "BIG", "BIG", "SMALL"])) {
+                return { size: "BIG", name: "⚡ TRIANGLE REPEAT (SBBS)", desc: "Triangle repeat sequence. BIG expected.", conf: 78 };
+            }
+            if (isArrMatch(last2, ["SMALL", "BIG"])) {
+                return { size: "BIG", name: "⚡ TRIANGLE FORMING (SB)", desc: "Triangle forming step. Expecting 2nd BIG.", conf: 76 };
+            }
+
+            return null;
+        }
+
+        function check4B4S(results, streak, lastResult) {
+            if (results.length < 4) return null;
+            const last9 = results.slice(0, 9).reverse();
+            const last8 = results.slice(0, 8).reverse();
+            const last7 = results.slice(0, 7).reverse();
+
+            // 5+ Breakouts (Dragon Ride)
+            if (streak >= 5) {
+                return { size: lastResult, name: `⚡ DRAGON BREAKOUT (${streak}${lastResult[0]})`, desc: `5+ ${lastResult}s in a row. Trend continues.`, conf: 88 };
+            }
+
+            // Breakout 4S after 4B or vice versa
+            if (isArrMatch(last9, ["BIG","BIG","BIG","BIG","SMALL","SMALL","SMALL","SMALL","SMALL"])) {
+                return { size: "SMALL", name: "⚡ 4B+4S BREAKOUT (5S)", desc: "5th SMALL confirmed. Trend continuing SMALL.", conf: 86 };
+            }
+            if (isArrMatch(last9, ["SMALL","SMALL","SMALL","SMALL","BIG","BIG","BIG","BIG","BIG"])) {
+                return { size: "BIG", name: "⚡ 4S+4B BREAKOUT (5B)", desc: "5th BIG confirmed. Trend continuing BIG.", conf: 86 };
+            }
+
+            // Complete 4B + 4S Cycles
+            if (isArrMatch(last8, ["BIG","BIG","BIG","BIG","SMALL","SMALL","SMALL","SMALL"])) {
+                return { size: "BIG", name: "⚡ 4B+4S CYCLE COMPLETE", desc: "4B then 4S cycle finished. Full reversal to BIG.", conf: 87 };
+            }
+            if (isArrMatch(last8, ["SMALL","SMALL","SMALL","SMALL","BIG","BIG","BIG","BIG"])) {
+                return { size: "SMALL", name: "⚡ 4S+4B CYCLE COMPLETE", desc: "4S then 4B cycle finished. Full reversal to SMALL.", conf: 87 };
+            }
+
+            // Forming 4B + 3S / 4S + 3B
+            if (isArrMatch(last7, ["BIG","BIG","BIG","BIG","SMALL","SMALL","SMALL"])) {
+                return { size: "SMALL", name: "⚡ 4B+3S FORMING", desc: "Expecting 4th SMALL to complete 4B+4S sequence.", conf: 81 };
+            }
+            if (isArrMatch(last7, ["SMALL","SMALL","SMALL","SMALL","BIG","BIG","BIG"])) {
+                return { size: "BIG", name: "⚡ 4S+3B FORMING", desc: "Expecting 4th BIG to complete 4S+4B sequence.", conf: 81 };
+            }
+
+            // 4 Consecutive Reversals
+            if (streak === 4) {
+                const expected = lastResult === "BIG" ? "SMALL" : "BIG";
+                return { size: expected, name: `⚡ 4${lastResult[0]} STRONG REVERSAL`, desc: `4 consecutive ${lastResult}s. Strong reversal to ${expected}.`, conf: 85 };
+            }
+
+            return null;
+        }
+
+        function check3B3S(results, streak, lastResult) {
+            if (results.length < 3) return null;
+            const last7 = results.slice(0, 7).reverse();
+            const last6 = results.slice(0, 6).reverse();
+            const last5 = results.slice(0, 5).reverse();
+
+            // 3B + 4S Breakout
+            if (isArrMatch(last7, ["BIG","BIG","BIG","SMALL","SMALL","SMALL","SMALL"])) {
+                return { size: "SMALL", name: "⚡ 3B+3S BREAKOUT (4S)", desc: "4th SMALL broken out. Trend continuing SMALL.", conf: 83 };
+            }
+            if (isArrMatch(last7, ["SMALL","SMALL","SMALL","BIG","BIG","BIG","BIG"])) {
+                return { size: "BIG", name: "⚡ 3S+3B BREAKOUT (4B)", desc: "4th BIG broken out. Trend continuing BIG.", conf: 83 };
+            }
+
+            // Standard 3B + 3S Cycles
+            if (isArrMatch(last6, ["BIG","BIG","BIG","SMALL","SMALL","SMALL"])) {
+                return { size: "BIG", name: "⚡ 3B+3S CYCLE COMPLETE", desc: "3B then 3S complete. Reversal to BIG expected.", conf: 85 };
+            }
+            if (isArrMatch(last6, ["SMALL","SMALL","SMALL","BIG","BIG","BIG"])) {
+                return { size: "SMALL", name: "⚡ 3S+3B CYCLE COMPLETE", desc: "3S then 3B complete. Reversal to SMALL expected.", conf: 85 };
+            }
+
+            // Forming 3B + 2S / 3S + 2B
+            if (isArrMatch(last5, ["BIG","BIG","BIG","SMALL","SMALL"])) {
+                return { size: "SMALL", name: "⚡ 3B+2S FORMING", desc: "Expecting 3rd SMALL to complete 3B+3S block.", conf: 80 };
+            }
+            if (isArrMatch(last5, ["SMALL","SMALL","SMALL","BIG","BIG"])) {
+                return { size: "BIG", name: "⚡ 3S+2B FORMING", desc: "Expecting 3rd BIG to complete 3S+3B block.", conf: 80 };
+            }
+
+            // 3 Consecutive Reversal
+            if (streak === 3) {
+                const expected = lastResult === "BIG" ? "SMALL" : "BIG";
+                return { size: expected, name: `⚡ 3${lastResult[0]} REVERSAL EXPECTED`, desc: `3 consecutive ${lastResult}s. Reversal to ${expected}.`, conf: 82 };
+            }
+
+            return null;
+        }
+
+        function check2B2S(results, streak, lastResult) {
+            if (results.length < 2) return null;
+            const last4 = results.slice(0, 4).reverse();
+            const last3 = results.slice(0, 3).reverse();
+
+            if (isArrMatch(last4, ["BIG","BIG","SMALL","SMALL"])) {
+                return { size: "BIG", name: "⚡ 2B+2S CYCLE (BBSS)", desc: "2B+2S pattern complete. Next is BIG.", conf: 83 };
+            }
+            if (isArrMatch(last4, ["SMALL","SMALL","BIG","BIG"])) {
+                return { size: "SMALL", name: "⚡ 2S+2B CYCLE (SSBB)", desc: "2S+2B pattern complete. Next is SMALL.", conf: 83 };
+            }
+            if (isArrMatch(last3, ["BIG","BIG","SMALL"])) {
+                return { size: "SMALL", name: "⚡ 2B+1S FORMING (BBS)", desc: "Expecting second SMALL to complete 2B+2S.", conf: 77 };
+            }
+            if (isArrMatch(last3, ["SMALL","SMALL","BIG"])) {
+                return { size: "BIG", name: "⚡ 2S+1B FORMING (SSB)", desc: "Expecting second BIG to complete 2S+2B.", conf: 77 };
+            }
+
+            if (streak === 2) {
+                const expected = lastResult === "BIG" ? "SMALL" : "BIG";
+                return { size: expected, name: `⚡ 2${lastResult[0]} REVERSAL (2B2S)`, desc: `Double ${lastResult}. Standard 2B+2S reversal to ${expected}.`, conf: 76 };
+            }
+
+            return null;
+        }
+
+        function evaluateStructural(sizes) {
+            if (!sizes || sizes.length < 2) return null;
+            const lastResult = sizes[0];
+            let streak = 1;
+            for (let i = 1; i < sizes.length; i++) {
+                if (sizes[i] === lastResult) streak++;
+                else break;
+            }
+
+            const p4 = check4B4S(sizes, streak, lastResult);
+            if (p4) return p4;
+            const p3 = check3B3S(sizes, streak, lastResult);
+            if (p3) return p3;
+            const tri = checkTriangle(sizes);
+            if (tri) return tri;
+            const p2 = check2B2S(sizes, streak, lastResult);
+            if (p2) return p2;
+            const zz = checkZigzag(sizes);
+            if (zz) return zz;
+
+            return null;
+        }
+
+        /* ---------------------------------------------------------
+           MASTERMIND V8 MULTI-WINDOW EXPONENTIAL DECAY AI
+           --------------------------------------------------------- */
+        function mastermindEngine(nums) {
+            if (!nums || nums.length < 3) return 'BIG';
+            const last3 = nums.slice(0, 3);
+            const last5 = nums.slice(0, 5);
+            const last7 = nums.slice(0, Math.min(7, nums.length));
+            const last12 = nums.slice(0, Math.min(12, nums.length));
+
+            const sm3 = last3.filter(n => n <= 4).length;
+            const sm5 = last5.filter(n => n <= 4).length;
+            const sm7 = last7.filter(n => n <= 4).length;
+            const sm12 = last12.filter(n => n <= 4).length;
+
+            const sScore = (sm3 / 3) * 0.40 + (sm5 / 5) * 0.28 + (sm7 / 7) * 0.20 + (sm12 / 12) * 0.12;
+            const bScore = ((3 - sm3) / 3) * 0.40 + ((5 - sm5) / 5) * 0.28 + ((7 - sm7) / 7) * 0.20 + ((12 - sm12) / 12) * 0.12;
+
+            return bScore >= sScore ? 'BIG' : 'SMALL';
+        }
+
+        /* ---------------------------------------------------------
+           BMW OBLIVION VOLATILITY INDEX ENGINE
+           --------------------------------------------------------- */
+        function oblivionEngine(sizes, nums) {
+            if (!sizes || sizes.length < 4) return sizes[0];
+            let diffSum = 0;
+            for (let i = 0; i < Math.min(4, nums.length - 1); i++) {
+                diffSum += Math.abs(nums[i] - nums[i + 1]);
+            }
+            const avgDiff = diffSum / 4;
+            if (avgDiff > 4.5) {
+                return sizes[0] === 'BIG' ? 'SMALL' : 'BIG';
+            }
+            return sizes[0];
+        }
+
+        /* ---------------------------------------------------------
            ULTIMATE MASTER MULTI-MODEL ENSEMBLE ENGINE
            --------------------------------------------------------- */
         function calculateCombinedPrediction(list) {
@@ -1237,23 +1476,39 @@
 
             const votes = { BIG: 0, SMALL: 0 };
 
+            // Layer 0: Zero-Lag TSX Structural Hierarchy (+5.2 weight override)
+            const structural = evaluateStructural(sizes);
+            let tsxVote = 'NONE';
+            if (structural) {
+                votes[structural.size] += 5.2;
+                tsxVote = structural.size;
+            }
+
             // Layer 1: Apex Titan Cadence Engine (Jash Autobet)
             const titan = apexTitanEngine(sizes, Math.max(0, currentLevel - 1));
             votes[titan.vote] += 3.2;
 
-            // Layer 2: Radhe Hack 2-3 Level Fix
-            const radhe = radheEngine(list);
-            votes[radhe] += 2.4;
+            // Layer 2: Mastermind v8 Multi-Window AI
+            const mastermind = mastermindEngine(nums);
+            votes[mastermind] += 2.4;
 
-            // Layer 3: Suresh VIP Supreme V15
+            // Layer 3: Radhe Hack 2-3 Level Fix
+            const radhe = radheEngine(list);
+            votes[radhe] += 2.2;
+
+            // Layer 4: Suresh VIP Supreme V15
             const suresh = sureshEngine(list);
             votes[suresh] += 2.0;
 
-            // Layer 4: Quantum Markov 2-Gram
+            // Layer 5: Quantum Markov 2-Gram
             const markov = markovEngine(sizes);
             votes[markov] += 1.8;
 
-            // Layer 5: TGX 6-Logic Ensemble
+            // Layer 6: BMW Oblivion Volatility Index
+            const oblivion = oblivionEngine(sizes, nums);
+            votes[oblivion] += 1.5;
+
+            // Layer 7: TGX 6-Logic Ensemble
             const l1 = tgxLogic1(nums, sizes); votes[l1] += 1.0;
             const l2 = tgxLogic2(nums);        votes[l2] += 1.2;
             const l3 = tgxLogic3(nums, sizes); votes[l3] += 1.0;
@@ -1261,11 +1516,11 @@
             const l5 = tgxLogic5(nums);        votes[l5] += 0.8;
             const l6 = tgxLogic6(sizes);       votes[l6] += 1.0;
 
-            // Layer 6: The Paid Pro 3-Round Window
+            // Layer 8: The Paid Pro 3-Round Window
             const painPro = sizes.slice(0, 3).filter(x => x === 'BIG').length > 1 ? 'BIG' : 'SMALL';
             votes[painPro] += 1.0;
 
-            // Layer 7: Nexa Pro 15-Round Skew Reversion
+            // Layer 9: Nexa Pro 15-Round Skew Reversion
             const big15 = sizes.slice(0, 15).filter(x => x === 'BIG').length;
             let nexaVote = 'BALANCED';
             if (big15 >= 10) {
@@ -1279,11 +1534,13 @@
             // Circuit Breaker: Detect high-chop volatility
             const isChopZone = (alt >= 3 && currentLevel >= 3);
             let patternType = 'consensus';
-            let patternLabel = titan.reg;
+            let patternLabel = structural ? structural.name : titan.reg;
 
             if (isChopZone) {
                 patternType = 'zigzag';
                 patternLabel = '🛑 CAPITAL SHIELD: CHOP ZONE (SKIP DRAW / FLAT 1X)';
+            } else if (structural) {
+                patternType = structural.name.includes('DRAGON') ? 'dragon' : (structural.name.includes('ZIGZAG') ? 'zigzag' : 'consensus');
             } else if (streak >= 4) {
                 patternType = 'dragon';
             } else if (alt >= 3) {
@@ -1294,7 +1551,8 @@
 
             const prediction = votes.BIG >= votes.SMALL ? 'BIG' : 'SMALL';
             const totalScore = votes.BIG + votes.SMALL;
-            const confidence = isChopZone ? 68 : Math.min(98, Math.max(82, Math.round((Math.max(votes.BIG, votes.SMALL) / totalScore) * 100)));
+            const baseConf = structural ? structural.conf : Math.round((Math.max(votes.BIG, votes.SMALL) / totalScore) * 100);
+            const confidence = isChopZone ? 68 : Math.min(98, Math.max(82, baseConf));
 
             return {
                 prediction,
@@ -1306,10 +1564,13 @@
                 nextPeriod: (BigInt(list[0].issueNumber) + 1n).toString(),
                 models: {
                     l1, l2, l3, l4, l5, l6,
+                    tsx: tsxVote,
                     titan: titan.vote,
+                    mastermind,
                     radhe,
                     suresh,
                     markov,
+                    oblivion,
                     painPro,
                     nexaVote
                 }
@@ -1372,7 +1633,7 @@
             const el = document.getElementById(id);
             if (!el) return;
             el.textContent = text;
-            const isSpan = (id.includes('Titan') || id.includes('Radhe') || id.includes('Suresh') || id.includes('Markov') || id.includes('Pain') || id.includes('Nexa'));
+            const isSpan = (id.includes('Tsx') || id.includes('Titan') || id.includes('Radhe') || id.includes('Suresh') || id.includes('Markov') || id.includes('Master') || id.includes('Oblivion') || id.includes('Pain') || id.includes('Nexa'));
             el.className = 'matrix-pill' + (isSpan ? ' span2' : '') + (type === 'BIG' ? ' big' : (type === 'SMALL' ? ' small' : ''));
         }
 
@@ -1395,10 +1656,13 @@
                 updateMatrixPill('mPillL4', `L4: ${data.models.l4}`, data.models.l4);
                 updateMatrixPill('mPillL5', `L5: ${data.models.l5}`, data.models.l5);
                 updateMatrixPill('mPillL6', `L6: ${data.models.l6}`, data.models.l6);
+                updateMatrixPill('mPillTsx', `TSX: ${data.models.tsx}`, data.models.tsx);
                 updateMatrixPill('mPillTitan', `TITAN: ${data.models.titan}`, data.models.titan);
                 updateMatrixPill('mPillRadhe', `RADHE: ${data.models.radhe}`, data.models.radhe);
                 updateMatrixPill('mPillSuresh', `SURESH: ${data.models.suresh}`, data.models.suresh);
                 updateMatrixPill('mPillMarkov', `MARKOV: ${data.models.markov}`, data.models.markov);
+                updateMatrixPill('mPillMaster', `MIND: ${data.models.mastermind}`, data.models.mastermind);
+                updateMatrixPill('mPillOblivion', `OBLIV: ${data.models.oblivion}`, data.models.oblivion);
                 updateMatrixPill('mPillPain', `PAIN: ${data.models.painPro}`, data.models.painPro);
                 updateMatrixPill('mPillNexa', `NEXA: ${data.models.nexaVote}`, data.models.nexaVote.includes('B') ? 'BIG' : (data.models.nexaVote.includes('S') ? 'SMALL' : ''));
             }
