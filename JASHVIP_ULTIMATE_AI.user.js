@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         JASHVIP ULTIMATE AI — WinGo Floating Prediction HUD & AutoBet
 // @namespace    https://github.com/jash0388/jashvip
-// @version      4.0.0
-// @description  Master Multi-Model Ensemble WinGo (1M / 30S) Prediction HUD with Draggable Cyberpunk UI, Automated 1X/3X Auto-Betting Engine (Start/Stop Toggle, Base Stake Config, L3 Capital Lock), Audio Alerts & Live Draw Sync.
+// @version      5.1.0
+// @description  Compact WinGo (1M / 30S) Prediction HUD with Auto-Betting (Martingale: 3 -> 6+1=7 -> 12+2=14, Single-Click Confirmation, Auto-Modal Dismiss, One-Click Expand/Minimize).
 // @author       Jashwanth Singh
 // @match        *://*/*
 // @grant        GM_xmlhttpRequest
@@ -33,22 +33,32 @@
     let isMinimized = false;
     let lastResolvedIssue = null;
     let currentPrediction = null;
-    let historyLogs = [];
-    let currentLevel = 1;
     let timerInterval = null;
     let pollInterval = null;
 
     /* =========================================================
-       AUTOBET STATE
+       MARTINGALE STATE (User formula: 3 -> 6+1=7 -> 12+2=14)
        ========================================================= */
     let autobetEnabled = false;
-    let baseStake = parseInt(localStorage.getItem('JASH_BASE_STAKE') || '10', 10);
-    if (isNaN(baseStake) || baseStake < 1) baseStake = 10;
+    let baseStake = parseInt(localStorage.getItem('JASH_BASE_STAKE') || '3', 10);
+    if (isNaN(baseStake) || baseStake < 1) baseStake = 3;
+    let lossStreak = 0;
     const placedPeriods = new Set();
     let isPlacingBet = false;
 
+    function calculateStake(base, streak) {
+        if (streak <= 0) return base;
+        if (streak === 1) return (base * 2) + 1; // e.g. 3*2+1 = 7
+        if (streak === 2) return ((base * 2) + 1) * 2; // e.g. 7*2 = 14
+        return (((base * 2) + 1) * 2) * 2; // e.g. 14*2 = 28
+    }
+
+    function getCurrentBetAmount() {
+        return calculateStake(baseStake, lossStreak);
+    }
+
     /* =========================================================
-       AUDIO CHIMES (WEB AUDIO API - ZERO EXTERNAL ASSETS)
+       AUDIO CHIMES
        ========================================================= */
     let audioCtx = null;
     function getAudioContext() {
@@ -56,9 +66,7 @@
             const AudioCtx = window.AudioContext || window.webkitAudioContext;
             if (AudioCtx) audioCtx = new AudioCtx();
         }
-        if (audioCtx && audioCtx.state === 'suspended') {
-            audioCtx.resume();
-        }
+        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
         return audioCtx;
     }
 
@@ -72,11 +80,8 @@
 
             osc.type = isWin ? 'triangle' : 'sine';
             osc.frequency.setValueAtTime(isWin ? 880 : 280, ctx.currentTime);
-            if (isWin) {
-                osc.frequency.exponentialRampToValueAtTime(1320, ctx.currentTime + 0.15);
-            } else {
-                osc.frequency.exponentialRampToValueAtTime(180, ctx.currentTime + 0.2);
-            }
+            if (isWin) osc.frequency.exponentialRampToValueAtTime(1320, ctx.currentTime + 0.15);
+            else osc.frequency.exponentialRampToValueAtTime(180, ctx.currentTime + 0.2);
 
             gain.gain.setValueAtTime(0.15, ctx.currentTime);
             gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
@@ -89,472 +94,55 @@
     }
 
     /* =========================================================
-       HELPER UTILITIES
+       PREDICTION ENGINE
        ========================================================= */
     function getSize(number) {
         return parseInt(number, 10) >= 5 ? 'BIG' : 'SMALL';
     }
 
-    function opp(size) {
-        return size === 'BIG' ? 'SMALL' : 'BIG';
-    }
-
-    function getRuns(sizes) {
-        const runs = [];
-        if (!sizes.length) return runs;
-        let cur = sizes[0], len = 1;
-        for (let i = 1; i < sizes.length; i++) {
-            if (sizes[i] === cur) len++;
-            else {
-                runs.push({ size: cur, len });
-                cur = sizes[i];
-                len = 1;
-            }
-        }
-        runs.push({ size: cur, len });
-        return runs;
-    }
-
-    /* =========================================================
-       ENSEMBLE MODELS (PROVEN SUITE)
-       ========================================================= */
-    // 1. Apex Titan Engine
-    function apexTitanEngine(sizes, lossStreak) {
-        const runs = getRuns(sizes);
-        const cRun = runs[runs.length - 1];
-        const cSide = cRun.size;
-        const cLen = cRun.len;
-        const lastS = sizes[sizes.length - 1];
-
-        let alt = 0;
-        for (let i = runs.length - 1; i >= 0; i--) {
-            if (runs[i].len === 1) alt++;
-            else break;
-        }
-
-        if (lossStreak >= 2) {
-            if (cLen >= 4) return { vote: cSide, reg: '🛑 L3 DRAGON EXT' };
-            if (cLen === 3) return { vote: opp(cSide), reg: '🛑 L3 DRAGON CUT' };
-            if (cLen === 2) return { vote: opp(cSide), reg: '🛑 L3 DOUBLET CUT' };
-            if (alt >= 3) return { vote: opp(lastS), reg: '🛑 L3 CHOP OSC' };
-            return { vote: cSide, reg: '🛑 L3 MOMENTUM LOCK' };
-        } else if (lossStreak === 1) {
-            if (cLen >= 3) return { vote: cSide, reg: '🛡️ L2 DRAGON RIDE' };
-            if (cLen === 2) return { vote: cSide, reg: '🛡️ L2 DOUBLET RIDE' };
-            if (alt >= 2) return { vote: opp(lastS), reg: '🛡️ L2 CHOP FLIP' };
-            return { vote: cSide, reg: '🛡️ L2 MOMENTUM LOCK' };
-        } else {
-            if (cLen >= 4) return { vote: cSide, reg: '🌊 L1 DRAGON EXT' };
-            if (cLen === 3) return { vote: opp(cSide), reg: '🐉 L1 DRAGON CUT' };
-            if (cLen === 2) return { vote: opp(cSide), reg: '🌊 L1 DOUBLET CUT' };
-            if (alt >= 3) return { vote: opp(lastS), reg: '⚡ L1 CHOP OSC' };
-            if (cLen === 1) return { vote: opp(cSide), reg: '🌊 L1 SINGLE CUT' };
-            return { vote: cSide, reg: '🌊 L1 MOMENTUM' };
-        }
-    }
-
-    // 2. Radhe Engine
-    function radheEngine(list) {
-        let sizes = list.slice(0, 12).map(item => getSize(item.number));
-        let consecutiveCount = 1;
-        for (let i = 1; i < sizes.length; i++) {
-            if (sizes[i] === sizes[0]) consecutiveCount++; else break;
-        }
-        if (consecutiveCount >= 4) return sizes[0];
-        let isAlternating = true;
-        for (let i = 0; i < 4; i++) {
-            if (sizes[i] === sizes[i + 1]) { isAlternating = false; break; }
-        }
-        if (isAlternating) return sizes[0] === 'BIG' ? 'SMALL' : 'BIG';
-        let weightSum = 0;
-        for (let i = 0; i < Math.min(list.length, 6); i++) {
-            let num = parseInt(list[i].number, 10);
-            let pWeight = (6 - i) * 3;
-            weightSum += (num >= 5) ? pWeight : -pWeight;
-        }
-        return weightSum >= 0 ? 'BIG' : 'SMALL';
-    }
-
-    // 3. Suresh VIP Supreme
-    function sureshEngine(list) {
-        let bigs = 0, smalls = 0;
-        for (let i = 0; i < Math.min(10, list.length); i++) {
-            const num = parseInt(list[i].number, 10);
-            const weight = (10 - i);
-            if (num >= 5) bigs += weight; else smalls += weight;
-        }
-        const last3 = list.slice(0, 3).map(x => getSize(x.number));
-        if (last3[0] === last3[1] && last3[1] === last3[2]) {
-            return last3[0] === 'BIG' ? 'SMALL' : 'BIG';
-        }
-        return bigs >= smalls ? 'BIG' : 'SMALL';
-    }
-
-    // 4. Quantum Markov 2-Gram
-    function markovEngine(sizes) {
-        if (sizes.length < 5) return sizes[0];
-        const s1 = sizes[1], s0 = sizes[0];
-        let nextB = 0, nextS = 0;
-        for (let i = 0; i < sizes.length - 2; i++) {
-            if (sizes[i + 1] === s1 && sizes[i] === s0) {
-                if (sizes[i + 2] === 'BIG') nextB++; else nextS++;
-            }
-        }
-        if (nextB > nextS) return 'BIG';
-        if (nextS > nextB) return 'SMALL';
-        return s0;
-    }
-
-    // 5. TGX 6-Logic Suite
-    function tgxLogic1(nums, sizes) {
-        const n1 = nums[0], n2 = nums[1] || nums[0];
-        const n9 = nums[8] || nums[nums.length - 1], n10 = nums[9] || nums[nums.length - 1];
-        let total = Math.abs((n1 - n2) + (n9 - n10)) % 10;
-        let bigs = 0;
-        for (let i = 0; i < Math.min(5, sizes.length); i++) if (sizes[i] === 'BIG') bigs++;
-        if (bigs >= 4) return total >= 4 ? 'BIG' : 'SMALL';
-        if (bigs <= 1) return total >= 6 ? 'BIG' : 'SMALL';
-        return total >= 5 ? 'BIG' : 'SMALL';
-    }
-
-    function tgxLogic2(nums) {
-        const w = [3, 2, 1, 1, 1];
-        let sum = 0;
-        for (let i = 0; i < Math.min(5, nums.length); i++) sum += nums[i] * w[i];
-        sum += nums[0] * 2;
-        return (sum % 10) >= 5 ? 'BIG' : 'SMALL';
-    }
-
-    function tgxLogic3(nums, sizes) {
-        let vol = 0;
-        for (let i = 0; i < Math.min(5, nums.length - 1); i++) vol += Math.abs(nums[i] - nums[i + 1]);
-        vol = vol / 5;
-        let streak = 1;
-        for (let i = 1; i < Math.min(5, sizes.length); i++) if (sizes[i] === sizes[0]) streak++; else break;
-        let streakScore = streak >= 3 ? -25 : (streak === 2 ? -15 : (vol > 3 ? 10 : 5));
-        let bigCnt = sizes.slice(0, 8).filter(x => x === 'BIG').length;
-        let imbalance = ((bigCnt - 4) / 8) * 100;
-        let pattern = (sizes[0] === sizes[1] && sizes[1] === sizes[2]) ? -35 : (sizes[0] === sizes[1] ? -20 : 25);
-        let total = (streakScore * 0.3) + (imbalance * 0.4) + (pattern * 0.3);
-        return total >= 0 ? 'BIG' : 'SMALL';
-    }
-
-    function tgxLogic4(sizes) {
-        let streak = 1;
-        for (let i = 1; i < sizes.length; i++) if (sizes[i] === sizes[0]) streak++; else break;
-        if (streak >= 3) return sizes[0] === 'BIG' ? 'SMALL' : 'BIG';
-        let changes = 0;
-        for (let i = 0; i < Math.min(5, sizes.length - 1); i++) if (sizes[i] !== sizes[i + 1]) changes++;
-        if (changes >= 3) return sizes[0] === 'BIG' ? 'SMALL' : 'BIG';
-        return sizes[0];
-    }
-
-    function tgxLogic5(nums) {
-        let ev = 0;
-        for (let i = 0; i < Math.min(6, nums.length); i++) if (nums[i] % 2 === 0) ev++;
-        return ev >= 3 ? 'BIG' : 'SMALL';
-    }
-
-    function tgxLogic6(sizes) {
-        if (sizes.length < 2) return sizes[0];
-        return sizes[0] === sizes[1] ? (sizes[0] === 'BIG' ? 'SMALL' : 'BIG') : sizes[0];
-    }
-
-    // 6. Zero-Lag Geometric Structural Hierarchy
-    function isArrMatch(arrA, arrB) {
-        if (!arrA || !arrB || arrA.length !== arrB.length) return false;
-        return arrA.every((v, i) => v === arrB[i]);
-    }
-
-    function checkZigzag(results) {
-        if (results.length < 3) return null;
-        let zigzagLen = 0;
-        for (let i = 0; i < Math.min(results.length - 1, 8); i++) {
-            if (results[i] !== results[i + 1]) zigzagLen++;
-            else break;
-        }
-        if (zigzagLen >= 3) {
-            const expected = results[0] === 'BIG' ? 'SMALL' : 'BIG';
-            return {
-                size: expected,
-                name: `⚡ ZIGZAG SWITCH (${zigzagLen}X)`,
-                conf: Math.min(94, 72 + zigzagLen * 4)
-            };
-        }
-        return null;
-    }
-
-    function checkTriangle(results) {
-        if (results.length < 3) return null;
-        const last3 = results.slice(0, 3).reverse();
-        if (isArrMatch(last3, ["BIG", "SMALL", "SMALL"])) {
-            return { size: "BIG", name: "⚡ TRIANGLE COMPLETE (BSS)", conf: 82 };
-        }
-        if (isArrMatch(last3, ["SMALL", "BIG", "BIG"])) {
-            return { size: "SMALL", name: "⚡ TRIANGLE COMPLETE (SBB)", conf: 82 };
-        }
-        return null;
-    }
-
-    function check4B4S(results, streak, lastResult) {
-        if (results.length < 4) return null;
-        const last8 = results.slice(0, 8).reverse();
-        if (streak >= 4) {
-            return { size: lastResult, name: `⚡ DRAGON RIDE (${streak}${lastResult[0]})`, conf: 86 };
-        }
-        if (isArrMatch(last8, ["BIG","BIG","BIG","BIG","SMALL","SMALL","SMALL","SMALL"])) {
-            return { size: "BIG", name: "⚡ 4B+4S CYCLE COMPLETE", conf: 87 };
-        }
-        if (isArrMatch(last8, ["SMALL","SMALL","SMALL","SMALL","BIG","BIG","BIG","BIG"])) {
-            return { size: "SMALL", name: "⚡ 4S+4B CYCLE COMPLETE", conf: 87 };
-        }
-        return null;
-    }
-
-    function check3B3S(results, streak, lastResult) {
-        if (results.length < 3) return null;
-        const last6 = results.slice(0, 6).reverse();
-        const last5 = results.slice(0, 5).reverse();
-        if (isArrMatch(last6, ["BIG","BIG","BIG","SMALL","SMALL","SMALL"])) {
-            return { size: "BIG", name: "⚡ 3B+3S CYCLE COMPLETE", conf: 84 };
-        }
-        if (isArrMatch(last6, ["SMALL","SMALL","SMALL","BIG","BIG","BIG"])) {
-            return { size: "SMALL", name: "⚡ 3S+3B CYCLE COMPLETE", conf: 84 };
-        }
-        if (isArrMatch(last5, ["BIG","BIG","BIG","SMALL","SMALL"])) {
-            return { size: "SMALL", name: "⚡ 3B+2S FORMING", conf: 80 };
-        }
-        if (isArrMatch(last5, ["SMALL","SMALL","SMALL","BIG","BIG"])) {
-            return { size: "BIG", name: "⚡ 3S+2B FORMING", conf: 80 };
-        }
-        return null;
-    }
-
-    function check2B2S(results, streak, lastResult) {
-        if (results.length < 3) return null;
-        const last4 = results.slice(0, 4).reverse();
-        const last3 = results.slice(0, 3).reverse();
-        if (isArrMatch(last4, ["BIG","BIG","SMALL","SMALL"])) {
-            return { size: "BIG", name: "⚡ 2B+2S CYCLE COMPLETE (BBSS)", conf: 85 };
-        }
-        if (isArrMatch(last4, ["SMALL","SMALL","BIG","BIG"])) {
-            return { size: "SMALL", name: "⚡ 2S+2B CYCLE COMPLETE (SSBB)", conf: 85 };
-        }
-        if (isArrMatch(last3, ["BIG","BIG","SMALL"])) {
-            return { size: "SMALL", name: "⚡ 2B+1S FORMING (BBS)", conf: 82 };
-        }
-        if (isArrMatch(last3, ["SMALL","SMALL","BIG"])) {
-            return { size: "BIG", name: "⚡ 2S+1B FORMING (SSB)", conf: 82 };
-        }
-        return null;
-    }
-
-    function evaluateStructural(sizes) {
-        if (!sizes || sizes.length < 3) return null;
-        const lastResult = sizes[0];
-        let streak = 1;
-        for (let i = 1; i < sizes.length; i++) {
-            if (sizes[i] === lastResult) streak++;
-            else break;
-        }
-
-        const p4 = check4B4S(sizes, streak, lastResult);
-        if (p4) return p4;
-        const p2 = check2B2S(sizes, streak, lastResult);
-        if (p2) return p2;
-        const p3 = check3B3S(sizes, streak, lastResult);
-        if (p3) return p3;
-        const tri = checkTriangle(sizes);
-        if (tri) return tri;
-        const zz = checkZigzag(sizes);
-        if (zz) return zz;
-
-        return null;
-    }
-
-    // 7. Mastermind V8 AI
-    function mastermindEngine(nums) {
-        if (!nums || nums.length < 3) return 'BIG';
-        const last3 = nums.slice(0, 3);
-        const last5 = nums.slice(0, 5);
-        const last7 = nums.slice(0, Math.min(7, nums.length));
-        const last12 = nums.slice(0, Math.min(12, nums.length));
-
-        const sm3 = last3.filter(n => n <= 4).length;
-        const sm5 = last5.filter(n => n <= 4).length;
-        const sm7 = last7.filter(n => n <= 4).length;
-        const sm12 = last12.filter(n => n <= 4).length;
-
-        const sScore = (sm3 / 3) * 0.40 + (sm5 / 5) * 0.28 + (sm7 / 7) * 0.20 + (sm12 / 12) * 0.12;
-        const bScore = ((3 - sm3) / 3) * 0.40 + ((5 - sm5) / 5) * 0.28 + ((7 - sm7) / 7) * 0.20 + ((12 - sm12) / 12) * 0.12;
-
-        return bScore >= sScore ? 'BIG' : 'SMALL';
-    }
-
-    // 8. Oblivion Volatility Index
-    function oblivionEngine(sizes, nums) {
-        if (!sizes || sizes.length < 4) return sizes[0];
-        let diffSum = 0;
-        for (let i = 0; i < Math.min(4, nums.length - 1); i++) {
-            diffSum += Math.abs(nums[i] - nums[i + 1]);
-        }
-        const avgDiff = diffSum / 4;
-        if (avgDiff > 4.5) {
-            return sizes[0] === 'BIG' ? 'SMALL' : 'BIG';
-        }
-        return sizes[0];
-    }
-
-    /* =========================================================
-       MASTER MULTI-MODEL ENSEMBLE ENGINE
-       ========================================================= */
     function calculateCombinedPrediction(list) {
         if (!list || list.length < 3) return null;
-
         const sizes = list.slice(0, 15).map(item => getSize(item.number));
-        const nums = list.slice(0, 15).map(item => parseInt(item.number, 10));
-
-        let alt = 1;
-        for (let i = 0; i < sizes.length - 1; i++) {
-            if (sizes[i] !== sizes[i + 1]) alt++;
-            else break;
-        }
 
         let streak = 1;
         for (let i = 0; i < sizes.length - 1; i++) {
-            if (sizes[i] === sizes[i + 1]) streak++;
-            else break;
+            if (sizes[i] === sizes[i + 1]) streak++; else break;
+        }
+        let alt = 1;
+        for (let i = 0; i < sizes.length - 1; i++) {
+            if (sizes[i] !== sizes[i + 1]) alt++; else break;
         }
 
-        // 🛑 STRICT CAPITAL LOCK: If currentLevel >= 3 (after 2 consecutive losses), HARD STOP-LOSS!
-        if (currentLevel >= 3) {
-            return {
-                prediction: 'SKIP',
-                patternType: 'skip',
-                patternLabel: '🛑 CAPITAL LOCK: SKIP ROUND (L3 PROTECT - DO NOT BET)',
-                confidence: 0,
-                latestIssue: list[0].issueNumber,
-                latestNumber: parseInt(list[0].number, 10),
-                nextPeriod: (BigInt(list[0].issueNumber) + 1n).toString(),
-                models: {
-                    l1: 'SKIP', l2: 'SKIP', l3: 'SKIP', l4: 'SKIP', l5: 'SKIP', l6: 'SKIP',
-                    titan: 'SKIP', radhe: 'SKIP', suresh: 'SKIP', markov: 'SKIP', painPro: 'SKIP', nexaVote: 'SKIP'
-                }
-            };
-        }
+        let pred = sizes[0];
+        let label = 'TREND RIDE';
 
-        const votes = { BIG: 0, SMALL: 0 };
-
-        // Layer 0: Zero-Lag Geometric Structural Engine
-        const structural = evaluateStructural(sizes);
-        let tsxVote = 'NONE';
-        if (structural) {
-            votes[structural.size] += 2.5;
-            tsxVote = structural.size;
-        }
-
-        // Layer 1: Apex Titan Cadence Engine
-        const titan = apexTitanEngine(sizes, Math.max(0, currentLevel - 1));
-        votes[titan.vote] += 2.5;
-
-        // Layer 2: Mastermind v8 Multi-Window AI
-        const mastermind = mastermindEngine(nums);
-        votes[mastermind] += 2.0;
-
-        // Layer 3: Radhe Hack 2-3 Level Fix
-        const radhe = radheEngine(list);
-        votes[radhe] += 1.8;
-
-        // Layer 4: Suresh VIP Supreme V15
-        const suresh = sureshEngine(list);
-        votes[suresh] += 1.8;
-
-        // Layer 5: Quantum Markov 2-Gram
-        const markov = markovEngine(sizes);
-        votes[markov] += 1.6;
-
-        // Layer 6: BMW Oblivion Volatility Index
-        const oblivion = oblivionEngine(sizes, nums);
-        votes[oblivion] += 1.4;
-
-        // Layer 7: TGX 6-Logic Suite
-        const l1 = tgxLogic1(nums, sizes); votes[l1] += 0.8;
-        const l2 = tgxLogic2(nums);        votes[l2] += 0.9;
-        const l3 = tgxLogic3(nums, sizes); votes[l3] += 0.8;
-        const l4 = tgxLogic4(sizes);       votes[l4] += 0.8;
-        const l5 = tgxLogic5(nums);        votes[l5] += 0.7;
-        const l6 = tgxLogic6(sizes);       votes[l6] += 0.8;
-
-        // Layer 8: The Paid Pro 3-Round Window
-        const painPro = sizes.slice(0, 3).filter(x => x === 'BIG').length > 1 ? 'BIG' : 'SMALL';
-        votes[painPro] += 1.0;
-
-        // Layer 9: Nexa Pro 15-Round Skew
-        const big15 = sizes.slice(0, 15).filter(x => x === 'BIG').length;
-        let nexaVote = 'BALANCED';
-        if (big15 >= 10) {
-            votes.SMALL += 1.2;
-            nexaVote = 'REV-S';
-        } else if (big15 <= 5) {
-            votes.BIG += 1.2;
-            nexaVote = 'REV-B';
-        }
-
-        // Chop Zone Filter
-        if (alt >= 4 && Math.abs(votes.BIG - votes.SMALL) < 1.0) {
-            return {
-                prediction: 'SKIP',
-                patternType: 'skip',
-                patternLabel: '🛑 CHOP ZONE: SKIP ROUND (WAIT FOR SOLID SIGNAL)',
-                confidence: 50,
-                latestIssue: list[0].issueNumber,
-                latestNumber: parseInt(list[0].number, 10),
-                nextPeriod: (BigInt(list[0].issueNumber) + 1n).toString(),
-                models: {
-                    l1, l2, l3, l4, l5, l6,
-                    titan: titan.vote, radhe, suresh, markov, painPro, nexaVote
-                }
-            };
-        }
-
-        let patternType = 'consensus';
-        let patternLabel = structural ? structural.name : titan.reg;
-
-        if (structural) {
-            patternType = structural.name.includes('DRAGON') ? 'dragon' : (structural.name.includes('ZIGZAG') ? 'zigzag' : 'cycle');
-        } else if (streak >= 4) {
-            patternType = 'dragon';
+        if (streak >= 3) {
+            pred = sizes[0];
+            label = `⚡ DRAGON (${streak}X)`;
         } else if (alt >= 3) {
-            patternType = 'zigzag';
+            pred = sizes[0] === 'BIG' ? 'SMALL' : 'BIG';
+            label = `⚡ ZIGZAG (${alt}X)`;
+        } else {
+            let bScore = 0, sScore = 0;
+            for (let i = 0; i < Math.min(8, sizes.length); i++) {
+                const w = 8 - i;
+                if (sizes[i] === 'BIG') bScore += w; else sScore += w;
+            }
+            pred = bScore >= sScore ? 'BIG' : 'SMALL';
+            label = 'AI CONSENSUS';
         }
-
-        const prediction = votes.BIG >= votes.SMALL ? 'BIG' : 'SMALL';
-        const totalScore = votes.BIG + votes.SMALL;
-        const baseConf = structural ? structural.conf : Math.round((Math.max(votes.BIG, votes.SMALL) / totalScore) * 100);
-        const confidence = Math.min(96, Math.max(78, baseConf));
 
         return {
-            prediction,
-            patternType,
-            patternLabel,
-            confidence,
+            prediction: pred,
+            patternLabel: label,
             latestIssue: list[0].issueNumber,
             latestNumber: parseInt(list[0].number, 10),
-            nextPeriod: (BigInt(list[0].issueNumber) + 1n).toString(),
-            models: {
-                l1, l2, l3, l4, l5, l6,
-                titan: titan.vote,
-                radhe,
-                suresh,
-                markov,
-                painPro,
-                nexaVote
-            }
+            nextPeriod: (BigInt(list[0].issueNumber) + 1n).toString()
         };
     }
 
     /* =========================================================
-       CROSS-ORIGIN FETCH VIA GM_xmlhttpRequest
+       FETCH LOTTERY HISTORY
        ========================================================= */
     function fetchWinGoHistory() {
         return new Promise((resolve) => {
@@ -569,9 +157,7 @@
                             const json = JSON.parse(res.responseText);
                             if (json && json.data && json.data.list) resolve(json.data.list);
                             else resolve(null);
-                        } catch (e) {
-                            resolve(null);
-                        }
+                        } catch (e) { resolve(null); }
                     },
                     onerror: () => resolve(null),
                     ontimeout: () => resolve(null)
@@ -586,68 +172,51 @@
     }
 
     /* =========================================================
-       DOM CLICK & AUTOBET EXECUTION ENGINE
+       ACCURATE DMFIRST DOM CLICKER & SINGLE-CLICK BETTING
        ========================================================= */
-    function fireClick(el) {
-        if (!el) return;
-        el.scrollIntoView?.({ block: 'center', behavior: 'instant' });
-        try {
-            const rect = el.getBoundingClientRect();
-            const cx = rect.left + rect.width / 2;
-            const cy = rect.top + rect.height / 2;
-            const touch = new Touch({ identifier: Date.now(), target: el, clientX: cx, clientY: cy, pageX: cx, pageY: cy, screenX: cx, screenY: cy });
-            el.dispatchEvent(new TouchEvent('touchstart', { bubbles: true, cancelable: true, touches: [touch], targetTouches: [touch], changedTouches: [touch] }));
-            el.dispatchEvent(new TouchEvent('touchend', { bubbles: true, cancelable: true, touches: [], targetTouches: [], changedTouches: [touch] }));
-        } catch (e) {}
-        ['pointerdown', 'mousedown', 'pointerup', 'mouseup', 'click'].forEach(evt => {
-            try { el.dispatchEvent(new MouseEvent(evt, { bubbles: true, cancelable: true, view: window })); } catch (e) {}
-        });
-        try { el.click(); } catch (e) {}
-    }
-
-    function dismissAnnoyingPopups() {
-        const closeBtns = Array.from(document.querySelectorAll('.van-dialog__confirm, .van-popup__close-icon, [class*="close"], [class*="dialog"] button, i.van-icon-cross, uni-icons.uni-icons-close, .van-overlay + div button, div.announcement-close, .notice-close, .notice-dialog .van-button'))
+    function closeAnyOpenBetModal() {
+        const cancelBtns = Array.from(document.querySelectorAll('.van-popup button, .popup button, [class*="cancel"], .van-overlay'))
             .filter(e => !e.closest('#jashvip-tampermonkey-root'));
-        for (const btn of closeBtns) {
-            const txt = (btn.textContent || '').trim();
-            if (/Cancel|Close|Confirm|I Know|Got It|我知道了|×|X/i.test(txt) || btn.classList.contains('van-popup__close-icon') || btn.classList.contains('van-icon-cross')) {
-                try { btn.click(); fireClick(btn); } catch (e) {}
+        for (const b of cancelBtns) {
+            const txt = (b.textContent || '').trim().toLowerCase();
+            if (txt === 'cancel' || b.classList.contains('van-overlay')) {
+                try { b.click(); } catch (e) {}
             }
         }
     }
 
     function findBetButton(side) {
-        const target = side.trim().toUpperCase(); // "BIG" or "SMALL"
-        const all = Array.from(document.querySelectorAll('button, div, span, uni-view, uni-button, p'))
-            .filter(e => !e.closest('#jashvip-tampermonkey-root'));
+        const target = side.trim().toLowerCase(); // "big" or "small"
 
-        // 1. Strict exact text
+        // Search outside our HUD and outside past result tables
+        const all = Array.from(document.querySelectorAll('button, div, span, p'))
+            .filter(e => {
+                if (e.closest('#jashvip-tampermonkey-root')) return false;
+                if (e.closest('.game-history, .history, table, .record-list, .record, tbody, tr, td, .chart')) return false;
+                return true;
+            });
+
+        // In DmFirst, Big and Small buttons are right below numbers/multipliers
         let btn = all.find(e => {
-            const txt = (e.textContent || '').trim().toUpperCase();
-            return (txt === target || txt === `${target} 2X` || txt === `${target}2X` || txt === `${target} 1.96X`) && e.children.length <= 1;
+            const t = (e.textContent || '').trim().toLowerCase();
+            return (t === target || t === `${target} 2x` || t === `${target}2x`) && e.children.length <= 1 && e.offsetHeight >= 24;
         });
 
-        // 2. Class-based detection
         if (!btn) {
-            btn = all.find(e => {
-                const cls = (e.className || '') + ' ' + (e.getAttribute('class') || '');
-                return new RegExp(`\\b${target.toLowerCase()}\\b`, 'i').test(cls) && e.children.length <= 1;
-            });
+            btn = all.find(e => (e.textContent || '').trim().toLowerCase() === target && e.children.length === 0);
         }
 
-        // 3. Prefix match with short text
         if (!btn) {
-            btn = all.find(e => {
-                const txt = (e.textContent || '').trim().toUpperCase();
-                return txt.startsWith(target) && txt.length <= 12;
-            });
+            btn = all.find(e => (e.textContent || '').trim().toLowerCase() === target);
         }
 
         return btn;
     }
 
     async function executeBetDOM(side, stake) {
-        dismissAnnoyingPopups();
+        // Ensure no previous stuck modal is open
+        closeAnyOpenBetModal();
+        await new Promise(r => setTimeout(r, 150));
 
         const targetBtn = findBetButton(side);
         if (!targetBtn) {
@@ -655,56 +224,50 @@
             return false;
         }
 
-        fireClick(targetBtn);
-        await new Promise(r => setTimeout(r, 350));
+        // 1. Click Big or Small
+        try { targetBtn.click(); } catch (e) {}
+        await new Promise(r => setTimeout(r, 450));
 
-        // Enter stake amount into popup input
+        // 2. Unit selection in modal
+        // If stake >= 10 and stake % 10 === 0: click unit 10, Qty = stake / 10
+        // Otherwise click unit 1, Qty = stake
+        let unit = (stake >= 10 && stake % 10 === 0) ? 10 : 1;
+        let qty = (unit === 10) ? Math.floor(stake / 10) : stake;
+
+        const popupEls = Array.from(document.querySelectorAll('.van-popup button, .van-popup div, .van-popup span, .popup button, .popup div, .popup span'))
+            .filter(e => !e.closest('#jashvip-tampermonkey-root'));
+
+        const unitBtn = popupEls.find(e => (e.textContent || '').trim() === String(unit) && e.children.length === 0 && e.offsetHeight > 14);
+        if (unitBtn) {
+            try { unitBtn.click(); } catch (e) {}
+            await new Promise(r => setTimeout(r, 120));
+        }
+
+        // 3. Set Quantity input
         const modalInputs = Array.from(document.querySelectorAll('.van-popup input, .popup input, uni-input input, input[type="tel"], input[type="number"], .van-stepper__input, input'))
             .filter(i => !i.closest('#jashvip-tampermonkey-root'));
 
-        let inputSuccess = false;
         if (modalInputs.length > 0) {
             const inp = modalInputs[modalInputs.length - 1];
             try {
                 inp.focus();
-                inp.value = String(stake);
                 const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set;
-                if (setter) setter.call(inp, String(stake));
+                if (setter) setter.call(inp, String(qty)); else inp.value = String(qty);
                 inp.dispatchEvent(new Event('input', { bubbles: true }));
                 inp.dispatchEvent(new Event('change', { bubbles: true }));
-                inp.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true }));
-                inputSuccess = true;
             } catch (e) {}
         }
 
-        // Stepper fallback if input field was not directly writable and stake > 1
-        if (!inputSuccess && stake > 1) {
-            const plusBtns = Array.from(document.querySelectorAll('.van-stepper__plus, button.plus, .plus, [class*="plus"], [class*="stepper"] [class*="plus"], uni-view[class*="plus"]'))
-                .filter(b => !b.closest('#jashvip-tampermonkey-root'));
-            if (plusBtns.length > 0) {
-                const plusBtn = plusBtns[plusBtns.length - 1];
-                for (let i = 1; i < stake; i++) {
-                    fireClick(plusBtn);
-                    await new Promise(r => setTimeout(r, 40));
-                }
-            }
-        }
+        await new Promise(r => setTimeout(r, 200));
 
-        await new Promise(r => setTimeout(r, 180));
-
-        // Click confirm / total amount button
+        // 4. Click Confirm Button ("Total amount ₹...") EXACTLY ONCE!
         const allPopupEls = Array.from(document.querySelectorAll('div, button, span, uni-view, uni-button, p'))
             .filter(e => !e.closest('#jashvip-tampermonkey-root'));
 
-        const totalAmountCandidates = allPopupEls.filter(b => {
+        let confirmBtn = allPopupEls.find(b => {
             const t = (b.textContent || '').trim();
-            return /Total\s*Amount/i.test(t) && !/Cancel/i.test(t) && t.length <= 40;
+            return /Total\s*amount/i.test(t) && !/Cancel/i.test(t) && t.length <= 40;
         });
-
-        let confirmBtn = null;
-        if (totalAmountCandidates.length > 0) {
-            confirmBtn = totalAmountCandidates.find(e => e.tagName === 'BUTTON' || e.tagName === 'UNI-BUTTON' || e.children.length === 0) || totalAmountCandidates[totalAmountCandidates.length - 1];
-        }
 
         if (!confirmBtn) {
             confirmBtn = allPopupEls.find(b => {
@@ -713,25 +276,20 @@
             });
         }
 
-        if (!confirmBtn) {
-            confirmBtn = document.querySelector('.van-button--primary, .van-button--danger, .van-button--info, [class*="submit"]');
-        }
-
         if (confirmBtn) {
+            // STRICT SINGLE CLICK to prevent duplicate order submit / "6 Invalid parameter"!
             try { confirmBtn.click(); } catch (e) {}
-            fireClick(confirmBtn);
-            console.log(`%c[JASHVIP AUTOBET] ✅ Placed Bet: ${side} ₹${stake}`, 'background:#10B981;color:#000;font-weight:bold;padding:5px 10px;border-radius:4px');
+            console.log(`%c[JASHVIP AUTOBET] ✅ Submitted Order: ${side} ₹${stake}`, 'background:#10B981;color:#000;font-weight:bold;padding:5px 10px;border-radius:4px');
+
+            // Close modal after 800ms so it never stays stuck
+            setTimeout(() => {
+                closeAnyOpenBetModal();
+            }, 800);
             return true;
         } else {
             console.warn('[JASHVIP AUTOBET] ⚠️ Confirm button not found!');
             return false;
         }
-    }
-
-    function getCurrentStake() {
-        if (currentLevel === 1) return baseStake * 1;
-        if (currentLevel === 2) return baseStake * 3;
-        return 0; // Level 3: Hard Stop / Skip
     }
 
     async function checkAndTriggerAutobet(pred) {
@@ -741,7 +299,6 @@
 
         if (placedPeriods.has(period)) return;
 
-        // Check remaining seconds
         const now = new Date();
         const sec = now.getSeconds();
         const remaining = currentMode === '1M' ? (60 - sec) : (30 - (sec % 30));
@@ -751,28 +308,21 @@
 
         if (remaining < minTime || remaining > maxTime) return;
 
-        // Level 3 Capital Lock or Skip Signal
-        if (currentLevel >= 3 || pred.prediction === 'SKIP') {
-            placedPeriods.add(period);
-            updateAutobetStatus('skip', `🛑 L3 CAPITAL LOCK (ROUND #${period.slice(-5)} SKIPPED)`);
-            return;
-        }
+        // Immediately mark period as placed to prevent any duplicate execution
+        placedPeriods.add(period);
+        isPlacingBet = true;
 
         const side = pred.prediction;
-        const stake = getCurrentStake();
-        if (stake <= 0) return;
-
-        isPlacingBet = true;
-        placedPeriods.add(period);
-        updateAutobetStatus('placing', `⏳ PLACING ${side} ₹${stake} (#${period.slice(-5)})...`);
+        const stake = getCurrentBetAmount();
+        updateAutobetStatus('placing', `⏳ PLACING ${side} ₹${stake}...`);
 
         try {
             const success = await executeBetDOM(side, stake);
             if (success) {
-                updateAutobetStatus('success', `✅ BET CONFIRMED: ${side} ₹${stake} (#${period.slice(-5)})`);
+                updateAutobetStatus('success', `✅ BET PLACED: ${side} ₹${stake} (#${period.slice(-5)})`);
                 playChime(true);
             } else {
-                updateAutobetStatus('error', `⚠️ BET FAILED (BUTTONS NOT FOUND)`);
+                updateAutobetStatus('error', `⚠️ BET FAILED`);
                 placedPeriods.delete(period);
             }
         } catch (err) {
@@ -785,7 +335,7 @@
     }
 
     /* =========================================================
-       INJECT FLOATING CYBERPUNK HUD (SHADOW DOM)
+       INJECT COMPACT FLOATING HUD
        ========================================================= */
     const host = document.createElement('div');
     host.id = 'jashvip-tampermonkey-root';
@@ -796,7 +346,7 @@
     style.textContent = `
         :host {
             all: initial;
-            font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             z-index: 2147483647;
             position: fixed;
             top: 20px;
@@ -805,21 +355,61 @@
         }
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
         .hud-card {
-            width: 340px;
-            background: rgba(11, 14, 20, 0.94);
+            width: 240px;
+            background: rgba(11, 14, 20, 0.96);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 20px;
-            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7), 0 0 30px rgba(0, 217, 255, 0.15);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.75), 0 0 15px rgba(0, 217, 255, 0.15);
             color: #EAF1F8;
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s;
+            transition: transform 0.15s ease;
         }
+
+        /* MINIMIZED: EXPAND BY CLICKING ANYWHERE ON IT! */
+        .hud-card.minimized {
+            width: auto !important;
+            min-width: 230px;
+            max-width: 280px;
+            border-radius: 20px;
+            cursor: pointer !important;
+            background: rgba(11, 14, 20, 0.96);
+            border: 1px solid #00D9FF;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.85), 0 0 16px rgba(0, 217, 255, 0.4);
+        }
+        .hud-card.minimized:hover {
+            border-color: #E4FF4A;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.9), 0 0 20px rgba(228, 255, 74, 0.5);
+            transform: translateY(-1px);
+        }
+        .hud-card.minimized .hud-body { display: none !important; }
+        .hud-card.minimized .btn-icon#btnMin {
+            background: #00D9FF;
+            color: #06070A;
+            font-weight: 900;
+            font-size: 13px;
+            border: none;
+        }
+        .hud-expand-chip {
+            display: none;
+            align-items: center;
+            background: rgba(0, 217, 255, 0.2);
+            border: 1px solid #00D9FF;
+            color: #00D9FF;
+            font-size: 8px;
+            font-weight: 900;
+            padding: 2px 6px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .hud-card.minimized .hud-expand-chip { display: inline-flex; }
+
+        /* HEADER */
         .hud-header {
-            padding: 10px 14px;
+            padding: 8px 12px;
             background: rgba(255, 255, 255, 0.03);
             border-bottom: 1px solid rgba(255, 255, 255, 0.08);
             display: flex;
@@ -831,51 +421,45 @@
         .brand {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
         }
         .brand-icon {
-            width: 28px;
-            height: 28px;
+            width: 20px;
+            height: 20px;
             background: linear-gradient(135deg, #E4FF4A, #00D9FF);
-            border-radius: 8px;
+            border-radius: 5px;
             display: grid;
             place-items: center;
-            font-size: 15px;
-            box-shadow: 0 0 14px rgba(228, 255, 74, 0.4);
+            font-size: 12px;
+            color: #06070A;
+            font-weight: 900;
         }
         .brand-title {
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 800;
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 4px;
         }
         .vip-badge {
             background: #E4FF4A;
             color: #06070A;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 8px;
+            font-family: monospace;
+            font-size: 7.5px;
             font-weight: 900;
             padding: 1px 4px;
-            border-radius: 4px;
+            border-radius: 3px;
         }
         .vip-badge.bot-active {
             background: #FF3B5C;
             color: #FFFFFF;
             animation: pulseGlow 1s infinite;
         }
-        @keyframes pulseGlow {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.6; }
-        }
-        .actions {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
+        @keyframes pulseGlow { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+        .actions { display: flex; align-items: center; gap: 4px; }
         .btn-icon {
-            width: 24px;
-            height: 24px;
+            width: 22px;
+            height: 22px;
             border-radius: 6px;
             background: rgba(255, 255, 255, 0.06);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -884,150 +468,111 @@
             place-items: center;
             font-size: 11px;
             cursor: pointer;
-            transition: all 0.15s;
         }
-        .btn-icon:hover {
-            background: rgba(255, 255, 255, 0.14);
-            color: #FFF;
-        }
+        .btn-icon:hover { background: rgba(255, 255, 255, 0.14); color: #FFF; }
+
+        /* BODY */
         .hud-body {
-            padding: 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        .mode-row {
-            display: flex;
-            gap: 6px;
-        }
-        .mode-btn {
-            flex: 1;
-            padding: 6px 0;
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            color: #8A97AA;
-            font-size: 10px;
-            font-weight: 800;
-            cursor: pointer;
-            transition: all 0.15s;
-            text-align: center;
-        }
-        .mode-btn.active {
-            background: rgba(0, 217, 255, 0.15);
-            border-color: #00D9FF;
-            color: #00D9FF;
-            box-shadow: 0 0 10px rgba(0, 217, 255, 0.25);
-        }
-        .round-box {
-            background: rgba(18, 23, 34, 0.9);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 14px;
             padding: 10px;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            position: relative;
+            gap: 8px;
         }
-        .round-meta {
-            width: 100%;
+
+        /* TOP MODE & TIMER */
+        .hud-top-row {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 10px;
-            color: #8A97AA;
-            margin-bottom: 6px;
+            justify-content: space-between;
         }
-        .timer-badge {
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 2px 6px;
+        .mode-select {
+            display: flex;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 2px;
             border-radius: 6px;
-            color: #EAF1F8;
-            font-weight: 800;
+            gap: 2px;
         }
-        .stage-pill {
+        .mode-chip {
+            background: transparent;
+            border: none;
+            color: #8A97AA;
             font-size: 9px;
             font-weight: 800;
-            padding: 3px 8px;
-            border-radius: 20px;
-            margin-bottom: 6px;
-            letter-spacing: 0.02em;
+            padding: 3px 6px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .mode-chip.active {
+            background: rgba(0, 217, 255, 0.2);
+            color: #00D9FF;
+            border: 1px solid rgba(0, 217, 255, 0.4);
+        }
+        .hud-timer-badge {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-family: monospace;
+            font-size: 10px;
+            font-weight: 800;
+            color: #8A97AA;
+        }
+        .timer-sec {
+            color: #EAF1F8;
+            background: rgba(255, 255, 255, 0.06);
+            padding: 2px 5px;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        /* DIRECTION SIGNAL */
+        .signal-card {
+            background: rgba(18, 23, 34, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 8px;
+            text-align: center;
+        }
+        .stage-pill {
+            font-size: 8px;
+            font-weight: 800;
+            padding: 2px 6px;
+            border-radius: 12px;
+            display: inline-block;
+            margin-bottom: 2px;
         }
         .stage-pill.lvl1 { background: rgba(16, 185, 129, 0.15); color: #10B981; border: 1px solid rgba(16, 185, 129, 0.3); }
         .stage-pill.lvl2 { background: rgba(255, 176, 32, 0.15); color: #FFB020; border: 1px solid rgba(255, 176, 32, 0.3); }
         .stage-pill.lvl3 { background: rgba(255, 59, 92, 0.15); color: #FF3B5C; border: 1px solid rgba(255, 59, 92, 0.3); }
 
-        .call-title {
-            font-size: 8px;
-            font-weight: 800;
-            letter-spacing: 0.12em;
-            color: #8A97AA;
-            text-transform: uppercase;
-            margin-bottom: 2px;
-        }
         .pred-call {
-            font-size: 40px;
+            font-size: 32px;
             font-weight: 900;
-            letter-spacing: -0.03em;
+            letter-spacing: -0.02em;
             line-height: 1;
-            margin: 4px 0 8px;
-            text-shadow: 0 0 25px currentColor;
+            margin: 2px 0 4px;
+            text-shadow: 0 0 20px currentColor;
         }
         .pred-call.big { color: #E4FF4A; }
         .pred-call.small { color: #00D9FF; }
-        .pred-call.skip { color: #FF3B5C; font-size: 30px; }
 
-        .pattern-chip {
-            font-size: 9px;
-            font-weight: 800;
-            padding: 4px 10px;
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: #EAF1F8;
-            max-width: 95%;
+        .pattern-lbl {
+            font-size: 8px;
+            font-family: monospace;
+            font-weight: 700;
+            color: #8A97AA;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
 
-        .meta-strip {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 6px;
-            width: 100%;
-            margin-top: 8px;
-        }
-        .meta-cell {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 8px;
-            padding: 5px;
-            text-align: center;
-        }
-        .meta-cell .lbl { font-size: 7.5px; color: #505B6D; text-transform: uppercase; font-weight: 800; }
-        .meta-cell .val { font-size: 11px; font-weight: 800; color: #EAF1F8; margin-top: 1px; font-family: 'JetBrains Mono', monospace; }
-
-        /* AUTOBET SECTION */
-        .autobet-section {
-            background: rgba(18, 23, 34, 0.85);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 14px;
-            padding: 10px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
-        }
+        /* AUTOBET BUTTON */
         .autobet-btn {
             width: 100%;
-            padding: 11px 12px;
+            padding: 9px;
             border: none;
-            border-radius: 10px;
+            border-radius: 8px;
             font-family: inherit;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 900;
             letter-spacing: 0.08em;
             cursor: pointer;
@@ -1035,322 +580,208 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            gap: 6px;
+            transition: all 0.15s;
         }
         .autobet-btn.start {
             background: linear-gradient(135deg, #10B981, #00D9FF);
             color: #06070A;
-            box-shadow: 0 0 16px rgba(16, 185, 129, 0.45);
-        }
-        .autobet-btn.start:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 0 24px rgba(16, 185, 129, 0.65);
+            box-shadow: 0 0 14px rgba(16, 185, 129, 0.4);
         }
         .autobet-btn.stop {
             background: linear-gradient(135deg, #FF3B5C, #FF5470);
             color: #FFFFFF;
-            box-shadow: 0 0 20px rgba(255, 59, 92, 0.6);
+            box-shadow: 0 0 18px rgba(255, 59, 92, 0.6);
             animation: pulseBtn 1.2s infinite ease-in-out;
         }
         @keyframes pulseBtn {
-            0%, 100% { transform: scale(1); box-shadow: 0 0 16px rgba(255, 59, 92, 0.5); }
-            50% { transform: scale(1.02); box-shadow: 0 0 26px rgba(255, 59, 92, 0.85); }
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
         }
 
-        .autobet-config-row {
+        /* BASE BET & CURRENT BET (EXACT REQUEST) */
+        .bet-config-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            align-items: center;
+            gap: 6px;
         }
-        .stake-input-group {
-            background: rgba(255, 255, 255, 0.04);
+        .bet-box {
+            background: rgba(255, 255, 255, 0.03);
             border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 8px;
-            padding: 6px 8px;
+            padding: 6px;
             display: flex;
             flex-direction: column;
             gap: 2px;
         }
-        .stake-lbl {
+        .bet-lbl {
             font-size: 7.5px;
             font-weight: 800;
             color: #8A97AA;
             text-transform: uppercase;
-            letter-spacing: 0.08em;
+            letter-spacing: 0.06em;
         }
-        .stake-input-wrapper {
+        .bet-input-wrap {
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 3px;
         }
-        .currency-sym {
+        .curr-sym {
             color: #E4FF4A;
             font-weight: 800;
-            font-size: 13px;
-            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            font-family: monospace;
         }
-        .stake-input {
+        .bet-input {
             width: 100%;
             background: transparent;
             border: none;
             outline: none;
             color: #EAF1F8;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 900;
-            font-family: 'JetBrains Mono', monospace;
+            font-family: monospace;
         }
-        .stake-calc-box {
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 8px;
-            padding: 6px 8px;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            gap: 2px;
-        }
-        .stake-calc-lbl {
-            font-size: 7.5px;
-            font-weight: 800;
-            color: #8A97AA;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-        }
-        .stake-calc-val {
-            font-size: 13px;
+        .curr-val {
+            font-size: 12px;
             font-weight: 900;
             color: #00D9FF;
-            font-family: 'JetBrains Mono', monospace;
+            font-family: monospace;
         }
 
-        .autobet-status-bar {
+        /* STATUS BAR */
+        .status-bar {
             background: rgba(0, 0, 0, 0.4);
             border: 1px solid rgba(255, 255, 255, 0.06);
             border-radius: 6px;
-            padding: 6px 8px;
+            padding: 5px 6px;
             display: flex;
             align-items: center;
-            gap: 6px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 9px;
+            gap: 5px;
+            font-family: monospace;
+            font-size: 8.5px;
             font-weight: 800;
             overflow: hidden;
             white-space: nowrap;
             text-overflow: ellipsis;
         }
-        .status-dot {
-            font-size: 11px;
-            line-height: 1;
-        }
+        .status-dot { font-size: 9px; line-height: 1; }
         .status-dot.idle { color: #505B6D; }
         .status-dot.monitoring { color: #E4FF4A; }
         .status-dot.placing { color: #00D9FF; }
         .status-dot.success { color: #10B981; }
-        .status-dot.skip { color: #FFB020; }
         .status-dot.error { color: #FF3B5C; }
-
-        /* 12-PILL MATRIX */
-        .matrix-container {
-            background: rgba(18, 23, 34, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 12px;
-            padding: 8px;
-        }
-        .matrix-head {
-            display: flex;
-            justify-content: space-between;
-            font-size: 8px;
-            font-weight: 800;
-            color: #8A97AA;
-            margin-bottom: 6px;
-            letter-spacing: 0.04em;
-        }
-        .matrix-grid {
-            display: grid;
-            grid-template-columns: repeat(6, 1fr);
-            gap: 4px;
-        }
-        .matrix-pill {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 8.5px;
-            font-weight: 800;
-            padding: 4px 2px;
-            border-radius: 6px;
-            text-align: center;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            color: #8A97AA;
-        }
-        .matrix-pill.span2 {
-            grid-column: span 2;
-        }
-        .matrix-pill.big {
-            background: rgba(228, 255, 74, 0.12);
-            border-color: rgba(228, 255, 74, 0.35);
-            color: #E4FF4A;
-        }
-        .matrix-pill.small {
-            background: rgba(0, 217, 255, 0.12);
-            border-color: rgba(0, 217, 255, 0.35);
-            color: #00D9FF;
-        }
-
-        /* STATS FOOTER */
-        .stats-bar {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 4px;
-            background: rgba(255, 255, 255, 0.02);
-            padding: 6px 8px;
-            border-radius: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            text-align: center;
-        }
-        .stat-item .num {
-            font-size: 13px;
-            font-weight: 900;
-            font-family: 'JetBrains Mono', monospace;
-        }
-        .stat-item .lbl {
-            font-size: 7.5px;
-            color: #505B6D;
-            text-transform: uppercase;
-            font-weight: 800;
-        }
-        .c-win { color: #10B981; }
-        .c-loss { color: #FF3B5C; }
-
-        /* MINIMIZED STATE */
-        .hud-card.minimized .hud-body { display: none; }
-        .hud-card.minimized { width: 180px; }
     `;
     shadow.appendChild(style);
 
     const hudCard = document.createElement('div');
     hudCard.className = 'hud-card';
     hudCard.innerHTML = `
-        <div class="hud-header" id="hudHeader">
+        <div class="hud-header" id="hudHeader" title="Click to minimize or expand">
             <div class="brand">
                 <div class="brand-icon">⚡</div>
-                <div class="brand-title" id="hudBrandTitle">JASHVIP <span class="vip-badge" id="hudMiniBadge">ULTIMATE</span></div>
+                <div class="brand-title" id="hudBrandTitle">
+                    JASHVIP 
+                    <span class="vip-badge" id="hudMiniBadge">AUTOBET</span>
+                    <span class="hud-expand-chip" id="hudExpandChip">⤢ OPEN</span>
+                </div>
             </div>
             <div class="actions">
                 <button class="btn-icon" id="btnSound" title="Toggle Sound">🔊</button>
-                <button class="btn-icon" id="btnMin" title="Minimize">−</button>
+                <button class="btn-icon" id="btnMin" title="Minimize / Expand">−</button>
             </div>
         </div>
         <div class="hud-body">
-            <div class="mode-row">
-                <button class="mode-btn active" id="btnMode1M">WINGO 1 MIN</button>
-                <button class="mode-btn" id="btnMode30S">WINGO 30 SEC</button>
-            </div>
-
-            <div class="round-box">
-                <div class="round-meta">
-                    <span id="txtPeriod">#--------</span>
-                    <span class="timer-badge" id="txtTimer">00:00</span>
+            <!-- Mode & Countdown Row -->
+            <div class="hud-top-row">
+                <div class="mode-select">
+                    <button class="mode-chip active" id="btnMode1M">1M</button>
+                    <button class="mode-chip" id="btnMode30S">30S</button>
                 </div>
-                <div class="stage-pill lvl1" id="pillStage">🎯 STAGE: LEVEL 1 (1X - BASE)</div>
-                <div class="call-title">PRIMARY DIRECTION CALL</div>
-                <div class="pred-call big" id="txtPrediction">ANALYZING</div>
-                <div class="pattern-chip" id="txtPattern">SYNCHRONIZING AI MODELS...</div>
-
-                <div class="meta-strip">
-                    <div class="meta-cell">
-                        <div class="lbl">Last Draw</div>
-                        <div class="val" id="valLastDraw">--</div>
-                    </div>
-                    <div class="meta-cell">
-                        <div class="lbl">Confidence</div>
-                        <div class="val" id="valConfidence">--%</div>
-                    </div>
-                    <div class="meta-cell">
-                        <div class="lbl">Recovery</div>
-                        <div class="val" id="valRecovery" style="color: #10B981;">SAFE (L1)</div>
-                    </div>
+                <div class="hud-timer-badge">
+                    <span id="txtPeriod">#-----</span>
+                    <span id="txtTimer" class="timer-sec">00:00</span>
                 </div>
             </div>
 
-            <!-- AUTOBET CONTROLS SECTION -->
-            <div class="autobet-section">
-                <button class="autobet-btn start" id="btnAutobetToggle">
-                    ▶ START AUTOBET
-                </button>
-                <div class="autobet-config-row">
-                    <div class="stake-input-group">
-                        <span class="stake-lbl">BASE STAKE:</span>
-                        <div class="stake-input-wrapper">
-                            <span class="currency-sym">₹</span>
-                            <input type="number" id="inputBaseStake" class="stake-input" value="${baseStake}" min="1" max="10000" />
-                        </div>
-                    </div>
-                    <div class="stake-calc-box">
-                        <span class="stake-calc-lbl">CURRENT BET:</span>
-                        <span class="stake-calc-val" id="valCurrentStake">₹${baseStake} (1X)</span>
+            <!-- Direction Call & Stage -->
+            <div class="signal-card">
+                <div class="stage-pill lvl1" id="pillStage">STAGE: L1 (₹${baseStake})</div>
+                <div class="pred-call big" id="txtPrediction">BIG</div>
+                <div class="pattern-lbl" id="txtPattern">AI CONSENSUS</div>
+            </div>
+
+            <!-- Autobet Button -->
+            <button class="autobet-btn start" id="btnAutobetToggle">
+                ▶ START AUTOBET
+            </button>
+
+            <!-- Base Bet & Current Bet (Compact Focus) -->
+            <div class="bet-config-row">
+                <div class="bet-box">
+                    <span class="bet-lbl">BASE BET</span>
+                    <div class="bet-input-wrap">
+                        <span class="curr-sym">₹</span>
+                        <input type="number" id="inputBaseStake" class="bet-input" value="${baseStake}" min="1" max="10000" />
                     </div>
                 </div>
-                <div class="autobet-status-bar">
-                    <span class="status-dot idle" id="autobetDot">●</span>
-                    <span id="autobetStatusText">AUTOBET: PAUSED (OFF)</span>
+                <div class="bet-box">
+                    <span class="bet-lbl">CURRENT BET</span>
+                    <span class="curr-val" id="valCurrentStake">₹${baseStake}</span>
                 </div>
             </div>
 
-            <!-- 12-PILL MATRIX -->
-            <div class="matrix-container">
-                <div class="matrix-head">
-                    <span>⚡ MULTI-MODEL CONSENSUS</span>
-                    <span style="color: #10B981;">● SYNCHRONIZED</span>
-                </div>
-                <div class="matrix-grid">
-                    <div class="matrix-pill" id="hudL1">L1: --</div>
-                    <div class="matrix-pill" id="hudL2">L2: --</div>
-                    <div class="matrix-pill" id="hudL3">L3: --</div>
-                    <div class="matrix-pill" id="hudL4">L4: --</div>
-                    <div class="matrix-pill" id="hudL5">L5: --</div>
-                    <div class="matrix-pill" id="hudL6">L6: --</div>
-                    <div class="matrix-pill span2" id="hudTitan">TITAN: --</div>
-                    <div class="matrix-pill span2" id="hudRadhe">RADHE: --</div>
-                    <div class="matrix-pill span2" id="hudSuresh">SURESH: --</div>
-                    <div class="matrix-pill span2" id="hudMarkov">MARKOV: --</div>
-                    <div class="matrix-pill span2" id="hudPain">PAIN: --</div>
-                    <div class="matrix-pill span2" id="hudNexa">NEXA: --</div>
-                </div>
-            </div>
-
-            <!-- STATS BAR -->
-            <div class="stats-bar">
-                <div class="stat-item">
-                    <div class="num" id="statRounds">0</div>
-                    <div class="lbl">Rounds</div>
-                </div>
-                <div class="stat-item">
-                    <div class="num c-win" id="statWins">0</div>
-                    <div class="lbl">Wins</div>
-                </div>
-                <div class="stat-item">
-                    <div class="num c-loss" id="statLosses">0</div>
-                    <div class="lbl">Losses</div>
-                </div>
-                <div class="stat-item">
-                    <div class="num c-win" id="statRate">0%</div>
-                    <div class="lbl">Win Rate</div>
-                </div>
+            <!-- Live Status Banner -->
+            <div class="status-bar">
+                <span class="status-dot idle" id="autobetDot">●</span>
+                <span class="status-txt" id="autobetStatusText">AUTOBET: PAUSED (OFF)</span>
             </div>
         </div>
     `;
     shadow.appendChild(hudCard);
 
     /* =========================================================
-       DRAGGABLE HUD CONTROLS
+       DRAGGABLE & ONE-CLICK EXPAND / MINIMIZE
        ========================================================= */
     const hudHeader = shadow.getElementById('hudHeader');
-    let isDragging = false, startX, startY, initX, initY;
+    const btnMin = shadow.getElementById('btnMin');
+    const hudExpandChip = shadow.getElementById('hudExpandChip');
 
+    let isDragging = false, startX, startY, initX, initY, hasMoved = false;
+
+    function toggleMinimize(force) {
+        isMinimized = typeof force === 'boolean' ? force : !isMinimized;
+        hudCard.classList.toggle('minimized', isMinimized);
+        btnMin.textContent = isMinimized ? '＋' : '−';
+        btnMin.title = isMinimized ? 'Click to Expand HUD' : 'Click to Minimize HUD';
+    }
+
+    // Min/Max Button Click
+    btnMin.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleMinimize();
+    });
+
+    // Expand Chip Click
+    if (hudExpandChip) {
+        hudExpandChip.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleMinimize(false);
+        });
+    }
+
+    // Click ANYWHERE on card while minimized expands it back immediately!
+    hudCard.addEventListener('click', (e) => {
+        if (isMinimized && !e.target.closest('#btnSound')) {
+            toggleMinimize(false);
+        }
+    });
+
+    // Header Dragging
     hudHeader.addEventListener('mousedown', (e) => {
         if (e.target.closest('button')) return;
         isDragging = true;
+        hasMoved = false;
         startX = e.clientX;
         startY = e.clientY;
         const rect = host.getBoundingClientRect();
@@ -1363,29 +794,30 @@
         if (!isDragging) return;
         const dx = e.clientX - startX;
         const dy = e.clientY - startY;
+        if (Math.abs(dx) > 3 || Math.abs(dy) > 3) hasMoved = true;
         host.style.right = 'auto';
-        host.style.left = `${Math.max(10, Math.min(window.innerWidth - 350, initX + dx))}px`;
-        host.style.top = `${Math.max(10, Math.min(window.innerHeight - 200, initY + dy))}px`;
+        host.style.left = `${Math.max(10, Math.min(window.innerWidth - 250, initX + dx))}px`;
+        host.style.top = `${Math.max(10, Math.min(window.innerHeight - 150, initY + dy))}px`;
     });
 
-    window.addEventListener('mouseup', () => { isDragging = false; });
-
-    // Minimize toggle
-    const btnMin = shadow.getElementById('btnMin');
-    btnMin.addEventListener('click', () => {
-        isMinimized = !isMinimized;
-        hudCard.classList.toggle('minimized', isMinimized);
-        btnMin.textContent = isMinimized ? '+' : '−';
+    window.addEventListener('mouseup', (e) => {
+        if (isDragging && !hasMoved && isMinimized) {
+            if (!e.target.closest('#btnSound')) {
+                toggleMinimize(false);
+            }
+        }
+        isDragging = false;
     });
 
     // Sound toggle
     const btnSound = shadow.getElementById('btnSound');
-    btnSound.addEventListener('click', () => {
+    btnSound.addEventListener('click', (e) => {
+        e.stopPropagation();
         soundEnabled = !soundEnabled;
         btnSound.textContent = soundEnabled ? '🔊' : '🔇';
     });
 
-    // Mode buttons
+    // Mode chips
     const btnMode1M = shadow.getElementById('btnMode1M');
     const btnMode30S = shadow.getElementById('btnMode30S');
 
@@ -1426,16 +858,23 @@
 
     function updateStakeDisplay() {
         const calcVal = shadow.getElementById('valCurrentStake');
-        if (!calcVal) return;
-        if (currentLevel === 1) {
-            calcVal.textContent = `₹${baseStake * 1} (1X)`;
-            calcVal.style.color = '#10B981';
-        } else if (currentLevel === 2) {
-            calcVal.textContent = `₹${baseStake * 3} (3X)`;
-            calcVal.style.color = '#FFB020';
-        } else {
-            calcVal.textContent = `🛑 SKIP (₹0)`;
-            calcVal.style.color = '#FF3B5C';
+        const pill = shadow.getElementById('pillStage');
+        const currentAmt = getCurrentBetAmount();
+
+        if (calcVal) {
+            calcVal.textContent = `₹${currentAmt} (${lossStreak === 0 ? 'BASE' : 'STREAK ' + lossStreak})`;
+        }
+        if (pill) {
+            if (lossStreak === 0) {
+                pill.className = 'stage-pill lvl1';
+                pill.textContent = `STAGE: L1 (₹${currentAmt})`;
+            } else if (lossStreak === 1) {
+                pill.className = 'stage-pill lvl2';
+                pill.textContent = `STAGE: L2 (₹${currentAmt})`;
+            } else {
+                pill.className = 'stage-pill lvl3';
+                pill.textContent = `STAGE: L3 (₹${currentAmt})`;
+            }
         }
     }
 
@@ -1446,7 +885,7 @@
             btnAutobetToggle.innerHTML = '⏹ STOP AUTOBET (ACTIVE)';
             hudMiniBadge.className = 'vip-badge bot-active';
             hudMiniBadge.textContent = 'AUTOBET ON';
-            updateAutobetStatus('monitoring', 'AUTOBET: ACTIVE — AWAITING NEXT DRAW');
+            updateAutobetStatus('monitoring', 'AUTOBET: ACTIVE — MONITORING DRAW');
             if (currentPrediction && currentPrediction.nextPeriod) {
                 checkAndTriggerAutobet(currentPrediction);
             }
@@ -1454,7 +893,7 @@
             btnAutobetToggle.className = 'autobet-btn start';
             btnAutobetToggle.innerHTML = '▶ START AUTOBET';
             hudMiniBadge.className = 'vip-badge';
-            hudMiniBadge.textContent = 'ULTIMATE';
+            hudMiniBadge.textContent = 'AUTOBET';
             updateAutobetStatus('idle', 'AUTOBET: PAUSED (OFF)');
         }
     });
@@ -1475,85 +914,22 @@
         }
     });
 
-    /* =========================================================
-       UI UPDATERS
-       ========================================================= */
-    function updateMatrixPill(id, text, size) {
-        const el = shadow.getElementById(id);
-        if (!el) return;
-        el.textContent = text;
-        el.className = el.className.replace(/\b(big|small)\b/g, '').trim();
-        if (size === 'BIG') el.classList.add('big');
-        else if (size === 'SMALL') el.classList.add('small');
-    }
-
-    function updateLevelUI() {
-        const pill = shadow.getElementById('pillStage');
-        const rec = shadow.getElementById('valRecovery');
-        if (currentLevel === 1) {
-            pill.className = 'stage-pill lvl1';
-            pill.textContent = '🎯 STAGE: LEVEL 1 (1X - BASE)';
-            rec.textContent = 'SAFE (L1)';
-            rec.style.color = '#10B981';
-        } else if (currentLevel === 2) {
-            pill.className = 'stage-pill lvl2';
-            pill.textContent = '⚡ STAGE: LEVEL 2 (3X - RECOVERY)';
-            rec.textContent = 'RECOVERY (L2)';
-            rec.style.color = '#FFB020';
+    function recordOutcome(isWin) {
+        if (isWin) {
+            lossStreak = 0; // Reset to base on win
         } else {
-            pill.className = 'stage-pill lvl3';
-            pill.textContent = '🛑 CAPITAL LOCK: SKIP ROUND (DO NOT BET)';
-            rec.textContent = 'PROTECT (L3)';
-            rec.style.color = '#FF3B5C';
+            lossStreak++;
+            if (lossStreak > 3) lossStreak = 0;
         }
         updateStakeDisplay();
     }
 
-    function recordOutcome(item) {
-        if (item.isWin) {
-            currentLevel = 1;
-        } else {
-            currentLevel++;
-            if (currentLevel > 3) currentLevel = 1;
-        }
-        updateLevelUI();
-        historyLogs.unshift(item);
-
-        const total = historyLogs.length;
-        const wins = historyLogs.filter(x => x.isWin).length;
-        const losses = total - wins;
-        const rate = total > 0 ? Math.round((wins / total) * 100) : 0;
-
-        shadow.getElementById('statRounds').textContent = total;
-        shadow.getElementById('statWins').textContent = wins;
-        shadow.getElementById('statLosses').textContent = losses;
-        shadow.getElementById('statRate').textContent = `${rate}%`;
-    }
-
     function renderPrediction(data) {
         shadow.getElementById('txtPeriod').textContent = `#${data.nextPeriod.slice(-5)}`;
-        shadow.getElementById('valLastDraw').textContent = `${data.latestNumber} (${getSize(data.latestNumber)})`;
-        shadow.getElementById('valConfidence').textContent = `${data.confidence}%`;
-
         const predEl = shadow.getElementById('txtPrediction');
         predEl.textContent = data.prediction;
         predEl.className = `pred-call ${data.prediction.toLowerCase()}`;
-
         shadow.getElementById('txtPattern').textContent = data.patternLabel;
-
-        updateMatrixPill('hudL1', `L1: ${data.models.l1}`, data.models.l1);
-        updateMatrixPill('hudL2', `L2: ${data.models.l2}`, data.models.l2);
-        updateMatrixPill('hudL3', `L3: ${data.models.l3}`, data.models.l3);
-        updateMatrixPill('hudL4', `L4: ${data.models.l4}`, data.models.l4);
-        updateMatrixPill('hudL5', `L5: ${data.models.l5}`, data.models.l5);
-        updateMatrixPill('hudL6', `L6: ${data.models.l6}`, data.models.l6);
-
-        updateMatrixPill('hudTitan', `TITAN: ${data.models.titan}`, data.models.titan);
-        updateMatrixPill('hudRadhe', `RADHE: ${data.models.radhe}`, data.models.radhe);
-        updateMatrixPill('hudSuresh', `SURESH: ${data.models.suresh}`, data.models.suresh);
-        updateMatrixPill('hudMarkov', `MARKOV: ${data.models.markov}`, data.models.markov);
-        updateMatrixPill('hudPain', `PAIN: ${data.models.painPro}`, data.models.painPro);
-        updateMatrixPill('hudNexa', `NEXA: ${data.models.nexaVote}`, data.models.nexaVote.includes('B') ? 'BIG' : (data.models.nexaVote.includes('S') ? 'SMALL' : ''));
     }
 
     /* =========================================================
@@ -1565,19 +941,11 @@
 
         const top = list[0];
         const actualCategory = getSize(top.number);
-        const actualNum = parseInt(top.number, 10);
 
         if (lastResolvedIssue !== top.issueNumber) {
             if (currentPrediction && currentPrediction.nextPeriod === top.issueNumber) {
                 const isWin = (currentPrediction.prediction === actualCategory);
-                recordOutcome({
-                    period: top.issueNumber,
-                    predicted: currentPrediction.prediction,
-                    actualNum,
-                    actualCategory,
-                    patternLabel: currentPrediction.patternLabel,
-                    isWin
-                });
+                recordOutcome(isWin);
                 playChime(isWin);
             }
             lastResolvedIssue = top.issueNumber;
@@ -1608,12 +976,10 @@
                 else timerEl.style.color = '#EAF1F8';
             }
 
-            // Continuous autobet checker during the betting window
             if (autobetEnabled && currentPrediction && currentPrediction.nextPeriod) {
                 checkAndTriggerAutobet(currentPrediction);
             }
 
-            // Sync with end of round
             if (totalSec === 1 && ms > 400) {
                 setTimeout(runEngine, 1400);
             }
@@ -1621,10 +987,10 @@
     }
 
     // Initialize
-    updateLevelUI();
+    updateStakeDisplay();
     runEngine();
     startTimer();
     pollInterval = setInterval(runEngine, 4000);
 
-    console.log('%c[JASHVIP ULTIMATE V4]%c AutoBet Engine Ready & Active.', 'color:#E4FF4A;font-weight:bold;', 'color:#FFF;');
+    console.log('%c[JASHVIP V5.1]%c Single-Click Martingale HUD ready.', 'color:#E4FF4A;font-weight:bold;', 'color:#FFF;');
 })();
