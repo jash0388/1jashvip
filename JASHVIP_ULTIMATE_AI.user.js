@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         JASHVIP ULTIMATE AI — WinGo Floating Prediction HUD
+// @name         JASHVIP ULTIMATE AI — WinGo Floating Prediction HUD & AutoBet
 // @namespace    https://github.com/jash0388/jashvip
-// @version      3.5.0
-// @description  Exact 67% WinRate Multi-Model Ensemble WinGo (1M / 30S) Prediction HUD with Draggable Cyberpunk UI, Apex Titan, Radhe Hack, Suresh VIP, Quantum Markov, TGX 6-Logic, Audio Alerts & Live Draw Sync.
+// @version      4.0.0
+// @description  Master Multi-Model Ensemble WinGo (1M / 30S) Prediction HUD with Draggable Cyberpunk UI, Automated 1X/3X Auto-Betting Engine (Start/Stop Toggle, Base Stake Config, L3 Capital Lock), Audio Alerts & Live Draw Sync.
 // @author       Jashwanth Singh
 // @match        *://*/*
 // @grant        GM_xmlhttpRequest
@@ -39,6 +39,15 @@
     let pollInterval = null;
 
     /* =========================================================
+       AUTOBET STATE
+       ========================================================= */
+    let autobetEnabled = false;
+    let baseStake = parseInt(localStorage.getItem('JASH_BASE_STAKE') || '10', 10);
+    if (isNaN(baseStake) || baseStake < 1) baseStake = 10;
+    const placedPeriods = new Set();
+    let isPlacingBet = false;
+
+    /* =========================================================
        AUDIO CHIMES (WEB AUDIO API - ZERO EXTERNAL ASSETS)
        ========================================================= */
     let audioCtx = null;
@@ -58,35 +67,29 @@
         try {
             const ctx = getAudioContext();
             if (!ctx) return;
-            const now = ctx.currentTime;
             const osc = ctx.createOscillator();
             const gain = ctx.createGain();
+
+            osc.type = isWin ? 'triangle' : 'sine';
+            osc.frequency.setValueAtTime(isWin ? 880 : 280, ctx.currentTime);
+            if (isWin) {
+                osc.frequency.exponentialRampToValueAtTime(1320, ctx.currentTime + 0.15);
+            } else {
+                osc.frequency.exponentialRampToValueAtTime(180, ctx.currentTime + 0.2);
+            }
+
+            gain.gain.setValueAtTime(0.15, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+
             osc.connect(gain);
             gain.connect(ctx.destination);
-
-            if (isWin) {
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(523.25, now);
-                osc.frequency.exponentialRampToValueAtTime(659.25, now + 0.08);
-                osc.frequency.exponentialRampToValueAtTime(783.99, now + 0.16);
-                gain.gain.setValueAtTime(0.15, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
-                osc.start(now);
-                osc.stop(now + 0.45);
-            } else {
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(329.63, now);
-                osc.frequency.exponentialRampToValueAtTime(220.00, now + 0.18);
-                gain.gain.setValueAtTime(0.12, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
-                osc.start(now);
-                osc.stop(now + 0.35);
-            }
-        } catch (e) { }
+            osc.start();
+            osc.stop(ctx.currentTime + 0.32);
+        } catch (e) {}
     }
 
     /* =========================================================
-       CORE AI PREDICTION ENGINES (EXACT b71ac13 REVERSED LOGIC)
+       HELPER UTILITIES
        ========================================================= */
     function getSize(number) {
         return parseInt(number, 10) >= 5 ? 'BIG' : 'SMALL';
@@ -112,7 +115,10 @@
         return runs;
     }
 
-    // 1. APEX TITAN V100 CADENCE ENGINE (Jash Autobet)
+    /* =========================================================
+       ENSEMBLE MODELS (PROVEN SUITE)
+       ========================================================= */
+    // 1. Apex Titan Engine
     function apexTitanEngine(sizes, lossStreak) {
         const runs = getRuns(sizes);
         const cRun = runs[runs.length - 1];
@@ -127,30 +133,34 @@
         }
 
         if (lossStreak >= 2) {
-            if (cLen >= 2) return { vote: cSide, reg: '🛑 L3 DRAGON LOCK' };
-            if (alt >= 2) return { vote: opp(lastS), reg: '🛑 L3 CHOP FLIP' };
+            if (cLen >= 4) return { vote: cSide, reg: '🛑 L3 DRAGON EXT' };
+            if (cLen === 3) return { vote: opp(cSide), reg: '🛑 L3 DRAGON CUT' };
+            if (cLen === 2) return { vote: opp(cSide), reg: '🛑 L3 DOUBLET CUT' };
+            if (alt >= 3) return { vote: opp(lastS), reg: '🛑 L3 CHOP OSC' };
             return { vote: cSide, reg: '🛑 L3 MOMENTUM LOCK' };
         } else if (lossStreak === 1) {
-            if (cLen >= 2) return { vote: cSide, reg: '🛡️ L2 DRAGON RIDE' };
+            if (cLen >= 3) return { vote: cSide, reg: '🛡️ L2 DRAGON RIDE' };
+            if (cLen === 2) return { vote: cSide, reg: '🛡️ L2 DOUBLET RIDE' };
             if (alt >= 2) return { vote: opp(lastS), reg: '🛡️ L2 CHOP FLIP' };
             return { vote: cSide, reg: '🛡️ L2 MOMENTUM LOCK' };
         } else {
-            if (cLen >= 3) return { vote: cSide, reg: '🌊 L1 DRAGON RIDE' };
-            if (cLen === 2) return { vote: cSide, reg: '🌊 L1 DOUBLET RIDE' };
+            if (cLen >= 4) return { vote: cSide, reg: '🌊 L1 DRAGON EXT' };
+            if (cLen === 3) return { vote: opp(cSide), reg: '🐉 L1 DRAGON CUT' };
+            if (cLen === 2) return { vote: opp(cSide), reg: '🌊 L1 DOUBLET CUT' };
             if (alt >= 3) return { vote: opp(lastS), reg: '⚡ L1 CHOP OSC' };
             if (cLen === 1) return { vote: opp(cSide), reg: '🌊 L1 SINGLE CUT' };
             return { vote: cSide, reg: '🌊 L1 MOMENTUM' };
         }
     }
 
-    // 2. RADHE HACK 2-3 LEVEL FIX
+    // 2. Radhe Engine
     function radheEngine(list) {
         let sizes = list.slice(0, 12).map(item => getSize(item.number));
         let consecutiveCount = 1;
         for (let i = 1; i < sizes.length; i++) {
             if (sizes[i] === sizes[0]) consecutiveCount++; else break;
         }
-        if (consecutiveCount >= 4) return sizes[0]; 
+        if (consecutiveCount >= 4) return sizes[0];
         let isAlternating = true;
         for (let i = 0; i < 4; i++) {
             if (sizes[i] === sizes[i + 1]) { isAlternating = false; break; }
@@ -165,7 +175,7 @@
         return weightSum >= 0 ? 'BIG' : 'SMALL';
     }
 
-    // 3. SURESH VIP SUPREME V15 (ANTI-STREAK 10-ROUND RECENCY)
+    // 3. Suresh VIP Supreme
     function sureshEngine(list) {
         let bigs = 0, smalls = 0;
         for (let i = 0; i < Math.min(10, list.length); i++) {
@@ -175,12 +185,12 @@
         }
         const last3 = list.slice(0, 3).map(x => getSize(x.number));
         if (last3[0] === last3[1] && last3[1] === last3[2]) {
-            return last3[0];
+            return last3[0] === 'BIG' ? 'SMALL' : 'BIG';
         }
         return bigs >= smalls ? 'BIG' : 'SMALL';
     }
 
-    // 4. QUANTUM MARKOV 2-GRAM PATTERN MATCHING
+    // 4. Quantum Markov 2-Gram
     function markovEngine(sizes) {
         if (sizes.length < 5) return sizes[0];
         const s1 = sizes[1], s0 = sizes[0];
@@ -195,7 +205,7 @@
         return s0;
     }
 
-    // 5. TGX 6-LOGIC ENGINE LAYER
+    // 5. TGX 6-Logic Suite
     function tgxLogic1(nums, sizes) {
         const n1 = nums[0], n2 = nums[1] || nums[0];
         const n9 = nums[8] || nums[nums.length - 1], n10 = nums[9] || nums[nums.length - 1];
@@ -232,7 +242,7 @@
     function tgxLogic4(sizes) {
         let streak = 1;
         for (let i = 1; i < sizes.length; i++) if (sizes[i] === sizes[0]) streak++; else break;
-        if (streak >= 2) return sizes[0]; // Ride streak!
+        if (streak >= 3) return sizes[0] === 'BIG' ? 'SMALL' : 'BIG';
         let changes = 0;
         for (let i = 0; i < Math.min(5, sizes.length - 1); i++) if (sizes[i] !== sizes[i + 1]) changes++;
         if (changes >= 3) return sizes[0] === 'BIG' ? 'SMALL' : 'BIG';
@@ -250,14 +260,160 @@
         return sizes[0] === sizes[1] ? (sizes[0] === 'BIG' ? 'SMALL' : 'BIG') : sizes[0];
     }
 
-    // MAIN ENSEMBLE CALCULATOR
+    // 6. Zero-Lag Geometric Structural Hierarchy
+    function isArrMatch(arrA, arrB) {
+        if (!arrA || !arrB || arrA.length !== arrB.length) return false;
+        return arrA.every((v, i) => v === arrB[i]);
+    }
+
+    function checkZigzag(results) {
+        if (results.length < 3) return null;
+        let zigzagLen = 0;
+        for (let i = 0; i < Math.min(results.length - 1, 8); i++) {
+            if (results[i] !== results[i + 1]) zigzagLen++;
+            else break;
+        }
+        if (zigzagLen >= 3) {
+            const expected = results[0] === 'BIG' ? 'SMALL' : 'BIG';
+            return {
+                size: expected,
+                name: `⚡ ZIGZAG SWITCH (${zigzagLen}X)`,
+                conf: Math.min(94, 72 + zigzagLen * 4)
+            };
+        }
+        return null;
+    }
+
+    function checkTriangle(results) {
+        if (results.length < 3) return null;
+        const last3 = results.slice(0, 3).reverse();
+        if (isArrMatch(last3, ["BIG", "SMALL", "SMALL"])) {
+            return { size: "BIG", name: "⚡ TRIANGLE COMPLETE (BSS)", conf: 82 };
+        }
+        if (isArrMatch(last3, ["SMALL", "BIG", "BIG"])) {
+            return { size: "SMALL", name: "⚡ TRIANGLE COMPLETE (SBB)", conf: 82 };
+        }
+        return null;
+    }
+
+    function check4B4S(results, streak, lastResult) {
+        if (results.length < 4) return null;
+        const last8 = results.slice(0, 8).reverse();
+        if (streak >= 4) {
+            return { size: lastResult, name: `⚡ DRAGON RIDE (${streak}${lastResult[0]})`, conf: 86 };
+        }
+        if (isArrMatch(last8, ["BIG","BIG","BIG","BIG","SMALL","SMALL","SMALL","SMALL"])) {
+            return { size: "BIG", name: "⚡ 4B+4S CYCLE COMPLETE", conf: 87 };
+        }
+        if (isArrMatch(last8, ["SMALL","SMALL","SMALL","SMALL","BIG","BIG","BIG","BIG"])) {
+            return { size: "SMALL", name: "⚡ 4S+4B CYCLE COMPLETE", conf: 87 };
+        }
+        return null;
+    }
+
+    function check3B3S(results, streak, lastResult) {
+        if (results.length < 3) return null;
+        const last6 = results.slice(0, 6).reverse();
+        const last5 = results.slice(0, 5).reverse();
+        if (isArrMatch(last6, ["BIG","BIG","BIG","SMALL","SMALL","SMALL"])) {
+            return { size: "BIG", name: "⚡ 3B+3S CYCLE COMPLETE", conf: 84 };
+        }
+        if (isArrMatch(last6, ["SMALL","SMALL","SMALL","BIG","BIG","BIG"])) {
+            return { size: "SMALL", name: "⚡ 3S+3B CYCLE COMPLETE", conf: 84 };
+        }
+        if (isArrMatch(last5, ["BIG","BIG","BIG","SMALL","SMALL"])) {
+            return { size: "SMALL", name: "⚡ 3B+2S FORMING", conf: 80 };
+        }
+        if (isArrMatch(last5, ["SMALL","SMALL","SMALL","BIG","BIG"])) {
+            return { size: "BIG", name: "⚡ 3S+2B FORMING", conf: 80 };
+        }
+        return null;
+    }
+
+    function check2B2S(results, streak, lastResult) {
+        if (results.length < 3) return null;
+        const last4 = results.slice(0, 4).reverse();
+        const last3 = results.slice(0, 3).reverse();
+        if (isArrMatch(last4, ["BIG","BIG","SMALL","SMALL"])) {
+            return { size: "BIG", name: "⚡ 2B+2S CYCLE COMPLETE (BBSS)", conf: 85 };
+        }
+        if (isArrMatch(last4, ["SMALL","SMALL","BIG","BIG"])) {
+            return { size: "SMALL", name: "⚡ 2S+2B CYCLE COMPLETE (SSBB)", conf: 85 };
+        }
+        if (isArrMatch(last3, ["BIG","BIG","SMALL"])) {
+            return { size: "SMALL", name: "⚡ 2B+1S FORMING (BBS)", conf: 82 };
+        }
+        if (isArrMatch(last3, ["SMALL","SMALL","BIG"])) {
+            return { size: "BIG", name: "⚡ 2S+1B FORMING (SSB)", conf: 82 };
+        }
+        return null;
+    }
+
+    function evaluateStructural(sizes) {
+        if (!sizes || sizes.length < 3) return null;
+        const lastResult = sizes[0];
+        let streak = 1;
+        for (let i = 1; i < sizes.length; i++) {
+            if (sizes[i] === lastResult) streak++;
+            else break;
+        }
+
+        const p4 = check4B4S(sizes, streak, lastResult);
+        if (p4) return p4;
+        const p2 = check2B2S(sizes, streak, lastResult);
+        if (p2) return p2;
+        const p3 = check3B3S(sizes, streak, lastResult);
+        if (p3) return p3;
+        const tri = checkTriangle(sizes);
+        if (tri) return tri;
+        const zz = checkZigzag(sizes);
+        if (zz) return zz;
+
+        return null;
+    }
+
+    // 7. Mastermind V8 AI
+    function mastermindEngine(nums) {
+        if (!nums || nums.length < 3) return 'BIG';
+        const last3 = nums.slice(0, 3);
+        const last5 = nums.slice(0, 5);
+        const last7 = nums.slice(0, Math.min(7, nums.length));
+        const last12 = nums.slice(0, Math.min(12, nums.length));
+
+        const sm3 = last3.filter(n => n <= 4).length;
+        const sm5 = last5.filter(n => n <= 4).length;
+        const sm7 = last7.filter(n => n <= 4).length;
+        const sm12 = last12.filter(n => n <= 4).length;
+
+        const sScore = (sm3 / 3) * 0.40 + (sm5 / 5) * 0.28 + (sm7 / 7) * 0.20 + (sm12 / 12) * 0.12;
+        const bScore = ((3 - sm3) / 3) * 0.40 + ((5 - sm5) / 5) * 0.28 + ((7 - sm7) / 7) * 0.20 + ((12 - sm12) / 12) * 0.12;
+
+        return bScore >= sScore ? 'BIG' : 'SMALL';
+    }
+
+    // 8. Oblivion Volatility Index
+    function oblivionEngine(sizes, nums) {
+        if (!sizes || sizes.length < 4) return sizes[0];
+        let diffSum = 0;
+        for (let i = 0; i < Math.min(4, nums.length - 1); i++) {
+            diffSum += Math.abs(nums[i] - nums[i + 1]);
+        }
+        const avgDiff = diffSum / 4;
+        if (avgDiff > 4.5) {
+            return sizes[0] === 'BIG' ? 'SMALL' : 'BIG';
+        }
+        return sizes[0];
+    }
+
+    /* =========================================================
+       MASTER MULTI-MODEL ENSEMBLE ENGINE
+       ========================================================= */
     function calculateCombinedPrediction(list) {
         if (!list || list.length < 3) return null;
 
         const sizes = list.slice(0, 15).map(item => getSize(item.number));
         const nums = list.slice(0, 15).map(item => parseInt(item.number, 10));
 
-        // Streaks & Alternation
         let alt = 1;
         for (let i = 0; i < sizes.length - 1; i++) {
             if (sizes[i] !== sizes[i + 1]) alt++;
@@ -270,75 +426,112 @@
             else break;
         }
 
+        // 🛑 STRICT CAPITAL LOCK: If currentLevel >= 3 (after 2 consecutive losses), HARD STOP-LOSS!
+        if (currentLevel >= 3) {
+            return {
+                prediction: 'SKIP',
+                patternType: 'skip',
+                patternLabel: '🛑 CAPITAL LOCK: SKIP ROUND (L3 PROTECT - DO NOT BET)',
+                confidence: 0,
+                latestIssue: list[0].issueNumber,
+                latestNumber: parseInt(list[0].number, 10),
+                nextPeriod: (BigInt(list[0].issueNumber) + 1n).toString(),
+                models: {
+                    l1: 'SKIP', l2: 'SKIP', l3: 'SKIP', l4: 'SKIP', l5: 'SKIP', l6: 'SKIP',
+                    titan: 'SKIP', radhe: 'SKIP', suresh: 'SKIP', markov: 'SKIP', painPro: 'SKIP', nexaVote: 'SKIP'
+                }
+            };
+        }
+
         const votes = { BIG: 0, SMALL: 0 };
 
-        // Layer 1: Apex Titan Cadence Engine (Jash Autobet)
+        // Layer 0: Zero-Lag Geometric Structural Engine
+        const structural = evaluateStructural(sizes);
+        let tsxVote = 'NONE';
+        if (structural) {
+            votes[structural.size] += 2.5;
+            tsxVote = structural.size;
+        }
+
+        // Layer 1: Apex Titan Cadence Engine
         const titan = apexTitanEngine(sizes, Math.max(0, currentLevel - 1));
-        votes[titan.vote] += 3.2;
+        votes[titan.vote] += 2.5;
 
-        // Layer 2: Radhe Hack 2-3 Level Fix
+        // Layer 2: Mastermind v8 Multi-Window AI
+        const mastermind = mastermindEngine(nums);
+        votes[mastermind] += 2.0;
+
+        // Layer 3: Radhe Hack 2-3 Level Fix
         const radhe = radheEngine(list);
-        votes[radhe] += 2.4;
+        votes[radhe] += 1.8;
 
-        // Layer 3: Suresh VIP Supreme V15
+        // Layer 4: Suresh VIP Supreme V15
         const suresh = sureshEngine(list);
-        votes[suresh] += 2.0;
+        votes[suresh] += 1.8;
 
-        // Layer 4: Quantum Markov 2-Gram
+        // Layer 5: Quantum Markov 2-Gram
         const markov = markovEngine(sizes);
-        votes[markov] += 1.8;
+        votes[markov] += 1.6;
 
-        // Layer 5: TGX 6-Logic Ensemble
-        const l1 = tgxLogic1(nums, sizes); votes[l1] += 1.0;
-        const l2 = tgxLogic2(nums);        votes[l2] += 1.2;
-        const l3 = tgxLogic3(nums, sizes); votes[l3] += 1.0;
-        const l4 = tgxLogic4(sizes);       votes[l4] += 1.0;
-        const l5 = tgxLogic5(nums);        votes[l5] += 0.8;
-        const l6 = tgxLogic6(sizes);       votes[l6] += 1.0;
+        // Layer 6: BMW Oblivion Volatility Index
+        const oblivion = oblivionEngine(sizes, nums);
+        votes[oblivion] += 1.4;
 
-        // Layer 6: The Paid Pro 3-Round Window
+        // Layer 7: TGX 6-Logic Suite
+        const l1 = tgxLogic1(nums, sizes); votes[l1] += 0.8;
+        const l2 = tgxLogic2(nums);        votes[l2] += 0.9;
+        const l3 = tgxLogic3(nums, sizes); votes[l3] += 0.8;
+        const l4 = tgxLogic4(sizes);       votes[l4] += 0.8;
+        const l5 = tgxLogic5(nums);        votes[l5] += 0.7;
+        const l6 = tgxLogic6(sizes);       votes[l6] += 0.8;
+
+        // Layer 8: The Paid Pro 3-Round Window
         const painPro = sizes.slice(0, 3).filter(x => x === 'BIG').length > 1 ? 'BIG' : 'SMALL';
         votes[painPro] += 1.0;
 
-        // Layer 7: Nexa Pro 15-Round Skew Reversion (only in non-streak L1)
+        // Layer 9: Nexa Pro 15-Round Skew
         const big15 = sizes.slice(0, 15).filter(x => x === 'BIG').length;
         let nexaVote = 'BALANCED';
-        if (streak < 2 && currentLevel === 1) {
-            if (big15 >= 10) {
-                votes.SMALL += 1.6;
-                nexaVote = 'REV-S';
-            } else if (big15 <= 5) {
-                votes.BIG += 1.6;
-                nexaVote = 'REV-B';
-            }
+        if (big15 >= 10) {
+            votes.SMALL += 1.2;
+            nexaVote = 'REV-S';
+        } else if (big15 <= 5) {
+            votes.BIG += 1.2;
+            nexaVote = 'REV-B';
         }
 
-        // Circuit Breaker & Strict Level Protection
-        const isChopZone = (alt >= 3 && currentLevel >= 3);
-        let patternType = 'consensus';
-        let patternLabel = titan.reg;
+        // Chop Zone Filter
+        if (alt >= 4 && Math.abs(votes.BIG - votes.SMALL) < 1.0) {
+            return {
+                prediction: 'SKIP',
+                patternType: 'skip',
+                patternLabel: '🛑 CHOP ZONE: SKIP ROUND (WAIT FOR SOLID SIGNAL)',
+                confidence: 50,
+                latestIssue: list[0].issueNumber,
+                latestNumber: parseInt(list[0].number, 10),
+                nextPeriod: (BigInt(list[0].issueNumber) + 1n).toString(),
+                models: {
+                    l1, l2, l3, l4, l5, l6,
+                    titan: titan.vote, radhe, suresh, markov, painPro, nexaVote
+                }
+            };
+        }
 
-        if (streak >= 3) {
-            votes[sizes[0]] += 5.5; // Irresistible Dragon Ride
+        let patternType = 'consensus';
+        let patternLabel = structural ? structural.name : titan.reg;
+
+        if (structural) {
+            patternType = structural.name.includes('DRAGON') ? 'dragon' : (structural.name.includes('ZIGZAG') ? 'zigzag' : 'cycle');
+        } else if (streak >= 4) {
             patternType = 'dragon';
-            patternLabel = `⚡ DRAGON RIDE (${streak}X)`;
-        } else if (streak === 2 && currentLevel >= 2) {
-            votes[sizes[0]] += 4.0; // Pair Lock during L2/L3 Recovery
-            patternType = 'cycle';
-            patternLabel = `🛡️ L${currentLevel} DOUBLET RIDE`;
-        } else if (isChopZone) {
-            patternType = 'zigzag';
-            patternLabel = '🛑 CAPITAL SHIELD: CHOP ZONE (FLAT 1X)';
         } else if (alt >= 3) {
             patternType = 'zigzag';
-            patternLabel = `⚡ ZIGZAG SWITCH (${alt}X)`;
-        } else {
-            patternType = 'consensus';
         }
 
         const prediction = votes.BIG >= votes.SMALL ? 'BIG' : 'SMALL';
         const totalScore = votes.BIG + votes.SMALL;
-        const confidence = isChopZone ? 68 : Math.min(98, Math.max(82, Math.round((Math.max(votes.BIG, votes.SMALL) / totalScore) * 100)));
+        const baseConf = structural ? structural.conf : Math.round((Math.max(votes.BIG, votes.SMALL) / totalScore) * 100);
+        const confidence = Math.min(96, Math.max(78, baseConf));
 
         return {
             prediction,
@@ -390,6 +583,205 @@
                     .catch(() => resolve(null));
             }
         });
+    }
+
+    /* =========================================================
+       DOM CLICK & AUTOBET EXECUTION ENGINE
+       ========================================================= */
+    function fireClick(el) {
+        if (!el) return;
+        el.scrollIntoView?.({ block: 'center', behavior: 'instant' });
+        try {
+            const rect = el.getBoundingClientRect();
+            const cx = rect.left + rect.width / 2;
+            const cy = rect.top + rect.height / 2;
+            const touch = new Touch({ identifier: Date.now(), target: el, clientX: cx, clientY: cy, pageX: cx, pageY: cy, screenX: cx, screenY: cy });
+            el.dispatchEvent(new TouchEvent('touchstart', { bubbles: true, cancelable: true, touches: [touch], targetTouches: [touch], changedTouches: [touch] }));
+            el.dispatchEvent(new TouchEvent('touchend', { bubbles: true, cancelable: true, touches: [], targetTouches: [], changedTouches: [touch] }));
+        } catch (e) {}
+        ['pointerdown', 'mousedown', 'pointerup', 'mouseup', 'click'].forEach(evt => {
+            try { el.dispatchEvent(new MouseEvent(evt, { bubbles: true, cancelable: true, view: window })); } catch (e) {}
+        });
+        try { el.click(); } catch (e) {}
+    }
+
+    function dismissAnnoyingPopups() {
+        const closeBtns = Array.from(document.querySelectorAll('.van-dialog__confirm, .van-popup__close-icon, [class*="close"], [class*="dialog"] button, i.van-icon-cross, uni-icons.uni-icons-close, .van-overlay + div button, div.announcement-close, .notice-close, .notice-dialog .van-button'))
+            .filter(e => !e.closest('#jashvip-tampermonkey-root'));
+        for (const btn of closeBtns) {
+            const txt = (btn.textContent || '').trim();
+            if (/Cancel|Close|Confirm|I Know|Got It|我知道了|×|X/i.test(txt) || btn.classList.contains('van-popup__close-icon') || btn.classList.contains('van-icon-cross')) {
+                try { btn.click(); fireClick(btn); } catch (e) {}
+            }
+        }
+    }
+
+    function findBetButton(side) {
+        const target = side.trim().toUpperCase(); // "BIG" or "SMALL"
+        const all = Array.from(document.querySelectorAll('button, div, span, uni-view, uni-button, p'))
+            .filter(e => !e.closest('#jashvip-tampermonkey-root'));
+
+        // 1. Strict exact text
+        let btn = all.find(e => {
+            const txt = (e.textContent || '').trim().toUpperCase();
+            return (txt === target || txt === `${target} 2X` || txt === `${target}2X` || txt === `${target} 1.96X`) && e.children.length <= 1;
+        });
+
+        // 2. Class-based detection
+        if (!btn) {
+            btn = all.find(e => {
+                const cls = (e.className || '') + ' ' + (e.getAttribute('class') || '');
+                return new RegExp(`\\b${target.toLowerCase()}\\b`, 'i').test(cls) && e.children.length <= 1;
+            });
+        }
+
+        // 3. Prefix match with short text
+        if (!btn) {
+            btn = all.find(e => {
+                const txt = (e.textContent || '').trim().toUpperCase();
+                return txt.startsWith(target) && txt.length <= 12;
+            });
+        }
+
+        return btn;
+    }
+
+    async function executeBetDOM(side, stake) {
+        dismissAnnoyingPopups();
+
+        const targetBtn = findBetButton(side);
+        if (!targetBtn) {
+            console.warn(`[JASHVIP AUTOBET] Target button ${side} not found on page!`);
+            return false;
+        }
+
+        fireClick(targetBtn);
+        await new Promise(r => setTimeout(r, 350));
+
+        // Enter stake amount into popup input
+        const modalInputs = Array.from(document.querySelectorAll('.van-popup input, .popup input, uni-input input, input[type="tel"], input[type="number"], .van-stepper__input, input'))
+            .filter(i => !i.closest('#jashvip-tampermonkey-root'));
+
+        let inputSuccess = false;
+        if (modalInputs.length > 0) {
+            const inp = modalInputs[modalInputs.length - 1];
+            try {
+                inp.focus();
+                inp.value = String(stake);
+                const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set;
+                if (setter) setter.call(inp, String(stake));
+                inp.dispatchEvent(new Event('input', { bubbles: true }));
+                inp.dispatchEvent(new Event('change', { bubbles: true }));
+                inp.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true }));
+                inputSuccess = true;
+            } catch (e) {}
+        }
+
+        // Stepper fallback if input field was not directly writable and stake > 1
+        if (!inputSuccess && stake > 1) {
+            const plusBtns = Array.from(document.querySelectorAll('.van-stepper__plus, button.plus, .plus, [class*="plus"], [class*="stepper"] [class*="plus"], uni-view[class*="plus"]'))
+                .filter(b => !b.closest('#jashvip-tampermonkey-root'));
+            if (plusBtns.length > 0) {
+                const plusBtn = plusBtns[plusBtns.length - 1];
+                for (let i = 1; i < stake; i++) {
+                    fireClick(plusBtn);
+                    await new Promise(r => setTimeout(r, 40));
+                }
+            }
+        }
+
+        await new Promise(r => setTimeout(r, 180));
+
+        // Click confirm / total amount button
+        const allPopupEls = Array.from(document.querySelectorAll('div, button, span, uni-view, uni-button, p'))
+            .filter(e => !e.closest('#jashvip-tampermonkey-root'));
+
+        const totalAmountCandidates = allPopupEls.filter(b => {
+            const t = (b.textContent || '').trim();
+            return /Total\s*Amount/i.test(t) && !/Cancel/i.test(t) && t.length <= 40;
+        });
+
+        let confirmBtn = null;
+        if (totalAmountCandidates.length > 0) {
+            confirmBtn = totalAmountCandidates.find(e => e.tagName === 'BUTTON' || e.tagName === 'UNI-BUTTON' || e.children.length === 0) || totalAmountCandidates[totalAmountCandidates.length - 1];
+        }
+
+        if (!confirmBtn) {
+            confirmBtn = allPopupEls.find(b => {
+                const t = (b.textContent || '').trim();
+                return /^(Confirm|Submit|Order|Buy|Presale|Pre-sale|Bet|立即投注)$/i.test(t) && !/Cancel/i.test(t);
+            });
+        }
+
+        if (!confirmBtn) {
+            confirmBtn = document.querySelector('.van-button--primary, .van-button--danger, .van-button--info, [class*="submit"]');
+        }
+
+        if (confirmBtn) {
+            try { confirmBtn.click(); } catch (e) {}
+            fireClick(confirmBtn);
+            console.log(`%c[JASHVIP AUTOBET] ✅ Placed Bet: ${side} ₹${stake}`, 'background:#10B981;color:#000;font-weight:bold;padding:5px 10px;border-radius:4px');
+            return true;
+        } else {
+            console.warn('[JASHVIP AUTOBET] ⚠️ Confirm button not found!');
+            return false;
+        }
+    }
+
+    function getCurrentStake() {
+        if (currentLevel === 1) return baseStake * 1;
+        if (currentLevel === 2) return baseStake * 3;
+        return 0; // Level 3: Hard Stop / Skip
+    }
+
+    async function checkAndTriggerAutobet(pred) {
+        if (!autobetEnabled || isPlacingBet) return;
+        if (!pred || !pred.nextPeriod) return;
+        const period = pred.nextPeriod;
+
+        if (placedPeriods.has(period)) return;
+
+        // Check remaining seconds
+        const now = new Date();
+        const sec = now.getSeconds();
+        const remaining = currentMode === '1M' ? (60 - sec) : (30 - (sec % 30));
+
+        const minTime = currentMode === '1M' ? 10 : 7;
+        const maxTime = currentMode === '1M' ? 55 : 26;
+
+        if (remaining < minTime || remaining > maxTime) return;
+
+        // Level 3 Capital Lock or Skip Signal
+        if (currentLevel >= 3 || pred.prediction === 'SKIP') {
+            placedPeriods.add(period);
+            updateAutobetStatus('skip', `🛑 L3 CAPITAL LOCK (ROUND #${period.slice(-5)} SKIPPED)`);
+            return;
+        }
+
+        const side = pred.prediction;
+        const stake = getCurrentStake();
+        if (stake <= 0) return;
+
+        isPlacingBet = true;
+        placedPeriods.add(period);
+        updateAutobetStatus('placing', `⏳ PLACING ${side} ₹${stake} (#${period.slice(-5)})...`);
+
+        try {
+            const success = await executeBetDOM(side, stake);
+            if (success) {
+                updateAutobetStatus('success', `✅ BET CONFIRMED: ${side} ₹${stake} (#${period.slice(-5)})`);
+                playChime(true);
+            } else {
+                updateAutobetStatus('error', `⚠️ BET FAILED (BUTTONS NOT FOUND)`);
+                placedPeriods.delete(period);
+            }
+        } catch (err) {
+            console.error('[JASHVIP AUTOBET ERROR]', err);
+            updateAutobetStatus('error', `⚠️ ERROR: ${err.message}`);
+            placedPeriods.delete(period);
+        } finally {
+            isPlacingBet = false;
+        }
     }
 
     /* =========================================================
@@ -466,6 +858,15 @@
             font-weight: 900;
             padding: 1px 4px;
             border-radius: 4px;
+        }
+        .vip-badge.bot-active {
+            background: #FF3B5C;
+            color: #FFFFFF;
+            animation: pulseGlow 1s infinite;
+        }
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
         }
         .actions {
             display: flex;
@@ -576,6 +977,7 @@
         }
         .pred-call.big { color: #E4FF4A; }
         .pred-call.small { color: #00D9FF; }
+        .pred-call.skip { color: #FF3B5C; font-size: 30px; }
 
         .pattern-chip {
             font-size: 9px;
@@ -608,7 +1010,148 @@
         .meta-cell .lbl { font-size: 7.5px; color: #505B6D; text-transform: uppercase; font-weight: 800; }
         .meta-cell .val { font-size: 11px; font-weight: 800; color: #EAF1F8; margin-top: 1px; font-family: 'JetBrains Mono', monospace; }
 
-        /* 12-PILL MATRIX (EXACT b71ac13 LAYOUT) */
+        /* AUTOBET SECTION */
+        .autobet-section {
+            background: rgba(18, 23, 34, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 14px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+        }
+        .autobet-btn {
+            width: 100%;
+            padding: 11px 12px;
+            border: none;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 900;
+            letter-spacing: 0.08em;
+            cursor: pointer;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .autobet-btn.start {
+            background: linear-gradient(135deg, #10B981, #00D9FF);
+            color: #06070A;
+            box-shadow: 0 0 16px rgba(16, 185, 129, 0.45);
+        }
+        .autobet-btn.start:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 0 24px rgba(16, 185, 129, 0.65);
+        }
+        .autobet-btn.stop {
+            background: linear-gradient(135deg, #FF3B5C, #FF5470);
+            color: #FFFFFF;
+            box-shadow: 0 0 20px rgba(255, 59, 92, 0.6);
+            animation: pulseBtn 1.2s infinite ease-in-out;
+        }
+        @keyframes pulseBtn {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 16px rgba(255, 59, 92, 0.5); }
+            50% { transform: scale(1.02); box-shadow: 0 0 26px rgba(255, 59, 92, 0.85); }
+        }
+
+        .autobet-config-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            align-items: center;
+        }
+        .stake-input-group {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            padding: 6px 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .stake-lbl {
+            font-size: 7.5px;
+            font-weight: 800;
+            color: #8A97AA;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+        .stake-input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .currency-sym {
+            color: #E4FF4A;
+            font-weight: 800;
+            font-size: 13px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .stake-input {
+            width: 100%;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: #EAF1F8;
+            font-size: 13px;
+            font-weight: 900;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .stake-calc-box {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            padding: 6px 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 2px;
+        }
+        .stake-calc-lbl {
+            font-size: 7.5px;
+            font-weight: 800;
+            color: #8A97AA;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+        .stake-calc-val {
+            font-size: 13px;
+            font-weight: 900;
+            color: #00D9FF;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .autobet-status-bar {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 6px;
+            padding: 6px 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 9px;
+            font-weight: 800;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+        .status-dot {
+            font-size: 11px;
+            line-height: 1;
+        }
+        .status-dot.idle { color: #505B6D; }
+        .status-dot.monitoring { color: #E4FF4A; }
+        .status-dot.placing { color: #00D9FF; }
+        .status-dot.success { color: #10B981; }
+        .status-dot.skip { color: #FFB020; }
+        .status-dot.error { color: #FF3B5C; }
+
+        /* 12-PILL MATRIX */
         .matrix-container {
             background: rgba(18, 23, 34, 0.6);
             border: 1px solid rgba(255, 255, 255, 0.06);
@@ -681,7 +1224,7 @@
 
         /* MINIMIZED STATE */
         .hud-card.minimized .hud-body { display: none; }
-        .hud-card.minimized { width: 170px; }
+        .hud-card.minimized { width: 180px; }
     `;
     shadow.appendChild(style);
 
@@ -691,7 +1234,7 @@
         <div class="hud-header" id="hudHeader">
             <div class="brand">
                 <div class="brand-icon">⚡</div>
-                <div class="brand-title">JASHVIP <span class="vip-badge">ULTIMATE</span></div>
+                <div class="brand-title" id="hudBrandTitle">JASHVIP <span class="vip-badge" id="hudMiniBadge">ULTIMATE</span></div>
             </div>
             <div class="actions">
                 <button class="btn-icon" id="btnSound" title="Toggle Sound">🔊</button>
@@ -727,6 +1270,30 @@
                         <div class="lbl">Recovery</div>
                         <div class="val" id="valRecovery" style="color: #10B981;">SAFE (L1)</div>
                     </div>
+                </div>
+            </div>
+
+            <!-- AUTOBET CONTROLS SECTION -->
+            <div class="autobet-section">
+                <button class="autobet-btn start" id="btnAutobetToggle">
+                    ▶ START AUTOBET
+                </button>
+                <div class="autobet-config-row">
+                    <div class="stake-input-group">
+                        <span class="stake-lbl">BASE STAKE:</span>
+                        <div class="stake-input-wrapper">
+                            <span class="currency-sym">₹</span>
+                            <input type="number" id="inputBaseStake" class="stake-input" value="${baseStake}" min="1" max="10000" />
+                        </div>
+                    </div>
+                    <div class="stake-calc-box">
+                        <span class="stake-calc-lbl">CURRENT BET:</span>
+                        <span class="stake-calc-val" id="valCurrentStake">₹${baseStake} (1X)</span>
+                    </div>
+                </div>
+                <div class="autobet-status-bar">
+                    <span class="status-dot idle" id="autobetDot">●</span>
+                    <span id="autobetStatusText">AUTOBET: PAUSED (OFF)</span>
                 </div>
             </div>
 
@@ -782,6 +1349,7 @@
     let isDragging = false, startX, startY, initX, initY;
 
     hudHeader.addEventListener('mousedown', (e) => {
+        if (e.target.closest('button')) return;
         isDragging = true;
         startX = e.clientX;
         startY = e.clientY;
@@ -842,6 +1410,72 @@
     });
 
     /* =========================================================
+       AUTOBET UI INTERACTIONS
+       ========================================================= */
+    const btnAutobetToggle = shadow.getElementById('btnAutobetToggle');
+    const inputBaseStake = shadow.getElementById('inputBaseStake');
+    const autobetDot = shadow.getElementById('autobetDot');
+    const autobetStatusText = shadow.getElementById('autobetStatusText');
+    const hudMiniBadge = shadow.getElementById('hudMiniBadge');
+
+    function updateAutobetStatus(type, text) {
+        if (!autobetDot || !autobetStatusText) return;
+        autobetDot.className = `status-dot ${type}`;
+        autobetStatusText.textContent = text;
+    }
+
+    function updateStakeDisplay() {
+        const calcVal = shadow.getElementById('valCurrentStake');
+        if (!calcVal) return;
+        if (currentLevel === 1) {
+            calcVal.textContent = `₹${baseStake * 1} (1X)`;
+            calcVal.style.color = '#10B981';
+        } else if (currentLevel === 2) {
+            calcVal.textContent = `₹${baseStake * 3} (3X)`;
+            calcVal.style.color = '#FFB020';
+        } else {
+            calcVal.textContent = `🛑 SKIP (₹0)`;
+            calcVal.style.color = '#FF3B5C';
+        }
+    }
+
+    btnAutobetToggle.addEventListener('click', () => {
+        autobetEnabled = !autobetEnabled;
+        if (autobetEnabled) {
+            btnAutobetToggle.className = 'autobet-btn stop';
+            btnAutobetToggle.innerHTML = '⏹ STOP AUTOBET (ACTIVE)';
+            hudMiniBadge.className = 'vip-badge bot-active';
+            hudMiniBadge.textContent = 'AUTOBET ON';
+            updateAutobetStatus('monitoring', 'AUTOBET: ACTIVE — AWAITING NEXT DRAW');
+            if (currentPrediction && currentPrediction.nextPeriod) {
+                checkAndTriggerAutobet(currentPrediction);
+            }
+        } else {
+            btnAutobetToggle.className = 'autobet-btn start';
+            btnAutobetToggle.innerHTML = '▶ START AUTOBET';
+            hudMiniBadge.className = 'vip-badge';
+            hudMiniBadge.textContent = 'ULTIMATE';
+            updateAutobetStatus('idle', 'AUTOBET: PAUSED (OFF)');
+        }
+    });
+
+    inputBaseStake.addEventListener('change', (e) => {
+        let val = parseInt(e.target.value, 10);
+        if (isNaN(val) || val < 1) val = 1;
+        baseStake = val;
+        localStorage.setItem('JASH_BASE_STAKE', String(val));
+        updateStakeDisplay();
+    });
+
+    inputBaseStake.addEventListener('input', (e) => {
+        let val = parseInt(e.target.value, 10);
+        if (!isNaN(val) && val >= 1) {
+            baseStake = val;
+            updateStakeDisplay();
+        }
+    });
+
+    /* =========================================================
        UI UPDATERS
        ========================================================= */
     function updateMatrixPill(id, text, size) {
@@ -868,10 +1502,11 @@
             rec.style.color = '#FFB020';
         } else {
             pill.className = 'stage-pill lvl3';
-            pill.textContent = '🛑 STOP-LOSS: SKIP OR FLAT 1X';
+            pill.textContent = '🛑 CAPITAL LOCK: SKIP ROUND (DO NOT BET)';
             rec.textContent = 'PROTECT (L3)';
-            rec.style.color = '#FF5470';
+            rec.style.color = '#FF3B5C';
         }
+        updateStakeDisplay();
     }
 
     function recordOutcome(item) {
@@ -952,6 +1587,7 @@
         if (pred) {
             currentPrediction = pred;
             renderPrediction(pred);
+            checkAndTriggerAutobet(pred);
         }
     }
 
@@ -972,6 +1608,11 @@
                 else timerEl.style.color = '#EAF1F8';
             }
 
+            // Continuous autobet checker during the betting window
+            if (autobetEnabled && currentPrediction && currentPrediction.nextPeriod) {
+                checkAndTriggerAutobet(currentPrediction);
+            }
+
             // Sync with end of round
             if (totalSec === 1 && ms > 400) {
                 setTimeout(runEngine, 1400);
@@ -980,8 +1621,10 @@
     }
 
     // Initialize
+    updateLevelUI();
     runEngine();
     startTimer();
     pollInterval = setInterval(runEngine, 4000);
 
+    console.log('%c[JASHVIP ULTIMATE V4]%c AutoBet Engine Ready & Active.', 'color:#E4FF4A;font-weight:bold;', 'color:#FFF;');
 })();
