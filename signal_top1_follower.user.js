@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         JASH VIP ULTIMATE AI — WinGo Floating Prediction HUD & AutoBet
 // @namespace    https://github.com/jash0388/jashvip
-// @version      31.0
-// @description  👑 JASH VIP · WinGo 1M / 30S AutoBet with AI Consensus Strategy (Dragon, Zigzag, Triangle, 2B2S, 3B3S, Apex Titan, Radhe, Suresh, Markov, TGX 6-Logic), Martingale (3 -> 7 -> 14 -> 28), and Bulletproof Clicker.
+// @version      33.0
+// @description  👑 JASH VIP · Exact jashvip.vercel.app Multi-Model Consensus Engine (Apex Titan, Radhe, Suresh, Markov, TGX 1-6, Paid Pro, Nexa Skew) + Dual Settlement (Instant DOM & GM_xmlhttpRequest) + Custom Martingale (3 -> 7 -> 14 -> 28).
 // @match        *://*.dmfirst7.com/*
 // @match        *://*.dmfirst0.com/*
 // @match        *://*.dmfirst*.com/*
@@ -14,7 +14,8 @@
 // @match        *://*.bdg*.com/*
 // @match        *://*/*
 // @grant        GM_xmlhttpRequest
-// @grant        none
+// @grant        GM_setValue
+// @grant        GM_getValue
 // @connect      draw.ar-lottery01.com
 // @connect      *
 // @run-at       document-start
@@ -26,7 +27,7 @@
   if (window.__JASH_VIP_ACTIVE__) return;
   window.__JASH_VIP_ACTIVE__ = true;
 
-  console.log("%c👑 JASH VIP ULTIMATE AI · BULLETPROOF AUTOBET & CONSENSUS ENGINE ACTIVE", "background:linear-gradient(135deg,#00f5a0,#00d9f5,#7c3aed);color:#000;font-size:15px;font-weight:900;padding:8px 16px;border-radius:8px;box-shadow:0 0 25px rgba(0,245,160,0.6);");
+  console.log("%c👑 JASH VIP ULTIMATE AI · 100% EXACT VERCEL CONSENSUS ENGINE ACTIVE", "background:linear-gradient(135deg,#00f5a0,#00d9f5,#7c3aed);color:#000;font-size:15px;font-weight:900;padding:8px 16px;border-radius:8px;box-shadow:0 0 25px rgba(0,245,160,0.6);");
 
   // ── 1. WAKE LOCK & PREVENT SLEEP ──────────────────────────
   let wakeLockObj = null;
@@ -43,10 +44,10 @@
   let BASE_BET           = parseInt(localStorage.getItem('JASH_BASE_BET') || '3', 10);
   if (isNaN(BASE_BET) || BASE_BET < 1) BASE_BET = 3;
 
-  // Custom Martingale Formula requested by User:
+  // Custom Martingale:
   // Step 0: Base (₹3)
-  // Step 1: (Base * 2) + 1 = ₹7 (e.g. 6+1=7)
-  // Step 2: ((Base * 2) + 1) * 2 = ₹14 (e.g. 12+2=14)
+  // Step 1: (Base * 2) + 1 = ₹7
+  // Step 2: ((Base * 2) + 1) * 2 = ₹14
   // Step 3: ₹28...
   // Resets to Base on Win!
   function getStakeForStep(base, step) {
@@ -95,87 +96,43 @@
     } catch (e) {}
   }
 
-  // ── 3. ULTIMATE PREDICTION STRATEGY ENGINE ───────────────
-  const getSize = n => (parseInt(n, 10) >= 5 ? 'BIG' : 'SMALL');
-  const opp = s => (s === 'BIG' ? 'SMALL' : 'BIG');
-
-  function isArrMatch(a, b) {
-    if (!a || !b || a.length < b.length) return false;
-    for (let i = 0; i < b.length; i++) {
-      if (a[i] !== b[i]) return false;
-    }
-    return true;
+  // ── 3. EXACT PREDICTION STRATEGY FROM JASHVIP.VERCEL.APP ──
+  function getSize(number) {
+    return parseInt(number, 10) >= 5 ? 'BIG' : 'SMALL';
   }
 
-  // Advanced Triangle Pattern Recognition
-  function checkTriangle(results) {
-    if (!results || results.length < 2) return null;
-    const last5 = results.slice(0, 5).reverse();
-    const last4 = results.slice(0, 4).reverse();
-    const last3 = results.slice(0, 3).reverse();
-    const last2 = results.slice(0, 2).reverse();
-
-    if (isArrMatch(last3, ['BIG', 'SMALL', 'SMALL'])) return { size: 'BIG', name: '⚡ TRIANGLE COMPLETE' };
-    if (isArrMatch(last5, ['BIG', 'SMALL', 'SMALL', 'BIG', 'BIG'])) return { size: 'SMALL', name: '⚡ DOUBLE TRIANGLE' };
-    if (isArrMatch(last4, ['BIG', 'SMALL', 'SMALL', 'BIG'])) return { size: 'SMALL', name: '⚡ TRIANGLE REPEAT' };
-    if (isArrMatch(last2, ['BIG', 'SMALL'])) return { size: 'SMALL', name: '⚡ TRIANGLE FORMING' };
-
-    if (isArrMatch(last3, ['SMALL', 'BIG', 'BIG'])) return { size: 'SMALL', name: '⚡ TRIANGLE COMPLETE' };
-    if (isArrMatch(last5, ['SMALL', 'BIG', 'BIG', 'SMALL', 'SMALL'])) return { size: 'BIG', name: '⚡ DOUBLE TRIANGLE' };
-    if (isArrMatch(last4, ['SMALL', 'BIG', 'BIG', 'SMALL'])) return { size: 'BIG', name: '⚡ TRIANGLE REPEAT' };
-    if (isArrMatch(last2, ['SMALL', 'BIG'])) return { size: 'BIG', name: '⚡ TRIANGLE FORMING' };
-    return null;
-  }
-
-  // 2B + 2S Pattern Cycle
-  function check2B2S(results) {
-    if (!results || results.length < 3) return null;
-    const last4 = results.slice(0, 4).reverse();
-    const last3 = results.slice(0, 3).reverse();
-
-    if (isArrMatch(last4, ['BIG', 'BIG', 'SMALL', 'SMALL'])) return { size: 'BIG', name: '⚡ 2B+2S COMPLETE' };
-    if (isArrMatch(last4, ['SMALL', 'SMALL', 'BIG', 'BIG'])) return { size: 'SMALL', name: '⚡ 2S+2B COMPLETE' };
-    if (isArrMatch(last3, ['BIG', 'BIG', 'SMALL'])) return { size: 'SMALL', name: '⚡ 2B+1S FORMING' };
-    if (isArrMatch(last3, ['SMALL', 'SMALL', 'BIG'])) return { size: 'BIG', name: '⚡ 2S+1B FORMING' };
-    return null;
-  }
-
-  // 3B + 3S / 3S + 2B Patterns
-  function check3B3S(results) {
-    if (!results || results.length < 5) return null;
-    const last6 = results.slice(0, 6).reverse();
-    const last5 = results.slice(0, 5).reverse();
-
-    if (isArrMatch(last6, ['BIG', 'BIG', 'BIG', 'SMALL', 'SMALL', 'SMALL'])) return { size: 'BIG', name: '⚡ 3B+3S COMPLETE' };
-    if (isArrMatch(last6, ['SMALL', 'SMALL', 'SMALL', 'BIG', 'BIG', 'BIG'])) return { size: 'SMALL', name: '⚡ 3S+3B COMPLETE' };
-    if (isArrMatch(last5, ['BIG', 'BIG', 'BIG', 'SMALL', 'SMALL'])) return { size: 'SMALL', name: '⚡ 3B+2S FORMING' };
-    if (isArrMatch(last5, ['SMALL', 'SMALL', 'SMALL', 'BIG', 'BIG'])) return { size: 'BIG', name: '⚡ 3S+2B FORMING' };
-    return null;
+  function opp(size) {
+    return size === 'BIG' ? 'SMALL' : 'BIG';
   }
 
   function getRuns(sizes) {
     const runs = [];
-    if (!sizes || !sizes.length) return runs;
+    if (!sizes.length) return runs;
     let cur = sizes[0], len = 1;
     for (let i = 1; i < sizes.length; i++) {
       if (sizes[i] === cur) len++;
-      else { runs.push({ size: cur, len }); cur = sizes[i]; len = 1; }
+      else {
+        runs.push({ size: cur, len });
+        cur = sizes[i];
+        len = 1;
+      }
     }
     runs.push({ size: cur, len });
     return runs;
   }
 
-  // Apex Titan Cadence Engine
+  // 1. APEX TITAN CADENCE ENGINE
   function apexTitanEngine(sizes, lossStreak) {
     const runs = getRuns(sizes);
-    const cRun = runs[runs.length - 1] || { size: sizes[0], len: 1 };
-    const cSide = cRun.size;
-    const cLen = cRun.len;
+    const cRun = runs[runs.length - 1];
+    const cSide = cRun ? cRun.size : sizes[0];
+    const cLen = cRun ? cRun.len : 1;
     const lastS = sizes[sizes.length - 1];
 
     let alt = 0;
     for (let i = runs.length - 1; i >= 0; i--) {
-      if (runs[i].len === 1) alt++; else break;
+      if (runs[i].len === 1) alt++;
+      else break;
     }
 
     if (lossStreak >= 2) {
@@ -195,42 +152,44 @@
     }
   }
 
-  // Radhe Recency & 4-Flip Engine
+  // 2. RADHE HACK 2-3 LEVEL FIX
   function radheEngine(list) {
-    const sizes = list.slice(0, 12).map(item => getSize(item.number));
-    let streak = 1;
+    let sizes = list.slice(0, 12).map(item => getSize(item.number));
+    let consecutiveCount = 1;
     for (let i = 1; i < sizes.length; i++) {
-      if (sizes[i] === sizes[0]) streak++; else break;
+      if (sizes[i] === sizes[0]) consecutiveCount++; else break;
     }
-    if (streak >= 4) return sizes[0];
-    let isAlt = true;
+    if (consecutiveCount >= 4) return sizes[0];
+    let isAlternating = true;
     for (let i = 0; i < 4; i++) {
-      if (sizes[i] === sizes[i + 1]) { isAlt = false; break; }
+      if (sizes[i] === sizes[i + 1]) { isAlternating = false; break; }
     }
-    if (isAlt) return opp(sizes[0]);
-    let wSum = 0;
+    if (isAlternating) return sizes[0] === 'BIG' ? 'SMALL' : 'BIG';
+    let weightSum = 0;
     for (let i = 0; i < Math.min(list.length, 6); i++) {
-      const num = parseInt(list[i].number, 10);
-      const w = (6 - i) * 3;
-      wSum += (num >= 5) ? w : -w;
+      let num = parseInt(list[i].number, 10);
+      let pWeight = (6 - i) * 3;
+      weightSum += (num >= 5) ? pWeight : -pWeight;
     }
-    return wSum >= 0 ? 'BIG' : 'SMALL';
+    return weightSum >= 0 ? 'BIG' : 'SMALL';
   }
 
-  // Suresh VIP 10-Round Weighted Recency
+  // 3. SURESH VIP SUPREME V15
   function sureshEngine(list) {
     let bigs = 0, smalls = 0;
     for (let i = 0; i < Math.min(10, list.length); i++) {
       const num = parseInt(list[i].number, 10);
-      const w = 10 - i;
-      if (num >= 5) bigs += w; else smalls += w;
+      const weight = (10 - i);
+      if (num >= 5) bigs += weight; else smalls += weight;
     }
     const last3 = list.slice(0, 3).map(x => getSize(x.number));
-    if (last3[0] === last3[1] && last3[1] === last3[2]) return last3[0];
+    if (last3[0] === last3[1] && last3[1] === last3[2]) {
+      return last3[0];
+    }
     return bigs >= smalls ? 'BIG' : 'SMALL';
   }
 
-  // Markov 2-Gram
+  // 4. QUANTUM MARKOV 2-GRAM
   function markovEngine(sizes) {
     if (sizes.length < 5) return sizes[0];
     const s1 = sizes[1], s0 = sizes[0];
@@ -245,11 +204,11 @@
     return s0;
   }
 
-  // TGX Logic Modules
+  // 5. TGX 6-LOGIC ENGINE LAYER
   function tgxLogic1(nums, sizes) {
     const n1 = nums[0], n2 = nums[1] || nums[0];
     const n9 = nums[8] || nums[nums.length - 1], n10 = nums[9] || nums[nums.length - 1];
-    const total = Math.abs((n1 - n2) + (n9 - n10)) % 10;
+    let total = Math.abs((n1 - n2) + (n9 - n10)) % 10;
     let bigs = 0;
     for (let i = 0; i < Math.min(5, sizes.length); i++) if (sizes[i] === 'BIG') bigs++;
     if (bigs >= 4) return total >= 4 ? 'BIG' : 'SMALL';
@@ -265,186 +224,276 @@
     return (sum % 10) >= 5 ? 'BIG' : 'SMALL';
   }
 
+  function tgxLogic3(nums, sizes) {
+    let vol = 0;
+    for (let i = 0; i < Math.min(5, nums.length - 1); i++) vol += Math.abs(nums[i] - nums[i + 1]);
+    vol = vol / 5;
+    let streak = 1;
+    for (let i = 1; i < Math.min(5, sizes.length); i++) if (sizes[i] === sizes[0]) streak++; else break;
+    let streakScore = streak >= 3 ? -25 : (streak === 2 ? -15 : (vol > 3 ? 10 : 5));
+    let bigCnt = sizes.slice(0, 8).filter(x => x === 'BIG').length;
+    let imbalance = ((bigCnt - 4) / 8) * 100;
+    let pattern = (sizes[0] === sizes[1] && sizes[1] === sizes[2]) ? -35 : (sizes[0] === sizes[1] ? -20 : 25);
+    let total = (streakScore * 0.3) + (imbalance * 0.4) + (pattern * 0.3);
+    return total >= 0 ? 'BIG' : 'SMALL';
+  }
+
   function tgxLogic4(sizes) {
     let streak = 1;
     for (let i = 1; i < sizes.length; i++) if (sizes[i] === sizes[0]) streak++; else break;
     if (streak >= 2) return sizes[0];
     let changes = 0;
     for (let i = 0; i < Math.min(5, sizes.length - 1); i++) if (sizes[i] !== sizes[i + 1]) changes++;
-    if (changes >= 3) return opp(sizes[0]);
+    if (changes >= 3) return sizes[0] === 'BIG' ? 'SMALL' : 'BIG';
     return sizes[0];
   }
 
-  // Combined Master Predictor
+  function tgxLogic5(nums) {
+    let ev = 0;
+    for (let i = 0; i < Math.min(6, nums.length); i++) if (nums[i] % 2 === 0) ev++;
+    return ev >= 3 ? 'BIG' : 'SMALL';
+  }
+
+  function tgxLogic6(sizes) {
+    if (sizes.length < 2) return sizes[0];
+    return sizes[0] === sizes[1] ? (sizes[0] === 'BIG' ? 'SMALL' : 'BIG') : sizes[0];
+  }
+
+  // 6. EXACT MASTER ENSEMBLE ENGINE (EXACT JASHVIP.VERCEL.APP IMPLEMENTATION)
+  function calculateCombinedPrediction(list) {
+    if (!list || list.length < 3) return null;
+
+    const sizes = list.slice(0, 15).map(item => getSize(item.number));
+    const nums = list.slice(0, 15).map(item => parseInt(item.number, 10));
+
+    // Current recovery level (1, 2, or 3)
+    const currentLevel = Math.min(3, Math.max(1, LOSS_STREAK + 1));
+
+    // Streaks & Alternation
+    let alt = 1;
+    for (let i = 0; i < sizes.length - 1; i++) {
+      if (sizes[i] !== sizes[i + 1]) alt++;
+      else break;
+    }
+
+    let streak = 1;
+    for (let i = 0; i < sizes.length - 1; i++) {
+      if (sizes[i] === sizes[i + 1]) streak++;
+      else break;
+    }
+
+    const votes = { BIG: 0, SMALL: 0 };
+
+    // Layer 1: Apex Titan Cadence Engine (Jash Autobet)
+    const titan = apexTitanEngine(sizes, Math.max(0, currentLevel - 1));
+    votes[titan.vote] += 3.2;
+
+    // Layer 2: Radhe Hack 2-3 Level Fix
+    const radhe = radheEngine(list);
+    votes[radhe] += 2.4;
+
+    // Layer 3: Suresh VIP Supreme V15
+    const suresh = sureshEngine(list);
+    votes[suresh] += 2.0;
+
+    // Layer 4: Quantum Markov 2-Gram
+    const markov = markovEngine(sizes);
+    votes[markov] += 1.8;
+
+    // Layer 5: TGX 6-Logic Ensemble
+    const l1 = tgxLogic1(nums, sizes); votes[l1] += 1.0;
+    const l2 = tgxLogic2(nums);        votes[l2] += 1.2;
+    const l3 = tgxLogic3(nums, sizes); votes[l3] += 1.0;
+    const l4 = tgxLogic4(sizes);       votes[l4] += 1.0;
+    const l5 = tgxLogic5(nums);        votes[l5] += 0.8;
+    const l6 = tgxLogic6(sizes);       votes[l6] += 1.0;
+
+    // Layer 6: The Paid Pro 3-Round Window
+    const painPro = sizes.slice(0, 3).filter(x => x === 'BIG').length > 1 ? 'BIG' : 'SMALL';
+    votes[painPro] += 1.0;
+
+    // Layer 7: Nexa Pro 15-Round Skew Reversion (only in non-streak L1)
+    const big15 = sizes.slice(0, 15).filter(x => x === 'BIG').length;
+    let nexaVote = 'BALANCED';
+    if (streak < 2 && currentLevel === 1) {
+      if (big15 >= 10) {
+        votes.SMALL += 1.6;
+        nexaVote = 'REV-S';
+      } else if (big15 <= 5) {
+        votes.BIG += 1.6;
+        nexaVote = 'REV-B';
+      }
+    }
+
+    // Circuit Breaker & Strict Level Protection
+    const isChopZone = (alt >= 3 && currentLevel >= 3);
+    let patternLabel = titan.reg;
+
+    if (streak >= 3) {
+      votes[sizes[0]] += 5.5; // Irresistible Dragon Ride
+      patternLabel = `⚡ DRAGON RIDE (${streak}X)`;
+    } else if (streak === 2 && currentLevel >= 2) {
+      votes[sizes[0]] += 4.0; // Pair Lock during L2/L3 Recovery
+      patternLabel = `🛡️ L${currentLevel} DOUBLET RIDE`;
+    } else if (isChopZone) {
+      patternLabel = '🛑 CAPITAL SHIELD: CHOP ZONE (FLAT 1X)';
+    } else if (alt >= 3) {
+      patternLabel = `⚡ ZIGZAG SWITCH (${alt}X)`;
+    }
+
+    const prediction = votes.BIG >= votes.SMALL ? 'BIG' : 'SMALL';
+    return {
+      prediction,
+      patternLabel,
+      latestIssue: list[0].issueNumber,
+      latestNumber: parseInt(list[0].number, 10),
+      nextPeriod: (BigInt(list[0].issueNumber) + 1n).toString()
+    };
+  }
+
   function computePrediction() {
     if (!LOTTERY_HISTORY || LOTTERY_HISTORY.length < 3) {
       return { size: 'BIG', name: '⏳ SYNCING DRAW...', noData: true };
     }
-
-    const list = LOTTERY_HISTORY.slice().reverse(); // [0] = newest
-    const sizes = list.slice(0, 15).map(item => getSize(item.number));
-    const nums = list.slice(0, 15).map(item => parseInt(item.number, 10));
-
-    let streak = 1;
-    for (let i = 0; i < sizes.length - 1; i++) {
-      if (sizes[i] === sizes[i + 1]) streak++; else break;
-    }
-
-    let alt = 1;
-    for (let i = 0; i < sizes.length - 1; i++) {
-      if (sizes[i] !== sizes[i + 1]) alt++; else break;
-    }
-
-    // 1. Structure Patterns (Highest Priority)
-    if (streak >= 4) {
-      return { size: sizes[0], name: `⚡ DRAGON RIDE (${streak}X)`, noData: false };
-    }
-
-    const pTriangle = checkTriangle(sizes);
-    if (pTriangle) return { size: pTriangle.size, name: pTriangle.name, noData: false };
-
-    const p3B3S = check3B3S(sizes);
-    if (p3B3S) return { size: p3B3S.size, name: p3B3S.name, noData: false };
-
-    const p2B2S = check2B2S(sizes);
-    if (p2B2S) return { size: p2B2S.size, name: p2B2S.name, noData: false };
-
-    if (alt >= 3) {
-      return { size: opp(sizes[0]), name: `⚡ ZIGZAG SWITCH (${alt}X)`, noData: false };
-    }
-
-    // 2. Ensemble Multi-Model Consensus
-    const votes = { BIG: 0, SMALL: 0 };
-    const titan = apexTitanEngine(sizes, LOSS_STREAK);
-    votes[titan.vote] += 3.2;
-
-    const radhe = radheEngine(list);
-    votes[radhe] += 2.4;
-
-    const suresh = sureshEngine(list);
-    votes[suresh] += 2.0;
-
-    const markov = markovEngine(sizes);
-    votes[markov] += 1.8;
-
-    const l1 = tgxLogic1(nums, sizes); votes[l1] += 1.0;
-    const l2 = tgxLogic2(nums);        votes[l2] += 1.2;
-    const l4 = tgxLogic4(sizes);       votes[l4] += 1.0;
-
-    const finalSize = votes.BIG >= votes.SMALL ? 'BIG' : 'SMALL';
-    return { size: finalSize, name: titan.reg || 'AI CONSENSUS', noData: false };
+    const list = LOTTERY_HISTORY.slice().reverse().map(item => ({
+      issueNumber: item.period,
+      number: String(item.number)
+    }));
+    const res = calculateCombinedPrediction(list);
+    if (!res) return { size: 'BIG', name: 'AI CONSENSUS', noData: true };
+    return { size: res.prediction, name: res.patternLabel, noData: false };
   }
 
   // ── 4. DRAW HISTORY FROM OFFICIAL AR-LOTTERY API ──────────
   let LOTTERY_HISTORY = [];
 
-  async function fetchDrawHistory() {
-    try {
-      const url = (GAME_MODE === '1M')
-        ? 'https://draw.ar-lottery01.com/WinGo/WinGo_1M/GetHistoryIssuePage.json'
-        : 'https://draw.ar-lottery01.com/WinGo/WinGo_30S/GetHistoryIssuePage.json';
+  function fetchDrawHistory() {
+    const url = (GAME_MODE === '1M')
+      ? 'https://draw.ar-lottery01.com/WinGo/WinGo_1M/GetHistoryIssuePage.json'
+      : 'https://draw.ar-lottery01.com/WinGo/WinGo_30S/GetHistoryIssuePage.json';
 
-      const res = await fetch(`${url}?_t=${Date.now()}`, {
-        headers: { 'Accept': 'application/json, text/plain, */*' }
-      });
-      if (res.ok) {
-        const payload = await res.json();
-        const list = payload?.data?.list || [];
-        if (Array.isArray(list) && list.length > 0) {
-          const parsed = list.map(item => {
-            const p = String(item.issueNumber || item.period || '').trim();
-            const n = parseInt(item.number, 10);
-            return { period: p, number: n, size: getSize(n) };
-          }).filter(x => /^\d+$/.test(x.period) && Number.isInteger(x.number));
+    const fullUrl = `${url}?_t=${Date.now()}`;
 
-          if (parsed.length >= 3) {
-            const map = new Map();
-            LOTTERY_HISTORY.forEach(item => map.set(item.period, item));
-            parsed.forEach(item => map.set(item.period, item));
-            const merged = Array.from(map.values());
-            merged.sort((a, b) => {
-              try { return BigInt(a.period) > BigInt(b.period) ? 1 : -1; } catch (e) { return 0; }
-            });
-            LOTTERY_HISTORY = merged.slice(-100);
-            checkLastDrawOutcome();
-            updateHud();
-          }
-        }
+    function handleList(list) {
+      if (!Array.isArray(list) || list.length === 0) return;
+      const parsed = list.map(item => {
+        const p = String(item.issueNumber || item.period || '').trim();
+        const n = parseInt(item.number, 10);
+        return { period: p, number: n, size: getSize(n) };
+      }).filter(x => /^\d+$/.test(x.period) && Number.isInteger(x.number));
+
+      if (parsed.length >= 3) {
+        const map = new Map();
+        LOTTERY_HISTORY.forEach(item => map.set(item.period, item));
+        parsed.forEach(item => map.set(item.period, item));
+        const merged = Array.from(map.values());
+        merged.sort((a, b) => {
+          try { return BigInt(a.period) > BigInt(b.period) ? 1 : -1; } catch (e) { return 0; }
+        });
+        LOTTERY_HISTORY = merged.slice(-100);
+        checkAllPendingBets();
+        updateHud();
       }
-    } catch (e) {}
+    }
+
+    if (typeof GM_xmlhttpRequest !== 'undefined') {
+      GM_xmlhttpRequest({
+        method: 'GET',
+        url: fullUrl,
+        timeout: 4000,
+        onload: (res) => {
+          try {
+            const j = JSON.parse(res.responseText);
+            handleList(j?.data?.list);
+          } catch (e) {}
+        }
+      });
+    } else {
+      fetch(fullUrl)
+        .then(r => r.json())
+        .then(j => handleList(j?.data?.list))
+        .catch(() => {});
+    }
   }
   setInterval(fetchDrawHistory, 1000);
   fetchDrawHistory();
 
-  // Intercept XHR for live updates
-  const origXhrSend = XMLHttpRequest.prototype.send;
-  XMLHttpRequest.prototype.send = function (body) {
-    this.addEventListener('load', () => {
-      try {
-        const resJson = JSON.parse(this.responseText);
-        if (resJson && typeof resJson === 'object') {
-          const list = resJson?.data?.list || resJson?.list || resJson?.data?.games;
-          if (Array.isArray(list) && list.length > 0 && (list[0].issueNumber || list[0].period)) {
-            const parsed = list.map(item => {
-              const p = String(item.issueNumber || item.period || '').trim();
-              const n = parseInt(item.number, 10);
-              return { period: p, number: n, size: getSize(n) };
-            }).filter(x => /^\d+$/.test(x.period) && Number.isInteger(x.number));
-            if (parsed.length > 0) {
-              const map = new Map();
-              LOTTERY_HISTORY.forEach(item => map.set(item.period, item));
-              parsed.forEach(item => map.set(item.period, item));
-              const merged = Array.from(map.values());
-              merged.sort((a, b) => {
-                try { return BigInt(a.period) > BigInt(b.period) ? 1 : -1; } catch (e) { return 0; }
-              });
-              LOTTERY_HISTORY = merged.slice(-100);
-              checkLastDrawOutcome();
-              updateHud();
-            }
-          }
-        }
-      } catch (e) {}
-    });
-    return origXhrSend.apply(this, arguments);
-  };
-
-  // ── 5. SETTLEMENT CHECKER ─────────────────────────────────
-  function checkLastDrawOutcome() {
+  // ── 5. DUAL SETTLEMENT ENGINE (INSTANT DOM + API) ─────────
+  // A. Check against API LOTTERY_HISTORY
+  function checkAllPendingBets() {
     if (!LOTTERY_HISTORY || LOTTERY_HISTORY.length === 0) return;
-    const latestDraw = LOTTERY_HISTORY[LOTTERY_HISTORY.length - 1];
-    if (!latestDraw || !latestDraw.period) return;
+    const historyMap = new Map();
+    LOTTERY_HISTORY.forEach(item => historyMap.set(item.period, item));
 
-    if (RESOLVED_PERIODS.has(latestDraw.period)) return;
+    for (const bet of RECORDED_BETS) {
+      if (!bet.isPending) continue;
 
-    const bet = RECORDED_BETS.find(b => b.period === latestDraw.period);
-    if (bet && bet.isPending) {
-      RESOLVED_PERIODS.add(latestDraw.period);
-      bet.isPending = false;
-      bet.actualNumber = latestDraw.number;
-      bet.actualSize = latestDraw.size;
-
-      const won = (bet.prediction === latestDraw.size);
-      bet.won = won;
-
-      if (won) {
-        wins++;
-        LOSS_STREAK = 0;
-        martingaleStep = 0;
-        currentBet = getStakeForStep(BASE_BET, 0);
-        console.log(`%c🏆 JASH VIP WIN on #${latestDraw.period}! Reset to Base (₹${BASE_BET})`, 'background:#10b981;color:#fff;font-weight:900;padding:6px;border-radius:4px');
-      } else {
-        losses++;
-        LOSS_STREAK++;
-        martingaleStep++;
-        currentBet = getStakeForStep(BASE_BET, martingaleStep);
-        console.log(`%c💀 JASH VIP LOSS on #${latestDraw.period}! Streak=${LOSS_STREAK} Next=₹${currentBet}`, 'background:#ef4444;color:#fff;font-weight:900;padding:6px;border-radius:4px');
+      let draw = historyMap.get(bet.period);
+      if (!draw) {
+        const betTail = String(bet.period).slice(-5);
+        for (const [p, item] of historyMap.entries()) {
+          if (p.endsWith(betTail)) { draw = item; break; }
+        }
       }
 
-      pendingBet = null;
-      persistAll();
-      updateHud();
+      if (draw && draw.period) {
+        resolveBet(bet, draw.period, draw.size, draw.number);
+      }
     }
+  }
+
+  // B. Instant DOM History Synchronizer (Reads "My history" on dmfirst directly!)
+  function syncFromDOMHistory() {
+    const textEls = Array.from(document.querySelectorAll('div, tr, li, p, span')).filter(e => !e.closest('#jash-hud'));
+    for (const el of textEls) {
+      const text = (el.textContent || '').trim();
+      const m = text.match(/\b(2026\d{10,14})\b/);
+      if (!m) continue;
+      const period = m[1];
+
+      const container = el.closest('div, tr, li') || el;
+      const cText = (container.textContent || '').trim();
+
+      const isLose = /Lose|Loss|未中奖/i.test(cText);
+      const isWin = /Win|中奖/i.test(cText);
+
+      if (isLose || isWin) {
+        const bet = RECORDED_BETS.find(b => (b.period === period || period.endsWith(String(b.period).slice(-5))) && b.isPending);
+        if (bet) {
+          const outcomeSize = isWin ? bet.prediction : (bet.prediction === 'BIG' ? 'SMALL' : 'BIG');
+          resolveBet(bet, period, outcomeSize, null);
+        }
+      }
+    }
+  }
+
+  function resolveBet(bet, period, outcomeSize, actualNum) {
+    if (!bet.isPending) return;
+    RESOLVED_PERIODS.add(period);
+    bet.isPending = false;
+    bet.actualSize = outcomeSize;
+    if (actualNum != null) bet.actualNumber = actualNum;
+
+    const won = (bet.prediction === outcomeSize);
+    bet.won = won;
+
+    if (won) {
+      wins++;
+      LOSS_STREAK = 0;
+      martingaleStep = 0;
+      currentBet = getStakeForStep(BASE_BET, 0);
+      console.log(`%c🏆 JASH VIP WIN on #${period}! Reset to Base (₹${BASE_BET})`, 'background:#10b981;color:#fff;font-weight:900;padding:6px;border-radius:4px');
+    } else {
+      losses++;
+      LOSS_STREAK++;
+      martingaleStep++;
+      currentBet = getStakeForStep(BASE_BET, martingaleStep);
+      console.log(`%c💀 JASH VIP LOSS on #${period}! Streak=${LOSS_STREAK} Next=₹${currentBet}`, 'background:#ef4444;color:#fff;font-weight:900;padding:6px;border-radius:4px');
+    }
+
+    pendingBet = null;
+    persistAll();
+    updateHud();
   }
 
   // ── 6. ACCURATE TIMER ─────────────────────────────────────
@@ -776,7 +825,11 @@
       const tEl = document.getElementById('j-timer');
       if (tEl) tEl.textContent = secondsLeft + 's';
 
-      // Detect active draw issue number
+      // 1. Instant sync outcomes from both DOM ("My history") and API
+      syncFromDOMHistory();
+      checkAllPendingBets();
+
+      // 2. Detect active draw issue number
       let activePeriod = null;
       const allText = Array.from(document.querySelectorAll('div, span, p, b')).filter(e => !e.closest('#jash-hud') && !e.closest('table'));
       for (const el of allText) {
@@ -801,7 +854,7 @@
       if (activePeriod && PLACED_PERIODS.has(activePeriod)) return;
       if (pred.noData) return;
 
-      // Bet Window: 1M: between 55s and 6s | 30S: between 25s and 4s
+      // 3. Bet Window: 1M: between 55s and 6s | 30S: between 25s and 4s
       const canBet = (GAME_MODE === '30S')
         ? (secondsLeft <= 25 && secondsLeft >= 4)
         : (secondsLeft <= 55 && secondsLeft >= 6);
