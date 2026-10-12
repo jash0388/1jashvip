@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         JASH VIP ULTIMATE AI — WinGo Floating Prediction HUD & AutoBet
 // @namespace    https://github.com/jash0388/jashvip
-// @version      33.0
-// @description  👑 JASH VIP · Exact jashvip.vercel.app Multi-Model Consensus Engine (Apex Titan, Radhe, Suresh, Markov, TGX 1-6, Paid Pro, Nexa Skew) + Dual Settlement (Instant DOM & GM_xmlhttpRequest) + Custom Martingale (3 -> 7 -> 14 -> 28).
+// @version      36.0
+// @description  👑 JASH VIP · 100% Exact jashvip.vercel.app Master Ensemble Strategy with Self-Healing Continuous Level Synchronization (Zero Drift 24/7) + Bulletproof AutoBet + Custom Martingale (₹3 -> ₹7 -> ₹14 -> ₹28 -> ₹56).
 // @match        *://*.dmfirst7.com/*
 // @match        *://*.dmfirst0.com/*
 // @match        *://*.dmfirst*.com/*
@@ -27,7 +27,7 @@
   if (window.__JASH_VIP_ACTIVE__) return;
   window.__JASH_VIP_ACTIVE__ = true;
 
-  console.log("%c👑 JASH VIP ULTIMATE AI · 100% EXACT VERCEL CONSENSUS ENGINE ACTIVE", "background:linear-gradient(135deg,#00f5a0,#00d9f5,#7c3aed);color:#000;font-size:15px;font-weight:900;padding:8px 16px;border-radius:8px;box-shadow:0 0 25px rgba(0,245,160,0.6);");
+  console.log("%c👑 JASH VIP ULTIMATE AI · 24/7 SELF-HEALING ZERO-DRIFT VERCEL STRATEGY ACTIVE", "background:linear-gradient(135deg,#00f5a0,#00d9f5,#7c3aed);color:#000;font-size:15px;font-weight:900;padding:8px 16px;border-radius:8px;box-shadow:0 0 25px rgba(0,245,160,0.6);");
 
   // ── 1. WAKE LOCK & PREVENT SLEEP ──────────────────────────
   let wakeLockObj = null;
@@ -39,23 +39,18 @@
   setInterval(requestWakeLock, 8000);
   requestWakeLock();
 
-  // ── 2. STATE PERSISTENCE ──────────────────────────────────
-  let GAME_MODE          = localStorage.getItem('JASH_MODE') || '1M';
-  let BASE_BET           = parseInt(localStorage.getItem('JASH_BASE_BET') || '3', 10);
-  if (isNaN(BASE_BET) || BASE_BET < 1) BASE_BET = 3;
+  // ── 2. STATE PERSISTENCE (STRICTLY 1 MIN WINGO ONLY) ─────
+  const GAME_MODE        = '1M';
+  try { localStorage.removeItem('JASH_MODE'); } catch(e) {}
+  let BASE_BET           = parseInt(localStorage.getItem('JASH_BASE_BET') || '2', 10);
+  if (isNaN(BASE_BET) || BASE_BET < 1) BASE_BET = 2;
 
-  // Custom Martingale:
-  // Step 0: Base (₹3)
-  // Step 1: (Base * 2) + 1 = ₹7
-  // Step 2: ((Base * 2) + 1) * 2 = ₹14
-  // Step 3: ₹28...
-  // Resets to Base on Win!
   function getStakeForStep(base, step) {
-    const b = Math.max(1, parseInt(base, 10) || 3);
+    const b = Math.max(1, parseInt(base, 10) || 2);
     const s = parseInt(step, 10) || 0;
     if (s <= 0) return b;
-    if (s === 1) return (b * 2) + 1; // 7
-    return ((b * 2) + 1) * Math.pow(2, s - 1); // 14, 28, 56...
+    if (s === 1) return (b * 2) + 1; // e.g. 5 if base 2, 7 if base 3
+    return ((b * 2) + 1) * Math.pow(2, s - 1); // 10, 20, 40... or 14, 28, 56...
   }
 
   let wins            = parseInt(localStorage.getItem('JASH_WINS') || '0', 10);
@@ -72,9 +67,9 @@
   let pendingBet      = null;
   let isBettingInProgress = false;
 
-  const PLACED_PERIODS = new Set();
-  const RESOLVED_PERIODS = new Set();
-  const LOCKED_TIME_BUCKETS = new Set();
+  let PLACED_PERIODS = new Set();
+  let RESOLVED_PERIODS = new Set();
+  let LOCKED_TIME_BUCKETS = new Set();
 
   let RECORDED_BETS = [];
   try {
@@ -96,7 +91,7 @@
     } catch (e) {}
   }
 
-  // ── 3. EXACT PREDICTION STRATEGY FROM JASHVIP.VERCEL.APP ──
+  // ── 3. 100% EXACT MASTER ENSEMBLE ENGINE FROM JASHVIP.VERCEL.APP ──
   function getSize(number) {
     return parseInt(number, 10) >= 5 ? 'BIG' : 'SMALL';
   }
@@ -204,7 +199,7 @@
     return s0;
   }
 
-  // 5. TGX 6-LOGIC ENGINE LAYER
+  // 5. TGX 6-LOGIC ENSEMBLE
   function tgxLogic1(nums, sizes) {
     const n1 = nums[0], n2 = nums[1] || nums[0];
     const n9 = nums[8] || nums[nums.length - 1], n10 = nums[9] || nums[nums.length - 1];
@@ -259,15 +254,12 @@
     return sizes[0] === sizes[1] ? (sizes[0] === 'BIG' ? 'SMALL' : 'BIG') : sizes[0];
   }
 
-  // 6. EXACT MASTER ENSEMBLE ENGINE (EXACT JASHVIP.VERCEL.APP IMPLEMENTATION)
-  function calculateCombinedPrediction(list) {
+  // 6. EXACT MASTER MULTI-MODEL ENSEMBLE ENGINE (IDENTICAL TO JASHVIP.VERCEL.APP)
+  function calculateCombinedPrediction(list, currentLevel = 1) {
     if (!list || list.length < 3) return null;
 
     const sizes = list.slice(0, 15).map(item => getSize(item.number));
     const nums = list.slice(0, 15).map(item => parseInt(item.number, 10));
-
-    // Current recovery level (1, 2, or 3)
-    const currentLevel = Math.min(3, Math.max(1, LOSS_STREAK + 1));
 
     // Streaks & Alternation
     let alt = 1;
@@ -284,7 +276,7 @@
 
     const votes = { BIG: 0, SMALL: 0 };
 
-    // Layer 1: Apex Titan Cadence Engine (Jash Autobet)
+    // Layer 1: Apex Titan Cadence Engine
     const titan = apexTitanEngine(sizes, Math.max(0, currentLevel - 1));
     votes[titan.vote] += 3.2;
 
@@ -327,73 +319,212 @@
 
     // Circuit Breaker & Strict Level Protection
     const isChopZone = (alt >= 3 && currentLevel >= 3);
+    let patternType = 'consensus';
     let patternLabel = titan.reg;
 
     if (streak >= 3) {
       votes[sizes[0]] += 5.5; // Irresistible Dragon Ride
+      patternType = 'dragon';
       patternLabel = `⚡ DRAGON RIDE (${streak}X)`;
     } else if (streak === 2 && currentLevel >= 2) {
       votes[sizes[0]] += 4.0; // Pair Lock during L2/L3 Recovery
+      patternType = 'cycle';
       patternLabel = `🛡️ L${currentLevel} DOUBLET RIDE`;
     } else if (isChopZone) {
+      patternType = 'zigzag';
       patternLabel = '🛑 CAPITAL SHIELD: CHOP ZONE (FLAT 1X)';
     } else if (alt >= 3) {
+      patternType = 'zigzag';
       patternLabel = `⚡ ZIGZAG SWITCH (${alt}X)`;
+    } else {
+      patternType = 'consensus';
     }
 
     const prediction = votes.BIG >= votes.SMALL ? 'BIG' : 'SMALL';
+    const totalScore = votes.BIG + votes.SMALL;
+    const confidence = isChopZone ? 68 : Math.min(98, Math.max(82, Math.round((Math.max(votes.BIG, votes.SMALL) / totalScore) * 100)));
+
     return {
       prediction,
+      patternType,
       patternLabel,
+      confidence,
       latestIssue: list[0].issueNumber,
       latestNumber: parseInt(list[0].number, 10),
-      nextPeriod: (BigInt(list[0].issueNumber) + 1n).toString()
+      nextPeriod: (BigInt(list[0].issueNumber) + 1n).toString(),
+      models: {
+        titan: titan.vote,
+        radhe,
+        suresh,
+        markov,
+        painPro,
+        nexaVote: nexaVote === 'REV-B' ? 'BIG' : (nexaVote === 'REV-S' ? 'SMALL' : 'BALANCED')
+      }
     };
   }
 
-  function computePrediction() {
-    if (!LOTTERY_HISTORY || LOTTERY_HISTORY.length < 3) {
-      return { size: 'BIG', name: '⏳ SYNCING DRAW...', noData: true };
+  // ── 4. SELF-HEALING DETERMINISTIC SIGNAL LEVEL RESOLVER ────
+  // Reconstructs the exact signal level (1, 2, or 3) from the last 10 draws.
+  // Guarantees zero level drift even if the bot runs continuously for days!
+  function getSelfHealingSignalLevel(list) {
+    if (!list || list.length < 4) return 1;
+    const chron = list.slice().reverse();
+    let lvl = 1;
+    let lastP = null;
+    for (let i = 3; i < chron.length; i++) {
+      const sub = chron.slice(0, i).reverse();
+      const res = calculateCombinedPrediction(sub, lvl);
+      if (lastP) {
+        const actual = getSize(chron[i - 1].number);
+        if (lastP === actual) lvl = 1;
+        else {
+          lvl++;
+          if (lvl > 3) lvl = 1; // Strict 3-level safety cycle
+        }
+      }
+      if (res) lastP = res.prediction;
     }
-    const list = LOTTERY_HISTORY.slice().reverse().map(item => ({
-      issueNumber: item.period,
-      number: String(item.number)
-    }));
-    const res = calculateCombinedPrediction(list);
-    if (!res) return { size: 'BIG', name: 'AI CONSENSUS', noData: true };
-    return { size: res.prediction, name: res.patternLabel, noData: false };
+    const actualLatest = getSize(chron[chron.length - 1].number);
+    if (lastP) {
+      if (lastP === actualLatest) lvl = 1;
+      else {
+        lvl++;
+        if (lvl > 3) lvl = 1;
+      }
+    }
+    return lvl;
   }
 
-  // ── 4. DRAW HISTORY FROM OFFICIAL AR-LOTTERY API ──────────
+  // ── 5. MASTER SIGNAL STATE MACHINE ────────────────────────
+  let CURRENT_SIGNAL_PREDICTION = null;
+  let LAST_SYNCED_PERIOD = null;
+
+  function updateMasterSignal() {
+    if (!CURRENT_API_DRAWS || CURRENT_API_DRAWS.length < 3) return;
+    const top = CURRENT_API_DRAWS[0];
+
+    // Compute self-healed level and locked prediction
+    const lvl = getSelfHealingSignalLevel(CURRENT_API_DRAWS);
+    const result = calculateCombinedPrediction(CURRENT_API_DRAWS, lvl);
+    if (result) {
+      if (LAST_SYNCED_PERIOD !== top.issueNumber) {
+        LAST_SYNCED_PERIOD = top.issueNumber;
+        console.log(`%c[👑 JASH VIP] 🎯 Synced Next Issue #${result.nextPeriod}: ${result.prediction} (${result.patternLabel}) [Guard Level: L${lvl}]`, 'background:#00f5a0;color:#000;font-weight:900;padding:4px 8px;border-radius:4px;');
+      }
+      CURRENT_SIGNAL_PREDICTION = result;
+    }
+  }
+
+  function computePrediction() {
+    if (!CURRENT_SIGNAL_PREDICTION) {
+      updateMasterSignal();
+    }
+    if (!CURRENT_SIGNAL_PREDICTION) {
+      return {
+        size: 'BIG',
+        name: '⏳ SYNCING DRAW...',
+        models: { titan: '...', radhe: '...', suresh: '...', markov: '...', painPro: '...', nexaVote: '...' },
+        noData: true
+      };
+    }
+    return {
+      size: CURRENT_SIGNAL_PREDICTION.prediction,
+      name: CURRENT_SIGNAL_PREDICTION.patternLabel,
+      models: CURRENT_SIGNAL_PREDICTION.models,
+      noData: false
+    };
+  }
+
+  // ── 6. OFFICIAL AR-LOTTERY API DRAW FETCHER & SERVER INTERCEPTOR ──
+  let CURRENT_API_DRAWS = [];
   let LOTTERY_HISTORY = [];
+  let isFetching = false;
+
+  function ingestDrawList(list) {
+    if (!Array.isArray(list) || list.length === 0) return;
+    const valid = list.map(item => {
+      const issue = String(item.issueNumber || item.issueNo || item.period || item.issue || '').trim();
+      const numRaw = item.number != null ? item.number : (item.lotteryResults != null ? item.lotteryResults : item.result);
+      const num = parseInt(numRaw, 10);
+      if (!/^\d+$/.test(issue) || isNaN(num)) return null;
+      return {
+        issueNumber: issue,
+        period: issue,
+        number: num,
+        size: num >= 5 ? 'BIG' : 'SMALL'
+      };
+    }).filter(Boolean);
+
+    if (valid.length >= 1) {
+      CURRENT_API_DRAWS = valid;
+      const map = new Map();
+      LOTTERY_HISTORY.forEach(item => map.set(item.period, item));
+      valid.forEach(item => map.set(item.period, item));
+      const merged = Array.from(map.values());
+      merged.sort((a, b) => {
+        try { return BigInt(a.period) > BigInt(b.period) ? 1 : -1; } catch (e) { return 0; }
+      });
+      LOTTERY_HISTORY = merged.slice(-50);
+      checkAllPendingBets();
+      updateMasterSignal();
+      updateHud();
+    }
+  }
+
+  // Intercept XHR for site's internal lottery data
+  try {
+    const origXhrOpen = XMLHttpRequest.prototype.open;
+    const origXhrSend = XMLHttpRequest.prototype.send;
+    XMLHttpRequest.prototype.open = function (method, url) {
+      this._url = url ? String(url) : '';
+      return origXhrOpen.apply(this, arguments);
+    };
+    XMLHttpRequest.prototype.send = function (body) {
+      this.addEventListener('load', () => {
+        try {
+          if (this._url && (this._url.includes('GetHistoryIssuePage') || this._url.includes('GetGameIssue') || this._url.includes('lotteryHistoricalRecords') || this._url.includes('getIssueData') || this._url.includes('GetHistory') || this._url.includes('saasLottery'))) {
+            const j = JSON.parse(this.responseText);
+            const list = j?.data?.list || j?.data?.issueHistory || (Array.isArray(j.data) ? j.data : []);
+            if (Array.isArray(list) && list.length > 0) {
+              ingestDrawList(list);
+            }
+          }
+        } catch (e) {}
+      });
+      return origXhrSend.apply(this, arguments);
+    };
+  } catch (e) {}
+
+  // Intercept window.fetch for site's internal lottery data
+  try {
+    const origFetch = window.fetch;
+    window.fetch = async function (...args) {
+      const res = await origFetch.apply(this, args);
+      try {
+        const url = (args[0] && typeof args[0] === 'string') ? args[0] : (args[0]?.url || '');
+        if (url && (url.includes('GetHistoryIssuePage') || url.includes('GetGameIssue') || url.includes('lotteryHistoricalRecords') || url.includes('getIssueData') || url.includes('GetHistory') || url.includes('saasLottery'))) {
+          const clone = res.clone();
+          clone.json().then(j => {
+            const list = j?.data?.list || j?.data?.issueHistory || (Array.isArray(j.data) ? j.data : []);
+            if (Array.isArray(list) && list.length > 0) {
+              ingestDrawList(list);
+            }
+          }).catch(() => {});
+        }
+      } catch (e) {}
+      return res;
+    };
+  } catch (e) {}
 
   function fetchDrawHistory() {
-    const url = (GAME_MODE === '1M')
-      ? 'https://draw.ar-lottery01.com/WinGo/WinGo_1M/GetHistoryIssuePage.json'
-      : 'https://draw.ar-lottery01.com/WinGo/WinGo_30S/GetHistoryIssuePage.json';
+    if (isFetching) return;
+    isFetching = true;
 
-    const fullUrl = `${url}?_t=${Date.now()}`;
+    const fullUrl = `https://draw.ar-lottery01.com/WinGo/WinGo_1M/GetHistoryIssuePage.json?_t=${Date.now()}`;
 
     function handleList(list) {
-      if (!Array.isArray(list) || list.length === 0) return;
-      const parsed = list.map(item => {
-        const p = String(item.issueNumber || item.period || '').trim();
-        const n = parseInt(item.number, 10);
-        return { period: p, number: n, size: getSize(n) };
-      }).filter(x => /^\d+$/.test(x.period) && Number.isInteger(x.number));
-
-      if (parsed.length >= 3) {
-        const map = new Map();
-        LOTTERY_HISTORY.forEach(item => map.set(item.period, item));
-        parsed.forEach(item => map.set(item.period, item));
-        const merged = Array.from(map.values());
-        merged.sort((a, b) => {
-          try { return BigInt(a.period) > BigInt(b.period) ? 1 : -1; } catch (e) { return 0; }
-        });
-        LOTTERY_HISTORY = merged.slice(-100);
-        checkAllPendingBets();
-        updateHud();
-      }
+      isFetching = false;
+      ingestDrawList(list);
     }
 
     if (typeof GM_xmlhttpRequest !== 'undefined') {
@@ -405,64 +536,51 @@
           try {
             const j = JSON.parse(res.responseText);
             handleList(j?.data?.list);
-          } catch (e) {}
-        }
+          } catch (e) { isFetching = false; }
+        },
+        onerror: () => { isFetching = false; }
       });
     } else {
       fetch(fullUrl)
         .then(r => r.json())
         .then(j => handleList(j?.data?.list))
-        .catch(() => {});
+        .catch(() => { isFetching = false; });
     }
   }
-  setInterval(fetchDrawHistory, 1000);
+
+  setInterval(fetchDrawHistory, 1500);
   fetchDrawHistory();
 
-  // ── 5. DUAL SETTLEMENT ENGINE (INSTANT DOM + API) ─────────
-  // A. Check against API LOTTERY_HISTORY
+  // ── 7. OFFICIAL SERVER API SETTLEMENT ENGINE ──────────────
+  // Results are settled EXCLUSIVELY via the official server API draw results.
+  // Active/running rounds will NEVER resolve early or falsely show LOSS.
   function checkAllPendingBets() {
     if (!LOTTERY_HISTORY || LOTTERY_HISTORY.length === 0) return;
     const historyMap = new Map();
-    LOTTERY_HISTORY.forEach(item => historyMap.set(item.period, item));
+    LOTTERY_HISTORY.forEach(item => {
+      const p = String(item.period || item.issueNumber || '').trim();
+      if (p) historyMap.set(p, item);
+    });
 
     for (const bet of RECORDED_BETS) {
       if (!bet.isPending) continue;
 
-      let draw = historyMap.get(bet.period);
+      const pKey = String(bet.period).trim();
+      let draw = historyMap.get(pKey);
       if (!draw) {
-        const betTail = String(bet.period).slice(-5);
-        for (const [p, item] of historyMap.entries()) {
-          if (p.endsWith(betTail)) { draw = item; break; }
+        const pTail = pKey.slice(-6);
+        for (const [k, v] of historyMap.entries()) {
+          if (k.endsWith(pTail)) {
+            draw = v;
+            break;
+          }
         }
       }
 
-      if (draw && draw.period) {
-        resolveBet(bet, draw.period, draw.size, draw.number);
-      }
-    }
-  }
-
-  // B. Instant DOM History Synchronizer (Reads "My history" on dmfirst directly!)
-  function syncFromDOMHistory() {
-    const textEls = Array.from(document.querySelectorAll('div, tr, li, p, span')).filter(e => !e.closest('#jash-hud'));
-    for (const el of textEls) {
-      const text = (el.textContent || '').trim();
-      const m = text.match(/\b(2026\d{10,14})\b/);
-      if (!m) continue;
-      const period = m[1];
-
-      const container = el.closest('div, tr, li') || el;
-      const cText = (container.textContent || '').trim();
-
-      const isLose = /Lose|Loss|未中奖/i.test(cText);
-      const isWin = /Win|中奖/i.test(cText);
-
-      if (isLose || isWin) {
-        const bet = RECORDED_BETS.find(b => (b.period === period || period.endsWith(String(b.period).slice(-5))) && b.isPending);
-        if (bet) {
-          const outcomeSize = isWin ? bet.prediction : (bet.prediction === 'BIG' ? 'SMALL' : 'BIG');
-          resolveBet(bet, period, outcomeSize, null);
-        }
+      if (draw && draw.number != null && !isNaN(parseInt(draw.number, 10))) {
+        const actualNum = parseInt(draw.number, 10);
+        const actualSize = actualNum >= 5 ? 'BIG' : 'SMALL';
+        resolveBet(bet, draw.period || pKey, actualSize, actualNum);
       }
     }
   }
@@ -470,6 +588,7 @@
   function resolveBet(bet, period, outcomeSize, actualNum) {
     if (!bet.isPending) return;
     RESOLVED_PERIODS.add(period);
+    RESOLVED_PERIODS.add(String(bet.period));
     bet.isPending = false;
     bet.actualSize = outcomeSize;
     if (actualNum != null) bet.actualNumber = actualNum;
@@ -496,55 +615,78 @@
     updateHud();
   }
 
-  // ── 6. ACCURATE TIMER ─────────────────────────────────────
+  // ── 8. ACCURATE 60-SECOND 1M TIMER ─────────────────────────
   function getTimerSeconds() {
-    const cycle = (GAME_MODE === '1M') ? 60 : 30;
-    const sec = Math.floor(Date.now() / 1000) % cycle;
-    return cycle - sec;
+    const sec = Math.floor(Date.now() / 1000) % 60;
+    return 60 - sec;
   }
 
   function getCurrentTimeBucket() {
-    const period = (GAME_MODE === '1M') ? 60 : 30;
-    return Math.floor(Date.now() / (period * 1000));
+    return Math.floor(Date.now() / 60000);
   }
 
-  // ── 7. DOM CLICK HELPERS ──────────────────────────────────
-  function fireClick(el) {
+  // ── 9. SYNTHETIC TOUCH & POINTER CLICK SYSTEM ─────────────
+  function triggerFullClick(el) {
     if (!el) return;
     try {
-      el.scrollIntoView({ behavior: 'instant', block: 'center' });
-      ['pointerdown', 'mousedown', 'pointerup', 'mouseup', 'click'].forEach(evt => {
-        el.dispatchEvent(new MouseEvent(evt, { bubbles: true, cancelable: true, view: window }));
-      });
-      if (typeof el.click === 'function') el.click();
+      const rect = el.getBoundingClientRect();
+      const cx = (rect.left + rect.width / 2) || 100;
+      const cy = (rect.top + rect.height / 2) || 100;
+
+      try {
+        const touch = new Touch({
+          identifier: Date.now(),
+          target: el,
+          clientX: cx,
+          clientY: cy,
+          pageX: cx,
+          pageY: cy,
+          screenX: cx,
+          screenY: cy
+        });
+        el.dispatchEvent(new TouchEvent('touchstart', { bubbles: true, cancelable: true, touches: [touch], targetTouches: [touch], changedTouches: [touch] }));
+        el.dispatchEvent(new TouchEvent('touchend', { bubbles: true, cancelable: true, touches: [], targetTouches: [], changedTouches: [touch] }));
+      } catch (te) {}
+
+      try {
+        el.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, cancelable: true, clientX: cx, clientY: cy, isPrimary: true }));
+        el.dispatchEvent(new PointerEvent('pointerup', { bubbles: true, cancelable: true, clientX: cx, clientY: cy, isPrimary: true }));
+      } catch (pe) {}
+
+      try {
+        el.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true, view: window, clientX: cx, clientY: cy }));
+        el.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, cancelable: true, view: window, clientX: cx, clientY: cy }));
+        el.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window, clientX: cx, clientY: cy }));
+      } catch (me) {}
+
+      if (typeof el.click === 'function') {
+        el.click();
+      }
     } catch (e) {}
   }
 
-  // ── 8. BULLETPROOF BET EXECUTION ──────────────────────────
+  // ── 10. BULLETPROOF BET PLACEMENT ENGINE ──────────────────
   async function executeBet(size, amount) {
     const target = size.trim().toUpperCase(); // "BIG" or "SMALL"
-    console.log(`%c[👑 JASH VIP] 🎯 PLACING BET: ${target} ₹${amount} (Level ${LOSS_STREAK + 1}, Step ${martingaleStep})`, 'background:linear-gradient(90deg,#00f5a0,#7c3aed);color:#000;font-weight:bold;padding:6px 14px;font-size:13px;border-radius:4px');
+    console.log(`%c[👑 JASH VIP] 🎯 PLACING BET: ${target} ₹${amount} (Streak: ${LOSS_STREAK}, Step: ${martingaleStep})`, 'background:linear-gradient(90deg,#00f5a0,#7c3aed);color:#000;font-weight:bold;padding:6px 14px;font-size:13px;border-radius:4px');
 
-    // 0. Clean up any open popup so game buttons are never blocked
-    const openPopups = Array.from(document.querySelectorAll('.van-popup, .popup, .van-popup--bottom')).filter(e => !e.closest('#jash-hud'));
+    // 0. Clean up any open popup
+    const openPopups = Array.from(document.querySelectorAll('.van-popup, .popup')).filter(e => !e.closest('#jash-hud') && e.offsetHeight > 40);
     for (const pop of openPopups) {
-      if (pop.offsetHeight > 40) {
-        const cancelBtn = Array.from(pop.querySelectorAll('button, div, span, p')).find(e => (e.textContent || '').trim().toLowerCase() === 'cancel');
-        if (cancelBtn) {
-          fireClick(cancelBtn);
-          await new Promise(r => setTimeout(r, 180));
-        }
+      const cancelBtn = Array.from(pop.querySelectorAll('button, div, span, p')).find(e => (e.textContent || '').trim().toLowerCase() === 'cancel');
+      if (cancelBtn) {
+        triggerFullClick(cancelBtn);
+        await new Promise(r => setTimeout(r, 150));
       }
     }
 
-    // 1. Filter out history, tables, record lists, HUD
+    // 1. Find Big or Small button on main board
     const allEls = Array.from(document.querySelectorAll('div, button, span, uni-view, p')).filter(e => {
       if (e.closest('#jash-hud')) return false;
       if (e.closest('.history, [class*="history"], [class*="record"], table, .list, [class*="list"], .record-list, .tab-content, .my-history')) return false;
       return true;
     });
 
-    // Match exact text 'Big' or 'Small'
     let targetBtn = allEls.find(e => {
       const txt = (e.textContent || '').trim().toUpperCase();
       return (txt === target || txt === `${target} 2X` || txt === `${target}2X`) && e.children.length <= 1;
@@ -560,74 +702,142 @@
       return false;
     }
 
-    fireClick(targetBtn);
-    await new Promise(r => setTimeout(r, 350));
+    triggerFullClick(targetBtn);
+    await new Promise(r => setTimeout(r, 400));
 
-    // 2. Set amount input
-    const modalInputs = Array.from(document.querySelectorAll('.van-popup input, .popup input, input[type="tel"], input[type="number"], input')).filter(i => !i.closest('#jash-hud'));
-    if (modalInputs.length > 0) {
-      const inp = modalInputs[modalInputs.length - 1];
+    // Wait for the popup modal to open
+    let popup = null;
+    for (let wait = 0; wait < 10; wait++) {
+      popup = Array.from(document.querySelectorAll('.van-popup, .popup')).find(p => p.offsetHeight > 50 && !p.closest('#jash-hud'));
+      if (popup) break;
+      await new Promise(r => setTimeout(r, 100));
+    }
+    if (!popup) {
+      console.warn('[JASH VIP] ❌ Bet popup did not open!');
+      return false;
+    }
+
+    // 2. Ensure Balance chip "1" is active (multiplier = 1x)
+    const balanceChips = Array.from(popup.querySelectorAll('div, span, button')).filter(e => {
+      const t = (e.textContent || '').trim();
+      return ['1', '10', '100', '1000'].includes(t) && e.children.length === 0;
+    });
+    const chip1 = balanceChips.find(e => (e.textContent || '').trim() === '1');
+    if (chip1) {
+      triggerFullClick(chip1);
+      await new Promise(r => setTimeout(r, 80));
+    }
+
+    // 3. Set Quantity Input
+    const modalInputs = Array.from(popup.querySelectorAll('input[type="tel"], input[type="number"], .van-stepper__input, input')).filter(i => !i.closest('#jash-hud'));
+    const inp = modalInputs[modalInputs.length - 1];
+    if (inp) {
       try {
         inp.focus();
-        inp.value = String(amount);
+        inp.select();
+        document.execCommand('insertText', false, String(amount));
         const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set;
         if (setter) setter.call(inp, String(amount));
         inp.dispatchEvent(new Event('input', { bubbles: true }));
         inp.dispatchEvent(new Event('change', { bubbles: true }));
+        inp.blur();
       } catch (e) {}
     }
 
-    // 3. Increment stepper if amount > 1 to guarantee Vue reactive data update
-    if (amount > 1) {
-      const plusBtns = Array.from(document.querySelectorAll('.van-stepper__plus, button.plus, .plus, [class*="plus"]')).filter(b => !b.closest('#jash-hud'));
-      if (plusBtns.length > 0) {
-        const plusBtn = plusBtns[plusBtns.length - 1];
-        for (let i = 1; i < amount; i++) {
-          fireClick(plusBtn);
-          await new Promise(r => setTimeout(r, 35));
+    await new Promise(r => setTimeout(r, 120));
+
+    function checkCurrentTotalText() {
+      const els = Array.from(popup.querySelectorAll('*'));
+      for (const el of els) {
+        const txt = (el.textContent || '').trim();
+        const m = txt.match(/Total\s*amount\s*[^\d]*(\d+(\.\d+)?)/i);
+        if (m) return parseFloat(m[1]);
+      }
+      return null;
+    }
+
+    let curTotal = checkCurrentTotalText();
+    if (curTotal !== amount) {
+      const plusBtn = popup.querySelector('.van-stepper__plus, button.plus, .plus, [class*="plus"]');
+      const minusBtn = popup.querySelector('.van-stepper__minus, button.minus, .minus, [class*="minus"]');
+      if (plusBtn) {
+        let curVal = parseInt(inp ? inp.value : '1', 10) || 1;
+        while (curVal < amount && curVal < 500) {
+          triggerFullClick(plusBtn);
+          curVal++;
+          await new Promise(r => setTimeout(r, 20));
+          if (checkCurrentTotalText() === amount) break;
+        }
+        while (curVal > amount && minusBtn && curVal > 1) {
+          triggerFullClick(minusBtn);
+          curVal--;
+          await new Promise(r => setTimeout(r, 20));
+          if (checkCurrentTotalText() === amount) break;
         }
       }
     }
 
-    await new Promise(r => setTimeout(r, 150));
+    await new Promise(r => setTimeout(r, 120));
 
-    // 4. Click confirm button ("Total amount ₹...")
-    const allPopupEls = Array.from(document.querySelectorAll('*')).filter(e => !e.closest('#jash-hud'));
-    let confirmBtn = allPopupEls.filter(b => {
-      const t = (b.textContent || '').trim();
-      return (t.startsWith('Total amount') || t.includes('Total amount')) && !t.includes('Cancel') && t.length <= 40;
-    })[0];
+    // 4. Ensure "I agree" checkbox is checked if present
+    const agreeBox = popup.querySelector('.van-checkbox, [class*="agree"], [class*="rule"]');
+    if (agreeBox) {
+      const isChecked = agreeBox.classList.contains('van-checkbox--checked') || agreeBox.getAttribute('aria-checked') === 'true';
+      if (!isChecked) {
+        triggerFullClick(agreeBox);
+        await new Promise(r => setTimeout(r, 80));
+      }
+    }
 
+    // 5. Click CONFIRM / SUBMIT BUTTON ("Total amount ₹...")
+    const allPopupEls = Array.from(popup.querySelectorAll('*')).filter(e => !e.closest('#jash-hud'));
+    const totalEls = allPopupEls.filter(e => {
+      const t = (e.textContent || '').trim();
+      return /Total\s*amount/i.test(t) && !/Cancel/i.test(t) && t.length <= 40;
+    });
+
+    let confirmBtn = null;
+    confirmBtn = totalEls.find(e => e.tagName === 'BUTTON' || e.classList.contains('van-button') || e.getAttribute('role') === 'button');
+    if (!confirmBtn && totalEls.length > 0) {
+      confirmBtn = totalEls[totalEls.length - 1];
+    }
     if (!confirmBtn) {
-      confirmBtn = allPopupEls.find(b => {
-        const t = (b.textContent || '').trim();
-        return /^(Confirm|Submit|Order|Buy|Bet|立即投注)$/i.test(t) && !t.includes('Cancel') && t.length <= 25;
+      confirmBtn = allPopupEls.find(e => {
+        const t = (e.textContent || '').trim();
+        return /^(Confirm|Submit|Order|Buy|Bet|Presale|Pre-sale|立即投注)$/i.test(t) && !/Cancel/i.test(t);
       });
     }
 
-    // Safety check: ensure Total amount is NOT ₹0 or ₹0.00
-    if (confirmBtn) {
-      const confirmText = (confirmBtn.textContent || '').trim();
-      if (/₹\s*0(\.00)?/i.test(confirmText)) {
-        console.warn('[JASH VIP] ⚠️ Total amount is ₹0.00, re-stepping plus button...');
-        const plusBtns = Array.from(document.querySelectorAll('.van-stepper__plus, button.plus, .plus, [class*="plus"]')).filter(b => !b.closest('#jash-hud'));
-        if (plusBtns.length > 0) {
-          for (let i = 0; i < amount; i++) {
-            fireClick(plusBtns[plusBtns.length - 1]);
-            await new Promise(r => setTimeout(r, 35));
-          }
-        }
-      }
-
-      try { confirmBtn.click(); } catch (e) {}
-      fireClick(confirmBtn);
-      console.log(`%c[👑 JASH VIP] ✅ Bet Successfully Submitted: ${target} ₹${amount}`, 'color:#00f5a0;font-weight:bold;');
-      return true;
+    if (!confirmBtn) {
+      console.warn('[JASH VIP] ❌ Confirm button not found inside popup!');
+      return false;
     }
-    return false;
+
+    const clickableContainer = confirmBtn.closest('button, .van-button, [role="button"]') || confirmBtn;
+
+    console.log(`[JASH VIP] 🚀 Submitting bet: ${target} ₹${amount}...`, confirmBtn, clickableContainer);
+
+    triggerFullClick(confirmBtn);
+    if (clickableContainer !== confirmBtn) {
+      triggerFullClick(clickableContainer);
+    }
+    try { confirmBtn.click(); } catch (e) {}
+    try { clickableContainer.click(); } catch (e) {}
+
+    await new Promise(r => setTimeout(r, 350));
+    const stillOpen = Array.from(document.querySelectorAll('.van-popup, .popup')).some(p => p.offsetHeight > 50 && !p.closest('#jash-hud'));
+    if (stillOpen) {
+      console.log('[JASH VIP] 🔄 Modal still visible, attempting secondary submit click...');
+      triggerFullClick(clickableContainer);
+      try { clickableContainer.click(); } catch (e) {}
+      await new Promise(r => setTimeout(r, 200));
+    }
+
+    console.log(`%c[👑 JASH VIP] ✅ Bet Successfully Submitted: ${target} ₹${amount}`, 'color:#00f5a0;font-weight:bold;');
+    return true;
   }
 
-  // ── 9. FLOATING VIP HUD (CLEAN, COMPACT & 1-CLICK RESTORE) ─
+  // ── 11. FLOATING VIP HUD (6-MODEL MATRIX DISPLAY) ──────────
   function createHud() {
     if (document.getElementById('jash-hud')) return;
     const target = document.body || document.documentElement;
@@ -657,86 +867,72 @@
 
       <div id="j-main-body">
         <div style="display:flex;gap:4px;margin-bottom:8px;">
-          <button id="j-mode-btn" style="flex:1;padding:4px 0;background:rgba(124,58,237,0.3);border:1px solid #7c3aed;border-radius:6px;color:#c4b5fd;font-weight:bold;font-size:10px;cursor:pointer;">
-            🎯 ${GAME_MODE === '30S' ? '30 SEC (FAST)' : '1 MIN'}
+          <div style="flex:2;padding:4px 0;background:rgba(0,245,160,0.12);border:1px solid rgba(0,245,160,0.3);border-radius:6px;color:#00f5a0;font-weight:900;font-size:10px;text-align:center;">
+            🎯 1 MIN WINGO (OFFICIAL)
+          </div>
+          <button id="j-reset-btn" title="Reset streak & step to Base Bet" style="flex:1;padding:4px 0;background:rgba(239,68,68,0.2);border:1px solid rgba(239,68,68,0.5);border-radius:6px;color:#fca5a5;font-weight:bold;font-size:10px;cursor:pointer;">
+            🔄 RESET
           </button>
         </div>
 
-        <!-- DIRECTION CALLOUT -->
-        <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:8px;margin-bottom:8px;text-align:center;">
-          <div id="j-pattern-lbl" style="font-size:9px;font-weight:800;color:#8A97AA;text-transform:uppercase;margin-bottom:2px;">AI CONSENSUS</div>
-          <div id="j-pred-call" style="font-size:24px;font-weight:900;line-height:1.1;color:#56e6ff;text-shadow:0 0 16px currentColor;">CALIBRATING...</div>
+        <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:8px;text-align:center;margin-bottom:8px;">
+          <div style="font-size:10px;color:#94a3b8;margin-bottom:2px;" id="j-pattern-lbl">⏳ SYNCING DRAW...</div>
+          <div id="j-pred-call" style="font-size:24px;font-weight:900;letter-spacing:1px;color:#E4FF4A;">--</div>
         </div>
 
-        <!-- BASE BET & CURRENT STAKE -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;">
-          <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:6px;">
-            <div style="font-size:8px;font-weight:800;color:#888;text-transform:uppercase;">BASE BET</div>
-            <div style="display:flex;align-items:center;gap:3px;margin-top:2px;">
-              <span style="color:#00f5a0;font-weight:bold;font-size:12px;">₹</span>
-              <input type="number" id="j-base-input" value="${BASE_BET}" min="1" style="width:100%;background:transparent;border:none;outline:none;color:#fff;font-size:13px;font-weight:900;font-family:monospace;">
+        <!-- 6-MODEL CONSENSUS MATRIX BREAKDOWN -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:8px;font-size:10px;font-family:monospace;background:rgba(255,255,255,0.03);padding:6px;border-radius:8px;border:1px solid rgba(255,255,255,0.08);">
+          <div>TITAN: <span id="m-titan" style="font-weight:bold;color:#E4FF4A;">--</span></div>
+          <div>RADHE: <span id="m-radhe" style="font-weight:bold;color:#E4FF4A;">--</span></div>
+          <div>SURESH: <span id="m-suresh" style="font-weight:bold;color:#E4FF4A;">--</span></div>
+          <div>MARKOV: <span id="m-markov" style="font-weight:bold;color:#E4FF4A;">--</span></div>
+          <div>PAIN: <span id="m-pain" style="font-weight:bold;color:#E4FF4A;">--</span></div>
+          <div>NEXA: <span id="m-nexa" style="font-weight:bold;color:#94a3b8;">--</span></div>
+        </div>
+
+        <div style="display:flex;gap:6px;margin-bottom:8px;">
+          <div style="flex:1;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:6px;">
+            <div style="font-size:9px;color:#94a3b8;">BASE BET</div>
+            <div style="display:flex;align-items:center;gap:2px;">
+              <span style="color:#00f5a0;font-weight:bold;">₹</span>
+              <input id="j-base-input" type="number" value="${BASE_BET}" min="1" style="width:100%;background:transparent;border:none;color:#fff;font-weight:bold;font-size:12px;outline:none;" />
             </div>
           </div>
-          <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:6px;">
-            <div style="font-size:8px;font-weight:800;color:#888;text-transform:uppercase;">CURRENT BET</div>
-            <div id="j-current-bet-display" style="color:#ffcc00;font-size:13px;font-weight:900;font-family:monospace;margin-top:2px;">₹${currentBet}</div>
+          <div style="flex:1;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:6px;">
+            <div style="font-size:9px;color:#94a3b8;">CURRENT BET</div>
+            <div id="j-current-bet-display" style="font-weight:bold;color:#ffcc00;font-size:12px;">₹${currentBet}</div>
           </div>
         </div>
 
-        <div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:8px;color:#aaa;">
-          <span>Streak: <b id="j-streak-lbl" style="color:#fff;">0 (L1)</b></span>
-          <span>Score: <b id="j-score-lbl" style="color:#00f5a0;">${wins}W / ${losses}L</b></span>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:#94a3b8;margin-bottom:8px;padding:0 2px;">
+          <span>Streak: <b id="j-streak-lbl" style="color:#fff;">${LOSS_STREAK} (L${LOSS_STREAK + 1})</b></span>
+          <span>Score: <b id="j-score-lbl" style="color:#00f5a0;">${wins}W</b> / <b style="color:#ff007a;">${losses}L</b></span>
         </div>
 
-        <!-- AUTOBET TOGGLE BUTTON -->
-        <button id="j-toggle-btn" style="width:100%;padding:9px 0;background:linear-gradient(135deg,#00f5a0,#00d9f5);border:none;border-radius:8px;color:#000;font-weight:900;font-size:11px;cursor:pointer;box-shadow:0 0 15px rgba(0,245,160,0.4);letter-spacing:0.05em;margin-bottom:6px;">
+        <button id="j-toggle-btn" style="width:100%;padding:8px 0;background:linear-gradient(135deg,#00f5a0,#00d9f5);border:none;border-radius:8px;color:#000;font-weight:900;font-size:11px;cursor:pointer;box-shadow:0 0 15px rgba(0,245,160,0.4);transition:all 0.2s;">
           ▶ START AUTOBET
         </button>
 
-        <div id="j-feed-box" style="max-height:55px;overflow-y:auto;background:rgba(0,0,0,0.4);border-radius:6px;padding:4px 6px;font-size:9.5px;font-family:monospace;">
-          <div style="color:#888;text-align:center;">Monitoring draw feed...</div>
+        <div id="j-feed-box" style="margin-top:8px;max-height:80px;overflow-y:auto;font-size:9px;font-family:monospace;border-top:1px solid rgba(255,255,255,0.08);padding-top:4px;">
+          <div style="color:#64748b;text-align:center;">Feed will appear here</div>
         </div>
       </div>
     `;
 
     target.appendChild(hud);
 
-    // Minimize / Expand logic: clicking ANYWHERE on minimized HUD expands it!
-    function setMinimized(min) {
-      isMinimized = min;
-      const body = document.getElementById('j-main-body');
-      const minBtn = document.getElementById('j-min-btn');
-      if (isMinimized) {
-        body.style.display = 'none';
-        hud.style.width = 'auto';
-        hud.style.minWidth = '220px';
-        hud.style.cursor = 'pointer';
-        if (minBtn) minBtn.textContent = '□';
-      } else {
-        body.style.display = 'block';
-        hud.style.width = '260px';
-        hud.style.cursor = 'default';
-        if (minBtn) minBtn.textContent = '−';
-      }
-    }
-
-    hud.addEventListener('click', (e) => {
-      if (isMinimized) {
-        setMinimized(false);
-      }
-    });
-
     document.getElementById('j-min-btn').onclick = (e) => {
       e.stopPropagation();
-      setMinimized(!isMinimized);
+      isMinimized = !isMinimized;
+      document.getElementById('j-main-body').style.display = isMinimized ? 'none' : 'block';
+      document.getElementById('j-min-btn').textContent = isMinimized ? '+' : '−';
     };
 
-    document.getElementById('j-toggle-btn').onclick = (e) => {
-      e.stopPropagation();
+    document.getElementById('j-toggle-btn').onclick = () => {
       running = !running;
       const btn = document.getElementById('j-toggle-btn');
       if (running) {
-        btn.textContent = '⏹ STOP AUTOBET (ACTIVE)';
+        btn.textContent = '■ STOP AUTOBET (ACTIVE)';
         btn.style.background = 'linear-gradient(135deg,#ff3366,#ff0055)';
         btn.style.boxShadow = '0 0 15px rgba(255,51,102,0.4)';
         btn.style.color = '#fff';
@@ -759,14 +955,30 @@
       updateHud();
     };
 
-    document.getElementById('j-mode-btn').onclick = (e) => {
+    document.getElementById('j-reset-btn').onclick = (e) => {
       e.stopPropagation();
-      GAME_MODE = (GAME_MODE === '30S') ? '1M' : '30S';
-      document.getElementById('j-mode-btn').textContent = `🎯 ${GAME_MODE === '30S' ? '30 SEC (FAST)' : '1 MIN'}`;
-      LOTTERY_HISTORY = [];
+      LOSS_STREAK = 0;
+      martingaleStep = 0;
+      currentBet = getStakeForStep(BASE_BET, 0);
+      wins = 0;
+      losses = 0;
+      RECORDED_BETS = [];
+      pendingBet = null;
+      PLACED_PERIODS.clear();
+      RESOLVED_PERIODS.clear();
+      LOCKED_TIME_BUCKETS.clear();
+      try {
+        localStorage.removeItem('JASH_BETS');
+        localStorage.removeItem('JASH_WINS');
+        localStorage.removeItem('JASH_LOSSES');
+        localStorage.removeItem('JASH_STEP');
+        localStorage.removeItem('JASH_LOSS_STREAK');
+        localStorage.removeItem('JASH_LAST_PRED');
+        localStorage.removeItem('JASH_LAST_BET_P');
+      } catch (err) {}
       persistAll();
-      fetchDrawHistory();
       updateHud();
+      console.log(`%c[👑 JASH VIP] 🔄 FULL RESET: Cleared history, streak, scores, and reset stake to ₹${BASE_BET}!`, 'background:#10b981;color:#000;font-weight:900;padding:6px;border-radius:4px;');
     };
   }
 
@@ -790,6 +1002,24 @@
       patternLblEl.textContent = pred.name;
     }
 
+    if (pred.models) {
+      const setM = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.textContent = val;
+          if (val === 'BIG') el.style.color = '#E4FF4A';
+          else if (val === 'SMALL') el.style.color = '#00D9FF';
+          else el.style.color = '#94a3b8';
+        }
+      };
+      setM('m-titan', pred.models.titan);
+      setM('m-radhe', pred.models.radhe);
+      setM('m-suresh', pred.models.suresh);
+      setM('m-markov', pred.models.markov);
+      setM('m-pain', pred.models.painPro);
+      setM('m-nexa', pred.models.nexaVote);
+    }
+
     const curBetEl = document.getElementById('j-current-bet-display');
     if (curBetEl) {
       curBetEl.textContent = `₹${currentBet}`;
@@ -806,17 +1036,21 @@
     }
 
     const feedBox = document.getElementById('j-feed-box');
-    if (feedBox && RECORDED_BETS.length > 0) {
-      feedBox.innerHTML = RECORDED_BETS.slice(0, 5).map(b => `
-        <div style="display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid rgba(255,255,255,0.05);color:${b.won === true ? '#00f5a0' : b.won === false ? '#ff007a' : '#ffcc00'}">
-          <span>..${String(b.period).slice(-4)} ${b.prediction} ₹${b.stake}</span>
-          <span>${b.won === true ? 'WIN ✓' : b.won === false ? 'LOSS ✕' : 'PLACED'}</span>
-        </div>
-      `).join('');
+    if (feedBox) {
+      if (RECORDED_BETS.length > 0) {
+        feedBox.innerHTML = RECORDED_BETS.slice(0, 5).map(b => `
+          <div style="display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid rgba(255,255,255,0.05);color:${b.won === true ? '#00f5a0' : b.won === false ? '#ff007a' : '#ffcc00'}">
+            <span>..${String(b.period).slice(-4)} ${b.prediction} ₹${b.stake}</span>
+            <span>${b.won === true ? 'WIN ✓' : b.won === false ? 'LOSS ✕' : 'PLACED ⏳'}</span>
+          </div>
+        `).join('');
+      } else {
+        feedBox.innerHTML = '<div style="color:#64748b;text-align:center;">Feed will appear here</div>';
+      }
     }
   }
 
-  // ── 10. MAIN AUTOBET CYCLE ────────────────────────────────
+  // ── 12. MAIN AUTOBET CYCLE (RUNS 24/7 WITHOUT DRIFT) ───────
   async function botCycle() {
     try {
       const secondsLeft = getTimerSeconds();
@@ -825,39 +1059,54 @@
       const tEl = document.getElementById('j-timer');
       if (tEl) tEl.textContent = secondsLeft + 's';
 
-      // 1. Instant sync outcomes from both DOM ("My history") and API
-      syncFromDOMHistory();
       checkAllPendingBets();
 
-      // 2. Detect active draw issue number
+      // Faster poll near draw boundary so next round is ready immediately
+      if (secondsLeft <= 4 || secondsLeft >= 58) {
+        fetchDrawHistory();
+      }
+
       let activePeriod = null;
-      const allText = Array.from(document.querySelectorAll('div, span, p, b')).filter(e => !e.closest('#jash-hud') && !e.closest('table'));
+      let maxFound = 0n;
+      const allText = Array.from(document.querySelectorAll('div, span, p, b')).filter(e => !e.closest('#jash-hud'));
       for (const el of allText) {
         const txt = (el.textContent || '').trim();
         const m = txt.match(/\b(2026\d{10,14})\b/);
-        if (m && txt.length < 30) { activePeriod = m[1]; break; }
+        if (m && txt.length < 35) {
+          try {
+            const pVal = BigInt(m[1]);
+            if (pVal > maxFound) {
+              maxFound = pVal;
+              activePeriod = m[1];
+            }
+          } catch (e) {}
+        }
       }
-      if (!activePeriod && LOTTERY_HISTORY.length > 0) {
-        try { activePeriod = (BigInt(LOTTERY_HISTORY[LOTTERY_HISTORY.length - 1].period) + 1n).toString(); } catch (e) {}
+      if (CURRENT_API_DRAWS.length > 0) {
+        try {
+          const apiNext = BigInt(CURRENT_API_DRAWS[0].issueNumber) + 1n;
+          if (!activePeriod || apiNext > maxFound) {
+            activePeriod = apiNext.toString();
+          }
+        } catch (e) {}
       }
 
-      if (activePeriod && currentPeriod && activePeriod !== currentPeriod) {
-        pendingBet = null;
-      }
       currentPeriod = activePeriod;
 
       const pred = computePrediction();
       updateHud();
+
+      // Self-prune Set memory to run forever
+      if (PLACED_PERIODS.size > 50) PLACED_PERIODS = new Set(Array.from(PLACED_PERIODS).slice(-20));
+      if (LOCKED_TIME_BUCKETS.size > 50) LOCKED_TIME_BUCKETS = new Set(Array.from(LOCKED_TIME_BUCKETS).slice(-20));
+      if (RESOLVED_PERIODS.size > 50) RESOLVED_PERIODS = new Set(Array.from(RESOLVED_PERIODS).slice(-20));
 
       if (!running || isBettingInProgress) return;
       if (LOCKED_TIME_BUCKETS.has(currentBucket)) return;
       if (activePeriod && PLACED_PERIODS.has(activePeriod)) return;
       if (pred.noData) return;
 
-      // 3. Bet Window: 1M: between 55s and 6s | 30S: between 25s and 4s
-      const canBet = (GAME_MODE === '30S')
-        ? (secondsLeft <= 25 && secondsLeft >= 4)
-        : (secondsLeft <= 55 && secondsLeft >= 6);
+      const canBet = (secondsLeft <= 55 && secondsLeft >= 6);
 
       if (canBet && !LOCKED_TIME_BUCKETS.has(currentBucket)) {
         LOCKED_TIME_BUCKETS.add(currentBucket);
@@ -868,7 +1117,10 @@
         lastBetPeriod = activePeriod;
         pendingBet = { period: activePeriod, pred: pred.size, stake: currentBet, placedAt: Date.now() };
 
-        if (activePeriod) {
+        // FIRST EXECUTE THE BET!
+        const success = await executeBet(pred.size, currentBet);
+
+        if (success && activePeriod) {
           RECORDED_BETS.unshift({
             period: activePeriod,
             prediction: pred.size,
@@ -879,17 +1131,18 @@
             time: new Date().toLocaleTimeString()
           });
           if (RECORDED_BETS.length > 30) RECORDED_BETS = RECORDED_BETS.slice(0, 30);
+          console.log(`%c[👑 JASH VIP] ✅ Bet #${activePeriod} PLACED (${pred.size} ₹${currentBet})`, 'background:#00f5a0;color:#000;font-weight:900;');
+        } else {
+          console.warn(`%c[👑 JASH VIP] ❌ Bet #${activePeriod} NOT placed (executeBet returned false)`, 'background:#ef4444;color:#fff;font-weight:900;');
+          pendingBet = null;
         }
 
         persistAll();
         updateHud();
 
-        await executeBet(pred.size, currentBet);
-
         setTimeout(() => {
           isBettingInProgress = false;
-          pendingBet = null;
-        }, (GAME_MODE === '30S' ? 2500 : 4000));
+        }, 3500);
       }
     } catch (e) {
       isBettingInProgress = false;

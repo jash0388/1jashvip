@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>JASH VIP · WinGo Max Analyser (v1)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700;800&family=Orbitron:wght@600;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #05070c;
+      --bg-card: rgba(13, 18, 30, 0.78);
+      --bg-card-hover: rgba(18, 26, 44, 0.88);
+      --line: rgba(255, 255, 255, 0.08);
+      --line-bright: rgba(0, 245, 160, 0.35);
+      --green: #00f5a0;
+      --green-glow: rgba(0, 245, 160, 0.35);
+      --blue: #00d9ff;
+      --blue-glow: rgba(0, 217, 255, 0.35);
+      --yellow: #E4FF4A;
+      --yellow-glow: rgba(228, 255, 74, 0.35);
+      --red: #ff3366;
+      --red-glow: rgba(255, 51, 102, 0.35);
+      --muted: #8393a8;
+      --dim: #445166;
+      --text: #f0f4fa;
+      --font-main: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+      --font-disp: 'Orbitron', 'Space Grotesk', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: var(--font-main);
+      background: var(--bg-dark);
+      color: var(--text);
+      padding: 16px 14px 40px;
+      min-height: 100vh;
+      overflow-x: hidden;
+      background-image:
+        radial-gradient(120% 70% at 50% -10%, rgba(0, 245, 160, 0.08) 0%, transparent 60%),
+        radial-gradient(80% 60% at 100% 100%, rgba(0, 217, 255, 0.06) 0%, transparent 60%),
+        radial-gradient(80% 60% at 0% 50%, rgba(228, 255, 74, 0.04) 0%, transparent 50%),
+        linear-gradient(180deg, #05070c 0%, #090d16 50%, #0d121e 100%);
+      background-attachment: fixed;
+    }
+
+    /* Ambient cyber grid background */
+    .bg-grid {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      background-size: 36px 36px;
+      z-index: 0;
+    }
+
+    .wrap {
+      max-width: 980px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* VIP Header */
+    .header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 18px;
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+      margin-bottom: 14px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .header-bar::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--green), var(--blue), var(--yellow), transparent);
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-crown {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(0, 245, 160, 0.2), rgba(0, 217, 255, 0.2));
+      border: 1px solid var(--line-bright);
+      display: grid;
+      place-items: center;
+      font-size: 22px;
+      box-shadow: 0 0 20px rgba(0, 245, 160, 0.25);
+    }
+
+    .brand-text h1 {
+      font-size: 19px;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #ffffff 10%, var(--green) 60%, var(--blue) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      line-height: 1.2;
+    }
+
+    .brand-text .sub {
+      color: var(--muted);
+      font-size: 11px;
+      font-family: var(--font-mono);
+      letter-spacing: 0.05em;
+      margin-top: 2px;
+    }
+
+    .badge-v1 {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 9px;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 5px;
+      background: rgba(228, 255, 74, 0.15);
+      border: 1px solid rgba(228, 255, 74, 0.4);
+      color: var(--yellow);
+      letter-spacing: 0.08em;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+
+    /* Top Control Controls */
+    .top {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 10px 14px;
+    }
+
+    select {
+      background: rgba(7, 11, 18, 0.85);
+      border: 1px solid var(--line);
+      color: #eaf1f8;
+      padding: 9px 14px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      outline: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    select:focus, select:hover {
+      border-color: var(--blue);
+      box-shadow: 0 0 14px rgba(0, 217, 255, 0.25);
+    }
+
+    button {
+      background: linear-gradient(135deg, var(--green), var(--blue));
+      border: none;
+      color: #04121a;
+      font-family: var(--font-main);
+      font-weight: 900;
+      padding: 10px 18px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 12px;
+      letter-spacing: 0.05em;
+      transition: all 0.2s;
+      box-shadow: 0 4px 16px rgba(0, 245, 160, 0.3);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    button:hover {
+      filter: brightness(1.1);
+      box-shadow: 0 6px 22px rgba(0, 245, 160, 0.45);
+      transform: translateY(-1px);
+    }
+
+    button:active {
+      transform: scale(0.97);
+    }
+
+    button.ghost {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--line);
+      color: #eaf1f8;
+      font-weight: 700;
+      box-shadow: none;
+    }
+
+    button.ghost:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.2);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+    }
+
+    .status-container {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.03);
+      padding: 6px 12px;
+      border-radius: 20px;
+      border: 1px solid var(--line);
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #445166;
+      display: inline-block;
+      transition: all 0.3s;
+    }
+
+    .dot.live {
+      background: var(--green);
+      box-shadow: 0 0 10px var(--green);
+      animation: pulse-live 1.6s infinite;
+    }
+
+    @keyframes pulse-live {
+      0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 10px var(--green); }
+      50% { opacity: 0.4; transform: scale(0.85); box-shadow: 0 0 3px var(--green); }
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .tab {
+      flex: 1;
+      text-align: center;
+      padding: 11px 16px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.03em;
+      cursor: pointer;
+      background: var(--bg-card);
+      border: 1px solid var(--line);
+      color: var(--muted);
+      transition: all 0.25s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .tab:hover {
+      color: var(--text);
+      border-color: rgba(255, 255, 255, 0.16);
+    }
+
+    .tab.active {
+      background: linear-gradient(135deg, rgba(0, 245, 160, 0.16), rgba(0, 217, 255, 0.16));
+      border-color: var(--green);
+      color: #ffffff;
+      box-shadow: 0 0 20px rgba(0, 245, 160, 0.15), inset 0 0 12px rgba(0, 245, 160, 0.08);
+    }
+
+    /* Grid layout */
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    @media (max-width: 768px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+      .status-container {
+        margin-left: 0;
+        width: 100%;
+        justify-content: center;
+      }
+    }
+
+    /* Cards */
+    .card {
+      background: var(--bg-card);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.25s;
+    }
+
+    .card:hover {
+      border-color: rgba(255, 255, 255, 0.14);
+    }
+
+    .card h2 {
+      font-size: 11px;
+      font-family: var(--font-mono);
+      font-weight: 800;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* Timer Display */
+    .timer-box {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+
+    .timer {
+      font-family: var(--font-disp);
+      font-size: 42px;
+      font-weight: 900;
+      color: var(--green);
+      text-shadow: 0 0 20px var(--green-glow);
+      line-height: 1;
+      letter-spacing: 0.05em;
+      transition: color 0.3s;
+    }
+
+    .timer.low {
+      color: var(--red);
+      text-shadow: 0 0 25px var(--red-glow);
+      animation: pulse-timer 0.8s infinite alternate;
+    }
+
+    @keyframes pulse-timer {
+      0% { transform: scale(1); filter: brightness(1); }
+      100% { transform: scale(1.04); filter: brightness(1.3); }
+    }
+
+    .period {
+      text-align: center;
+      font-size: 11px;
+      color: var(--muted);
+      font-family: var(--font-mono);
+      letter-spacing: 0.06em;
+      margin-top: 6px;
+      word-break: break-all;
+    }
+
+    /* Prediction Display Box */
+    .pred {
+      text-align: center;
+      padding: 20px 14px;
+      border-radius: 14px;
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid var(--line);
+      margin-bottom: 12px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .pred::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 50% 30%, rgba(228, 255, 74, 0.05), transparent 70%);
+      pointer-events: none;
+    }
+
+    .pred-size {
+      font-family: var(--font-disp);
+      font-size: 48px;
+      font-weight: 900;
+      letter-spacing: 3px;
+      line-height: 1.1;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .pred-size.BIG {
+      color: var(--yellow);
+      text-shadow: 0 0 30px var(--yellow-glow);
+    }
+
+    .pred-size.SMALL {
+      color: var(--blue);
+      text-shadow: 0 0 30px var(--blue-glow);
+    }
+
+    .pred-lbl {
+      font-size: 11px;
+      font-family: var(--font-mono);
+      color: var(--muted);
+      margin-top: 6px;
+      letter-spacing: 0.05em;
+    }
+
+    /* Data Key-Value Rows */
+    .row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--line);
+      font-size: 12px;
+    }
+
+    .row:last-child {
+      border: none;
+      padding-bottom: 0;
+    }
+
+    .row span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .row b {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      color: #ffffff;
+      font-size: 13px;
+    }
+
+    /* Recent Roll Ball Chips */
+    .chips-section {
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px solid var(--line);
+    }
+
+    .chips-title {
+      font-size: 10px;
+      font-family: var(--font-mono);
+      color: var(--muted);
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .chip {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-family: var(--font-mono);
+      font-weight: 800;
+      color: #04121a;
+      transition: transform 0.2s;
+    }
+
+    .chip:hover {
+      transform: scale(1.15);
+    }
+
+    .chip.BIG {
+      background: linear-gradient(135deg, #fff275, var(--yellow));
+      box-shadow: 0 2px 8px rgba(228, 255, 74, 0.25);
+    }
+
+    .chip.SMALL {
+      background: linear-gradient(135deg, #70e4ff, var(--blue));
+      box-shadow: 0 2px 8px rgba(0, 217, 255, 0.25);
+    }
+
+    .chip.pend {
+      outline: 2px solid var(--green);
+      outline-offset: 2px;
+      animation: pulse-chip 1.2s infinite;
+    }
+
+    @keyframes pulse-chip {
+      0%, 100% { outline-color: var(--green); }
+      50% { outline-color: transparent; }
+    }
+
+    /* Table & Matrix styles */
+    .table-container {
+      overflow-x: auto;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: rgba(0, 0, 0, 0.25);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      font-family: var(--font-mono);
+    }
+
+    th, td {
+      text-align: left;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    th {
+      color: var(--muted);
+      font-weight: 700;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .g { color: var(--green) !important; font-weight: 700; }
+    .r { color: var(--red) !important; font-weight: 700; }
+    .y { color: var(--yellow) !important; font-weight: 700; }
+    .b { color: var(--blue) !important; font-weight: 700; }
+
+    /* Verdict Alert Box */
+    .verdict-box {
+      font-size: 11px;
+      font-family: var(--font-mono);
+      color: var(--muted);
+      margin-top: 12px;
+      padding: 10px 12px;
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 8px;
+      border-left: 3px solid var(--blue);
+      line-height: 1.5;
+    }
+
+    /* History Stats Grid */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    @media (max-width: 820px) {
+      .stats {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    @media (max-width: 480px) {
+      .stats {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .stat {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px 10px;
+      text-align: center;
+      transition: all 0.2s;
+    }
+
+    .stat:hover {
+      border-color: rgba(255, 255, 255, 0.16);
+      transform: translateY(-2px);
+    }
+
+    .stat b {
+      display: block;
+      font-family: var(--font-disp);
+      font-size: 22px;
+      font-weight: 900;
+      margin-bottom: 4px;
+    }
+
+    .stat span {
+      font-size: 10px;
+      font-family: var(--font-mono);
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .histwrap {
+      max-height: 420px;
+      overflow-y: auto;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: rgba(0, 0, 0, 0.25);
+    }
+
+    .histwrap::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .histwrap::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 3px;
+    }
+
+    .badge {
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 10px;
+      font-family: var(--font-mono);
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      display: inline-block;
+    }
+
+    .badge.WIN {
+      background: rgba(0, 245, 160, 0.16);
+      border: 1px solid rgba(0, 245, 160, 0.35);
+      color: var(--green);
+    }
+
+    .badge.LOSS {
+      background: rgba(255, 51, 102, 0.16);
+      border: 1px solid rgba(255, 51, 102, 0.35);
+      color: var(--red);
+    }
+
+    .badge.PEND {
+      background: rgba(228, 255, 74, 0.16);
+      border: 1px solid rgba(228, 255, 74, 0.35);
+      color: var(--yellow);
+      animation: pulse-badge 1.2s infinite alternate;
+    }
+
+    @keyframes pulse-badge {
+      0% { opacity: 0.7; }
+      100% { opacity: 1; }
+    }
+
+    .empty {
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+      padding: 36px 16px;
+      line-height: 1.6;
+    }
+
+    .warn {
+      background: rgba(255, 51, 102, 0.08);
+      border: 1px solid rgba(255, 51, 102, 0.3);
+      border-radius: 12px;
+      padding: 14px;
+      font-size: 11px;
+      color: #ffb3c8;
+      margin-top: 14px;
+      line-height: 1.6;
+    }
+
+    .foot {
+      color: var(--muted);
+      font-size: 11px;
+      font-family: var(--font-mono);
+      text-align: center;
+      margin-top: 18px;
+      line-height: 1.6;
+      opacity: 0.8;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+<div class="bg-grid"></div>
+
+<div class="wrap">
+  <!-- VIP Header Bar -->
+  <div class="header-bar">
+    <div class="brand-group">
+      <div class="brand-crown">👑</div>
+      <div class="brand-text">
+        <h1>JASH VIP · WinGo Max Analyser <span class="badge-v1">v1.0</span></h1>
+        <div class="sub">Full heuristic ensemble · live RNG baseline audit · prediction history</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Control Bar -->
+  <div class="top">
+    <select id="game">
+      <option value="WinGo_1M">WinGo 1M</option>
+      <option value="WinGo_30S">WinGo 30S</option>
+      <option value="WinGo_3M">WinGo 3M</option>
+      <option value="WinGo_5M">WinGo 5M</option>
+    </select>
+    <button id="btn" onclick="toggle()">▶ Start Live</button>
+    <div class="status-container">
+      <span class="dot" id="dot"></span>
+      <span id="status">idle</span>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <div class="tab active" id="tab-live" onclick="showTab('live')">📊 Live Engine</div>
+    <div class="tab" id="tab-history" onclick="showTab('history')">📜 Prediction History</div>
+  </div>
+
+  <!-- View: Live Engine -->
+  <div id="view-live">
+    <div class="grid">
+      <!-- Live Round Card -->
+      <div class="card">
+        <h2>
+          <span>Live Round</span>
+          <span style="color:var(--green);font-size:10px;">ONLINE FEED</span>
+        </h2>
+        <div class="timer-box">
+          <div class="timer" id="timer">--</div>
+          <div class="period" id="period">waiting for API…</div>
+        </div>
+        <div class="row">
+          <span>Last Result</span>
+          <b id="last">--</b>
+        </div>
+        <div class="row">
+          <span>BIG / SMALL Split</span>
+          <b id="split">--</b>
+        </div>
+        <div class="chips-section">
+          <div class="chips-title">Recent 24 Draws:</div>
+          <div class="chips" id="chips"></div>
+        </div>
+      </div>
+
+      <!-- Ensemble Prediction Card -->
+      <div class="card">
+        <h2>
+          <span>Ensemble Prediction</span>
+          <span style="color:var(--yellow);font-size:10px;">CONSENSUS VOTE</span>
+        </h2>
+        <div class="pred">
+          <div class="pred-size" id="psize">--</div>
+          <div class="pred-lbl" id="plbl">no data yet</div>
+        </div>
+        <div class="row">
+          <span>Trend Streak</span>
+          <b id="streak">--</b>
+        </div>
+        <div class="row">
+          <span>Alternating Run</span>
+          <b id="alt">--</b>
+        </div>
+        <div class="row">
+          <span>Vote Confidence</span>
+          <b id="conf">--</b>
+        </div>
+      </div>
+    </div>
+
+    <!-- Per-Model Accuracy Audit Table -->
+    <div class="card" style="margin-top:14px">
+      <h2>
+        <span>Per-Model Accuracy Audit</span>
+        <span style="color:var(--muted);font-size:10px;">BENCHMARK VS 50% BASELINE</span>
+      </h2>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Engine</th>
+              <th>Tested</th>
+              <th>Hit %</th>
+              <th>vs 50%</th>
+              <th>Verdict</th>
+            </tr>
+          </thead>
+          <tbody id="audit"></tbody>
+        </table>
+      </div>
+      <div id="verdict" class="verdict-box"></div>
+    </div>
+  </div>
+
+  <!-- View: Prediction History -->
+  <div id="view-history" class="hidden">
+    <div class="card">
+      <h2>
+        <span>Prediction Record & Analytics</span>
+        <span style="color:var(--blue);font-size:10px;">SESSION TELEMETRY</span>
+      </h2>
+      <div class="stats">
+        <div class="stat"><b id="h-total" class="y">0</b><span>Predictions</span></div>
+        <div class="stat"><b id="h-wins" class="g">0</b><span>Wins</span></div>
+        <div class="stat"><b id="h-loss" class="r">0</b><span>Losses</span></div>
+        <div class="stat"><b id="h-rate">--</b><span>Win rate</span></div>
+        <div class="stat"><b id="h-streak">--</b><span>Cur. streak</span></div>
+        <div class="stat"><b id="h-best">--</b><span>Best streak</span></div>
+      </div>
+      <div id="h-baseline" class="verdict-box" style="margin-bottom:12px"></div>
+
+      <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+        <button class="ghost" onclick="clearHistory()">🗑 Clear History</button>
+        <button class="ghost" onclick="downloadHistory()">⬇ Export CSV</button>
+      </div>
+
+      <div class="histwrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Period</th>
+              <th>Predicted</th>
+              <th>Actual</th>
+              <th>Result</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody id="hist-body"></tbody>
+        </table>
+        <div class="empty" id="hist-empty">No predictions logged yet. Start Live and let it run — each round will be recorded here automatically.</div>
+      </div>
+    </div>
+
+    <div class="warn">
+      ⚠️ Over enough rounds your win rate will drift toward ~50%. That is the certified-RNG signature (NIST SP 800-22 / UKGC RTS 7).
+      A short hot streak is variance, not skill. This page is here so you can see that for yourself instead of trusting a feeling.
+    </div>
+  </div>
+
+  <div class="foot">
+    Live data: draw.ar-lottery01.com · Saved in your browser only · JASH VIP Control Engine
+  </div>
+</div>
+
+<script>
+'use strict';
+const API = g => `https://draw.ar-lottery01.com/WinGo/${g}/GetHistoryIssuePage.json?_t=${Date.now()}`;
+const size = n => n>=5?'BIG':'SMALL';
+const opp  = s => s==='BIG'?'SMALL':'BIG';
+const KEY  = 'wingo_history_v2';   // bumped → old corrupted log ignored
+
+let live=false, hist=[], tId=null, fId=null;
+let log=[], pending=null, loggedSet=new Set();
+
+// ---- engines ----
+const E = {
+  streak: s=>{let k=1;for(let i=1;i<s.length;i++){if(s[i]===s[0])k++;else break;}return k>=3?s[0]:opp(s[0]);},
+  majority: s=>{const w=s.slice(0,10),b=w.filter(x=>x==='BIG').length,m=w.length-b;return b===m?s[0]:(b>m?'BIG':'SMALL');},
+  markov: s=>{if(s.length<5)return s[0];const a=s[0],b=s[1];let tb=0,ts=0;
+    for(let i=0;i<s.length-2;i++){if(s[i+1]===b&&s[i]===a){s[i+2]==='BIG'?tb++:ts++;}}return tb===ts?a:(tb>ts?'BIG':'SMALL');},
+  alt: s=>{let k=1;for(let i=0;i<s.length-1;i++){if(s[i]!==s[i+1])k++;else break;}return s[0];},
+  meanrev: s=>{const w=s.slice(0,20),b=w.filter(x=>x==='BIG').length;return b>=w.length/2?'SMALL':'BIG';},
+  lastflip: s=>opp(s[0]),
+  hotcold: s=>{const w=s.slice(0,15),b=w.filter(x=>x==='BIG').length;return b>w.length*0.6?'SMALL':(b<w.length*0.4?'BIG':s[0]);},
+  parity: h=>{const w=h.slice(0,6),e=w.filter(x=>x.num%2===0).length;return e>=3?'BIG':'SMALL';}
+};
+const WEIGHTS = {streak:1.5,majority:1.2,markov:1.3,alt:1.0,meanrev:1.1,lastflip:0.6,hotcold:0.9,parity:0.8};
+
+function predict(h){
+  if(h.length<3) return null;
+  const s=h.map(x=>x.size), v={BIG:0,SMALL:0}, parts={};
+  for(const k in E){ let r=E[k](k==='parity'?h:s); parts[k]=r; v[r]+=WEIGHTS[k]; }
+  const pred=v.BIG>=v.SMALL?'BIG':'SMALL', tot=v.BIG+v.SMALL;
+  return {pred, conf:Math.round(Math.max(v.BIG,v.SMALL)/tot*100), parts};
+}
+function audit(h){
+  const res={}; for(const k in E) res[k]={tested:0,correct:0};
+  for(let i=1;i<h.length;i++){
+    const past=h.slice(i); if(past.length<3) break;
+    const s=past.map(x=>x.size);
+    for(const k in E){ const r=E[k](k==='parity'?past:s); res[k].tested++; if(r===h[i-1].size) res[k].correct++; }
+  }
+  return res;
+}
+
+// ---- BIGINT issue increment (the fix) ----
+function incIssue(s){
+  try{ return String(BigInt(String(s).trim()) + 1n); }
+  catch(e){ return String(Number(s)+1); }
+}
+
+// ---- persistence ----
+function loadLog(){
+  try{ log=JSON.parse(localStorage.getItem(KEY))||[]; }catch(e){ log=[]; }
+  loggedSet=new Set(log.map(x=>String(x.issue)));
+}
+function saveLog(){ try{ localStorage.setItem(KEY, JSON.stringify(log.slice(0,500))); }catch(e){} }
+
+// ---- fetch / resolve / queue ----
+async function fetchHist(){
+  try{
+    const r=await fetch(API(document.getElementById('game').value),{cache:'no-store'});
+    const j=await r.json(); const list=j?.data?.list||[];
+    if(!list.length) return;
+    hist=list.map(x=>({num:parseInt(x.number,10),size:size(parseInt(x.number,10)),issue:String(x.issueNumber||'')}))
+             .filter(x=>!isNaN(x.num));
+    resolvePending();
+    makePending();
+    render(); renderHistory();
+    document.getElementById('status').textContent='live · '+new Date().toLocaleTimeString();
+  }catch(e){ document.getElementById('status').textContent='fetch error (CORS/offline)'; }
+}
+
+function resolvePending(){
+  if(!pending) return;
+  const hit = hist.find(x=>String(x.issue)===String(pending.issue));
+  if(hit && !loggedSet.has(String(pending.issue))){
+    loggedSet.add(String(pending.issue));
+    log.unshift({issue:String(pending.issue), pred:pending.pred, actual:hit.size,
+                 num:hit.num, won:hit.size===pending.pred, time:pending.time});
+    saveLog(); pending=null;
+  }
+}
+
+function makePending(){
+  if(!hist.length || pending) return;
+  const newest = String(hist[0].issue||'');
+  if(!newest) return;
+  const next = incIssue(newest);
+  if(loggedSet.has(next)) return;
+  if(hist.some(x=>String(x.issue)===next)) return;   // never predict the past
+  const r=predict(hist); if(!r) return;
+  pending={issue:next, pred:r.pred, time:new Date().toLocaleTimeString()};
+}
+
+// ---- live render ----
+function tick(){
+  const g=document.getElementById('game').value;
+  const iv=g==='WinGo_30S'?30:(g==='WinGo_1M'?60:(g==='WinGo_3M'?180:300));
+  const left=iv-(Math.floor(Date.now()/1000)%iv);
+  const el=document.getElementById('timer'); el.textContent=left+'s'; el.className='timer'+(left<=5?' low':'');
+  if(left<=1) fetchHist();
+}
+function render(){
+  if(!hist.length) return;
+  const s=hist.map(x=>x.size), big=s.filter(x=>x==='BIG').length;
+  document.getElementById('last').textContent=hist[0].num+' ('+hist[0].size+')';
+  document.getElementById('split').textContent=big+' / '+(s.length-big);
+  document.getElementById('chips').innerHTML=hist.slice(0,24).map((h,i)=>
+    `<div class="chip ${h.size}${i===0?' pend':''}">${h.num}</div>`).join('');
+  document.getElementById('period').textContent='last issue: '+(hist[0].issue||'—');
+  const r=predict(hist), ps=document.getElementById('psize');
+  if(r){
+    ps.textContent=r.pred;
+    ps.className='pred-size ' + r.pred;
+    document.getElementById('plbl').textContent = pending
+      ? `queued for period ${pending.issue}` : 'ensemble vote for next round';
+    let st=1;for(let i=1;i<s.length;i++){if(s[i]===s[0])st++;else break;}
+    let al=1;for(let i=0;i<s.length-1;i++){if(s[i]!==s[i+1])al++;else break;}
+    document.getElementById('streak').textContent=st+'x '+s[0];
+    document.getElementById('alt').textContent=al+'x';
+    document.getElementById('conf').textContent=r.conf+'%';
+  } else { ps.textContent='--'; ps.className='pred-size'; }
+  const a=audit(hist);
+  let rows='', any=0, beats=0;
+  for(const k in a){
+    const t=a[k].tested; if(!t) continue; any++;
+    const hr=a[k].correct/t*100, d=hr-50;
+    if(hr>52) beats++;
+    const vd=hr>52?'<span class="badge WIN">above</span>':(hr<48?'<span class="badge LOSS">below</span>':'<span class="badge PEND">≈chance</span>');
+    rows+=`<tr><td><b>${k}</b></td><td>${t}</td><td>${hr.toFixed(1)}%</td>
+           <td class="${d>=0?'g':'r'}">${d>=0?'+':''}${d.toFixed(1)}</td><td>${vd}</td></tr>`;
+  }
+  document.getElementById('audit').innerHTML=rows||'<tr><td colspan="5" style="text-align:center;color:var(--muted)">collecting data…</td></tr>';
+  document.getElementById('verdict').textContent = any
+    ? `${beats} of ${any} engines currently sit above 50%. Over more rounds they converge to ~50% — the RNG signature.` : '';
+}
+
+// ---- history render ----
+function renderHistory(){
+  const wins=log.filter(x=>x.won).length, losses=log.length-wins;
+  document.getElementById('h-total').textContent=log.length;
+  document.getElementById('h-wins').textContent=wins;
+  document.getElementById('h-loss').textContent=losses;
+  const rate = log.length ? (wins/log.length*100) : null;
+  const rateEl=document.getElementById('h-rate');
+  rateEl.textContent = rate===null ? '--' : rate.toFixed(1)+'%';
+  rateEl.className = rate===null ? '' : (rate>52?'g':(rate<48?'r':'y'));
+  let cur=0; for(const x of log){ if(x.won) cur++; else break; }
+  let best=0, run=0;
+  for(let i=log.length-1;i>=0;i--){ if(log[i].won){run++; best=Math.max(best,run);} else run=0; }
+  document.getElementById('h-streak').textContent = log.length ? cur : '--';
+  document.getElementById('h-streak').className = cur>0?'g':'r';
+  document.getElementById('h-best').textContent = log.length ? best : '--';
+  document.getElementById('h-baseline').textContent = log.length
+    ? `${wins}W / ${losses}L · ${(rate-50>=0?'+':'')}${(rate-50).toFixed(1)} pts vs the 50% baseline. Longer samples drift toward 50%.` : '';
+  const body=document.getElementById('hist-body');
+  if(!log.length){ body.innerHTML=''; document.getElementById('hist-empty').classList.remove('hidden'); return; }
+  document.getElementById('hist-empty').classList.add('hidden');
+  let html='';
+  log.forEach((x,i)=>{
+    html+=`<tr>
+      <td>${log.length-i}</td>
+      <td style="font-family:var(--font-mono)">${x.issue||'—'}</td>
+      <td class="${x.pred==='BIG'?'y':'b'}"><b>${x.pred}</b></td>
+      <td>${x.num!==undefined?x.num+' ('+x.actual+')':x.actual}</td>
+      <td><span class="badge ${x.won?'WIN':'LOSS'}">${x.won?'WIN ✓':'LOSS ✕'}</span></td>
+      <td style="color:var(--muted)">${x.time}</td>
+    </tr>`;
+  });
+  if(pending){
+    html=`<tr style="background:rgba(228,255,74,0.04)">
+      <td>—</td><td style="font-family:var(--font-mono)">${pending.issue||'—'}</td>
+      <td class="${pending.pred==='BIG'?'y':'b'}"><b>${pending.pred}</b></td>
+      <td>—</td><td><span class="badge PEND">PENDING ⏳</span></td><td style="color:var(--muted)">${pending.time}</td>
+    </tr>` + html;
+  }
+  body.innerHTML=html;
+}
+
+// ---- controls ----
+function showTab(t){
+  const isLive = t==='live';
+  document.getElementById('view-live').classList.toggle('hidden', !isLive);
+  document.getElementById('view-history').classList.toggle('hidden', isLive);
+  document.getElementById('tab-live').classList.toggle('active', isLive);
+  document.getElementById('tab-history').classList.toggle('active', !isLive);
+  if(!isLive) renderHistory();
+}
+function toggle(){
+  live=!live; const dot=document.getElementById('dot'), btn=document.getElementById('btn');
+  if(live){ dot.classList.add('live'); btn.textContent='■ Stop Live'; btn.style.background='linear-gradient(135deg, var(--red), #c02020)'; btn.style.color='#fff'; fetchHist();
+    tId=setInterval(tick,250); fId=setInterval(fetchHist,4000);
+  } else { dot.classList.remove('live'); btn.textContent='▶ Start Live'; btn.style.background='linear-gradient(135deg, var(--green), var(--blue))'; btn.style.color='#04121a';
+    clearInterval(tId); clearInterval(fId); document.getElementById('status').textContent='idle';
+    document.getElementById('timer').textContent='--'; }
+}
+function clearHistory(){
+  if(!confirm('Clear all saved prediction history?')) return;
+  log=[]; pending=null; loggedSet=new Set(); saveLog(); renderHistory();
+}
+function downloadHistory(){
+  if(!log.length){ alert('No history to export yet.'); return; }
+  const rows=[['#','Period','Predicted','Actual','Result','Time']];
+  log.forEach((x,i)=>rows.push([log.length-i,x.issue,x.pred,x.num!==undefined?x.num+' '+x.actual:x.actual,x.won?'WIN':'LOSS',x.time]));
+  const csv=rows.map(r=>r.join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='wingo_history.csv'; a.click();
+}
+document.getElementById('game').onchange=()=>{ if(live){hist=[];pending=null;fetchHist();} };
+
+// ---- boot ----
+loadLog(); renderHistory();
+</script>
+</body>
+</html>
