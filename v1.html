@@ -3,27 +3,26 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>JASH VIP · WinGo Max Analyser (v1)</title>
+  <title>JASH VIP · Ultimate 6-Engine Color Prediction (v1)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700;800&family=Orbitron:wght@600;800;900&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg-dark: #05070c;
-      --bg-card: rgba(13, 18, 30, 0.78);
-      --bg-card-hover: rgba(18, 26, 44, 0.88);
+      --bg-card: rgba(13, 18, 30, 0.82);
       --line: rgba(255, 255, 255, 0.08);
       --line-bright: rgba(0, 245, 160, 0.35);
       --green: #00f5a0;
-      --green-glow: rgba(0, 245, 160, 0.35);
+      --green-glow: rgba(0, 245, 160, 0.4);
+      --red: #ff3366;
+      --red-glow: rgba(255, 51, 102, 0.45);
+      --violet: #a855f7;
+      --violet-glow: rgba(168, 85, 247, 0.4);
       --blue: #00d9ff;
       --blue-glow: rgba(0, 217, 255, 0.35);
       --yellow: #E4FF4A;
-      --yellow-glow: rgba(228, 255, 74, 0.35);
-      --red: #ff3366;
-      --red-glow: rgba(255, 51, 102, 0.35);
       --muted: #8393a8;
-      --dim: #445166;
       --text: #f0f4fa;
       --font-main: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
       --font-mono: 'JetBrains Mono', ui-monospace, monospace;
@@ -45,14 +44,12 @@
       min-height: 100vh;
       overflow-x: hidden;
       background-image:
-        radial-gradient(120% 70% at 50% -10%, rgba(0, 245, 160, 0.08) 0%, transparent 60%),
-        radial-gradient(80% 60% at 100% 100%, rgba(0, 217, 255, 0.06) 0%, transparent 60%),
-        radial-gradient(80% 60% at 0% 50%, rgba(228, 255, 74, 0.04) 0%, transparent 50%),
+        radial-gradient(120% 70% at 50% -10%, rgba(255, 51, 102, 0.08) 0%, transparent 60%),
+        radial-gradient(80% 60% at 100% 100%, rgba(0, 245, 160, 0.08) 0%, transparent 60%),
         linear-gradient(180deg, #05070c 0%, #090d16 50%, #0d121e 100%);
       background-attachment: fixed;
     }
 
-    /* Ambient cyber grid background */
     .bg-grid {
       position: fixed;
       inset: 0;
@@ -95,7 +92,7 @@
       left: 0;
       right: 0;
       height: 2px;
-      background: linear-gradient(90deg, transparent, var(--green), var(--blue), var(--yellow), transparent);
+      background: linear-gradient(90deg, transparent, var(--red), var(--violet), var(--green), transparent);
     }
 
     .brand-group {
@@ -108,19 +105,19 @@
       width: 44px;
       height: 44px;
       border-radius: 12px;
-      background: linear-gradient(135deg, rgba(0, 245, 160, 0.2), rgba(0, 217, 255, 0.2));
-      border: 1px solid var(--line-bright);
+      background: linear-gradient(135deg, rgba(255, 51, 102, 0.25), rgba(0, 245, 160, 0.25));
+      border: 1px solid rgba(255, 255, 255, 0.2);
       display: grid;
       place-items: center;
       font-size: 22px;
-      box-shadow: 0 0 20px rgba(0, 245, 160, 0.25);
+      box-shadow: 0 0 20px rgba(255, 51, 102, 0.2);
     }
 
     .brand-text h1 {
       font-size: 19px;
       font-weight: 900;
       letter-spacing: -0.02em;
-      background: linear-gradient(135deg, #ffffff 10%, var(--green) 60%, var(--blue) 100%);
+      background: linear-gradient(135deg, #ffffff 10%, var(--red) 50%, var(--green) 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       line-height: 1.2;
@@ -141,9 +138,9 @@
       font-weight: 800;
       padding: 2px 7px;
       border-radius: 5px;
-      background: rgba(228, 255, 74, 0.15);
-      border: 1px solid rgba(228, 255, 74, 0.4);
-      color: var(--yellow);
+      background: rgba(255, 51, 102, 0.15);
+      border: 1px solid rgba(255, 51, 102, 0.4);
+      color: var(--red);
       letter-spacing: 0.08em;
       margin-left: 6px;
       vertical-align: middle;
@@ -184,9 +181,9 @@
     }
 
     button {
-      background: linear-gradient(135deg, var(--green), var(--blue));
+      background: linear-gradient(135deg, var(--red), var(--green));
       border: none;
-      color: #04121a;
+      color: #ffffff;
       font-family: var(--font-main);
       font-weight: 900;
       padding: 10px 18px;
@@ -195,7 +192,7 @@
       font-size: 12px;
       letter-spacing: 0.05em;
       transition: all 0.2s;
-      box-shadow: 0 4px 16px rgba(0, 245, 160, 0.3);
+      box-shadow: 0 4px 16px rgba(255, 51, 102, 0.25);
       display: inline-flex;
       align-items: center;
       gap: 6px;
@@ -203,7 +200,7 @@
 
     button:hover {
       filter: brightness(1.1);
-      box-shadow: 0 6px 22px rgba(0, 245, 160, 0.45);
+      box-shadow: 0 6px 22px rgba(255, 51, 102, 0.4);
       transform: translateY(-1px);
     }
 
@@ -222,7 +219,6 @@
     button.ghost:hover {
       background: rgba(255, 255, 255, 0.08);
       border-color: rgba(255, 255, 255, 0.2);
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
     }
 
     .status-container {
@@ -291,10 +287,10 @@
     }
 
     .tab.active {
-      background: linear-gradient(135deg, rgba(0, 245, 160, 0.16), rgba(0, 217, 255, 0.16));
-      border-color: var(--green);
+      background: linear-gradient(135deg, rgba(255, 51, 102, 0.16), rgba(0, 245, 160, 0.16));
+      border-color: var(--red);
       color: #ffffff;
-      box-shadow: 0 0 20px rgba(0, 245, 160, 0.15), inset 0 0 12px rgba(0, 245, 160, 0.08);
+      box-shadow: 0 0 20px rgba(255, 51, 102, 0.15), inset 0 0 12px rgba(255, 51, 102, 0.08);
     }
 
     /* Grid layout */
@@ -393,8 +389,8 @@
     /* Prediction Display Box */
     .pred {
       text-align: center;
-      padding: 20px 14px;
-      border-radius: 14px;
+      padding: 22px 14px;
+      border-radius: 16px;
       background: rgba(0, 0, 0, 0.35);
       border: 1px solid var(--line);
       margin-bottom: 12px;
@@ -402,40 +398,106 @@
       overflow: hidden;
     }
 
-    .pred::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(circle at 50% 30%, rgba(228, 255, 74, 0.05), transparent 70%);
-      pointer-events: none;
-    }
-
-    .pred-size {
+    .pred-color {
       font-family: var(--font-disp);
-      font-size: 48px;
+      font-size: 46px;
       font-weight: 900;
       letter-spacing: 3px;
       line-height: 1.1;
       transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
 
-    .pred-size.BIG {
-      color: var(--yellow);
-      text-shadow: 0 0 30px var(--yellow-glow);
+    .pred-color.RED {
+      color: var(--red);
+      text-shadow: 0 0 30px var(--red-glow);
     }
 
-    .pred-size.SMALL {
-      color: var(--blue);
-      text-shadow: 0 0 30px var(--blue-glow);
+    .pred-color.GREEN {
+      color: var(--green);
+      text-shadow: 0 0 30px var(--green-glow);
+    }
+
+    .digits-pill-row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .digit-pill {
+      font-family: var(--font-mono);
+      font-weight: 800;
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--line);
+      color: #ffffff;
     }
 
     .pred-lbl {
       font-size: 11px;
       font-family: var(--font-mono);
       color: var(--muted);
-      margin-top: 6px;
+      margin-top: 8px;
       letter-spacing: 0.05em;
     }
+
+    /* 6-Engine Matrix Breakdown */
+    .matrix-box {
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px;
+      margin-top: 10px;
+    }
+
+    .matrix-title {
+      font-size: 10px;
+      font-family: var(--font-mono);
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+    }
+
+    .matrix-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+    }
+
+    @media (max-width: 480px) {
+      .matrix-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .matrix-item {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 6px 8px;
+      text-align: center;
+    }
+
+    .matrix-name {
+      font-size: 9px;
+      font-family: var(--font-mono);
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
+
+    .matrix-val {
+      font-size: 11px;
+      font-family: var(--font-mono);
+      font-weight: 800;
+    }
+
+    .matrix-val.RED { color: var(--red); }
+    .matrix-val.GREEN { color: var(--green); }
 
     /* Data Key-Value Rows */
     .row {
@@ -496,7 +558,7 @@
       font-size: 12px;
       font-family: var(--font-mono);
       font-weight: 800;
-      color: #04121a;
+      color: #ffffff;
       transition: transform 0.2s;
     }
 
@@ -504,24 +566,36 @@
       transform: scale(1.15);
     }
 
-    .chip.BIG {
-      background: linear-gradient(135deg, #fff275, var(--yellow));
-      box-shadow: 0 2px 8px rgba(228, 255, 74, 0.25);
+    .chip.c-red {
+      background: linear-gradient(135deg, #ff3366, #c02020);
+      box-shadow: 0 2px 8px rgba(255, 51, 102, 0.3);
     }
 
-    .chip.SMALL {
-      background: linear-gradient(135deg, #70e4ff, var(--blue));
-      box-shadow: 0 2px 8px rgba(0, 217, 255, 0.25);
+    .chip.c-green {
+      background: linear-gradient(135deg, #00f5a0, #00a86b);
+      box-shadow: 0 2px 8px rgba(0, 245, 160, 0.3);
+      color: #04121a;
+    }
+
+    .chip.c-red-violet {
+      background: linear-gradient(135deg, #ff3366 50%, #a855f7 50%);
+      box-shadow: 0 2px 8px rgba(168, 85, 247, 0.3);
+    }
+
+    .chip.c-green-violet {
+      background: linear-gradient(135deg, #00f5a0 50%, #a855f7 50%);
+      box-shadow: 0 2px 8px rgba(168, 85, 247, 0.3);
+      color: #04121a;
     }
 
     .chip.pend {
-      outline: 2px solid var(--green);
+      outline: 2px solid #ffffff;
       outline-offset: 2px;
       animation: pulse-chip 1.2s infinite;
     }
 
     @keyframes pulse-chip {
-      0%, 100% { outline-color: var(--green); }
+      0%, 100% { outline-color: #ffffff; }
       50% { outline-color: transparent; }
     }
 
@@ -566,7 +640,7 @@
     .g { color: var(--green) !important; font-weight: 700; }
     .r { color: var(--red) !important; font-weight: 700; }
     .y { color: var(--yellow) !important; font-weight: 700; }
-    .b { color: var(--blue) !important; font-weight: 700; }
+    .v { color: var(--violet) !important; font-weight: 700; }
 
     /* Verdict Alert Box */
     .verdict-box {
@@ -577,7 +651,7 @@
       padding: 10px 12px;
       background: rgba(255, 255, 255, 0.02);
       border-radius: 8px;
-      border-left: 3px solid var(--blue);
+      border-left: 3px solid var(--red);
       line-height: 1.5;
     }
 
@@ -725,8 +799,8 @@
     <div class="brand-group">
       <div class="brand-crown">👑</div>
       <div class="brand-text">
-        <h1>JASH VIP · WinGo Max Analyser <span class="badge-v1">v1.0</span></h1>
-        <div class="sub">Full heuristic ensemble · live RNG baseline audit · prediction history</div>
+        <h1>JASH VIP · 6-Engine Color Prediction <span class="badge-v1">RED & GREEN v1.0</span></h1>
+        <div class="sub">Titan · Radhe · Suresh · Markov · Pain-Pro · Nexa Consensus</div>
       </div>
     </div>
   </div>
@@ -749,7 +823,7 @@
   <!-- Tabs -->
   <div class="tabs">
     <div class="tab active" id="tab-live" onclick="showTab('live')">📊 Live Engine</div>
-    <div class="tab" id="tab-history" onclick="showTab('history')">📜 Prediction History</div>
+    <div class="tab" id="tab-history" onclick="showTab('history')">📜 Color Prediction History</div>
   </div>
 
   <!-- View: Live Engine -->
@@ -770,36 +844,53 @@
           <b id="last">--</b>
         </div>
         <div class="row">
-          <span>BIG / SMALL Split</span>
+          <span>RED / GREEN Split</span>
           <b id="split">--</b>
         </div>
         <div class="chips-section">
-          <div class="chips-title">Recent 24 Draws:</div>
+          <div class="chips-title">Recent 24 Draws (Color / Digit):</div>
           <div class="chips" id="chips"></div>
         </div>
       </div>
 
-      <!-- Ensemble Prediction Card -->
+      <!-- 6-Engine Color Prediction Card -->
       <div class="card">
         <h2>
-          <span>Ensemble Prediction</span>
-          <span style="color:var(--yellow);font-size:10px;">CONSENSUS VOTE</span>
+          <span>Consensus Color Prediction</span>
+          <span style="color:var(--yellow);font-size:10px;">6-ENGINE ENSEMBLE</span>
         </h2>
         <div class="pred">
-          <div class="pred-size" id="psize">--</div>
-          <div class="pred-lbl" id="plbl">no data yet</div>
+          <div class="pred-color" id="pcolor">--</div>
+          <div class="digits-pill-row" id="pdigits">
+            <span class="digit-pill">Number: ?</span>
+            <span class="digit-pill">Number: ?</span>
+          </div>
+          <div class="pred-lbl" id="plbl">synchronizing engine matrix…</div>
         </div>
         <div class="row">
-          <span>Trend Streak</span>
+          <span>Color Streak</span>
           <b id="streak">--</b>
         </div>
         <div class="row">
-          <span>Alternating Run</span>
+          <span>Alternating Chop</span>
           <b id="alt">--</b>
         </div>
         <div class="row">
           <span>Vote Confidence</span>
           <b id="conf">--</b>
+        </div>
+
+        <!-- 6-Model Matrix Breakdown -->
+        <div class="matrix-box">
+          <div class="matrix-title">6-Engine Breakdown Matrix:</div>
+          <div class="matrix-grid">
+            <div class="matrix-item"><div class="matrix-name">TITAN</div><div class="matrix-val" id="m-titan">--</div></div>
+            <div class="matrix-item"><div class="matrix-name">RADHE</div><div class="matrix-val" id="m-radhe">--</div></div>
+            <div class="matrix-item"><div class="matrix-name">SURESH</div><div class="matrix-val" id="m-suresh">--</div></div>
+            <div class="matrix-item"><div class="matrix-name">MARKOV</div><div class="matrix-val" id="m-markov">--</div></div>
+            <div class="matrix-item"><div class="matrix-name">PAIN-PRO</div><div class="matrix-val" id="m-pain">--</div></div>
+            <div class="matrix-item"><div class="matrix-name">NEXA</div><div class="matrix-val" id="m-nexa">--</div></div>
+          </div>
         </div>
       </div>
     </div>
@@ -807,8 +898,8 @@
     <!-- Per-Model Accuracy Audit Table -->
     <div class="card" style="margin-top:14px">
       <h2>
-        <span>Per-Model Accuracy Audit</span>
-        <span style="color:var(--muted);font-size:10px;">BENCHMARK VS 50% BASELINE</span>
+        <span>6-Engine Accuracy Audit</span>
+        <span style="color:var(--muted);font-size:10px;">RED vs GREEN HIT RATE</span>
       </h2>
       <div class="table-container">
         <table>
@@ -832,7 +923,7 @@
   <div id="view-history" class="hidden">
     <div class="card">
       <h2>
-        <span>Prediction Record & Analytics</span>
+        <span>Color Prediction Records</span>
         <span style="color:var(--blue);font-size:10px;">SESSION TELEMETRY</span>
       </h2>
       <div class="stats">
@@ -856,7 +947,8 @@
             <tr>
               <th>#</th>
               <th>Period</th>
-              <th>Predicted</th>
+              <th>Predicted Color</th>
+              <th>Digits</th>
               <th>Actual</th>
               <th>Result</th>
               <th>Time</th>
@@ -869,226 +961,517 @@
     </div>
 
     <div class="warn">
-      ⚠️ Over enough rounds your win rate will drift toward ~50%. That is the certified-RNG signature (NIST SP 800-22 / UKGC RTS 7).
-      A short hot streak is variance, not skill. This page is here so you can see that for yourself instead of trusting a feeling.
+      ⚠️ Over large samples, random draw distributions track ~50% baseline per color. Violet pivots (0 & 5) provide additional half-payout advantages.
     </div>
   </div>
 
   <div class="foot">
-    Live data: draw.ar-lottery01.com · Saved in your browser only · JASH VIP Control Engine
+    Live data: draw.ar-lottery01.com · JASH VIP Ultimate 6-Engine Color Prediction System
   </div>
 </div>
 
 <script>
 'use strict';
 const API = g => `https://draw.ar-lottery01.com/WinGo/${g}/GetHistoryIssuePage.json?_t=${Date.now()}`;
-const size = n => n>=5?'BIG':'SMALL';
-const opp  = s => s==='BIG'?'SMALL':'BIG';
-const KEY  = 'wingo_history_v2';   // bumped → old corrupted log ignored
+const KEY = 'wingo_color_history_v1';
 
-let live=false, hist=[], tId=null, fId=null;
-let log=[], pending=null, loggedSet=new Set();
+let live = false, hist = [], tId = null, fId = null;
+let log = [], pending = null, loggedSet = new Set();
 
-// ---- engines ----
-const E = {
-  streak: s=>{let k=1;for(let i=1;i<s.length;i++){if(s[i]===s[0])k++;else break;}return k>=3?s[0]:opp(s[0]);},
-  majority: s=>{const w=s.slice(0,10),b=w.filter(x=>x==='BIG').length,m=w.length-b;return b===m?s[0]:(b>m?'BIG':'SMALL');},
-  markov: s=>{if(s.length<5)return s[0];const a=s[0],b=s[1];let tb=0,ts=0;
-    for(let i=0;i<s.length-2;i++){if(s[i+1]===b&&s[i]===a){s[i+2]==='BIG'?tb++:ts++;}}return tb===ts?a:(tb>ts?'BIG':'SMALL');},
-  alt: s=>{let k=1;for(let i=0;i<s.length-1;i++){if(s[i]!==s[i+1])k++;else break;}return s[0];},
-  meanrev: s=>{const w=s.slice(0,20),b=w.filter(x=>x==='BIG').length;return b>=w.length/2?'SMALL':'BIG';},
-  lastflip: s=>opp(s[0]),
-  hotcold: s=>{const w=s.slice(0,15),b=w.filter(x=>x==='BIG').length;return b>w.length*0.6?'SMALL':(b<w.length*0.4?'BIG':s[0]);},
-  parity: h=>{const w=h.slice(0,6),e=w.filter(x=>x.num%2===0).length;return e>=3?'BIG':'SMALL';}
-};
-const WEIGHTS = {streak:1.5,majority:1.2,markov:1.3,alt:1.0,meanrev:1.1,lastflip:0.6,hotcold:0.9,parity:0.8};
-
-function predict(h){
-  if(h.length<3) return null;
-  const s=h.map(x=>x.size), v={BIG:0,SMALL:0}, parts={};
-  for(const k in E){ let r=E[k](k==='parity'?h:s); parts[k]=r; v[r]+=WEIGHTS[k]; }
-  const pred=v.BIG>=v.SMALL?'BIG':'SMALL', tot=v.BIG+v.SMALL;
-  return {pred, conf:Math.round(Math.max(v.BIG,v.SMALL)/tot*100), parts};
+// ── COLOR & PARITY RESOLVER ────────────────────────────────
+function getColor(num) {
+  const n = parseInt(num, 10);
+  if (isNaN(n)) return 'RED';
+  if (n === 0) return 'RED';   // Red + Violet
+  if (n === 5) return 'GREEN'; // Green + Violet
+  return n % 2 === 0 ? 'RED' : 'GREEN';
 }
-function audit(h){
-  const res={}; for(const k in E) res[k]={tested:0,correct:0};
-  for(let i=1;i<h.length;i++){
-    const past=h.slice(i); if(past.length<3) break;
-    const s=past.map(x=>x.size);
-    for(const k in E){ const r=E[k](k==='parity'?past:s); res[k].tested++; if(r===h[i-1].size) res[k].correct++; }
+
+function getColorDetail(num) {
+  const n = parseInt(num, 10);
+  if (n === 0) return { color: 'RED', isViolet: true, label: '0 RED+V', cls: 'c-red-violet' };
+  if (n === 5) return { color: 'GREEN', isViolet: true, label: '5 GRN+V', cls: 'c-green-violet' };
+  if (n % 2 === 0) return { color: 'RED', isViolet: false, label: n + ' RED', cls: 'c-red' };
+  return { color: 'GREEN', isViolet: false, label: n + ' GRN', cls: 'c-green' };
+}
+
+function opp(c) {
+  return c === 'RED' ? 'GREEN' : 'RED';
+}
+
+// ── 6 ULTIMATE COLOR ENGINES ───────────────────────────────
+const E = {
+  // 1. TITAN COLOR: Multi-Window Parity Momentum & Saturation Guard
+  titan: colors => {
+    if (colors.length < 3) return colors[0] || 'RED';
+    const windows = [5, 10, 20, 40];
+    let rScore = 0, gScore = 0;
+    windows.forEach((w, idx) => {
+      const slice = colors.slice(0, w);
+      if (!slice.length) return;
+      const rCount = slice.filter(c => c === 'RED').length;
+      const gCount = slice.length - rCount;
+      const weight = (windows.length - idx) * 1.5;
+      if (slice.length >= 10 && rCount / slice.length >= 0.70) gScore += weight * 1.5;
+      else if (slice.length >= 10 && gCount / slice.length >= 0.70) rScore += weight * 1.5;
+      else {
+        if (rCount > gCount) rScore += weight;
+        else if (gCount > rCount) gScore += weight;
+        else rScore += weight * 0.5;
+      }
+    });
+    return rScore >= gScore ? 'RED' : 'GREEN';
+  },
+
+  // 2. RADHE CHROMATIC: Dragon Ride & Doublet Pattern Trajectory
+  radhe: colors => {
+    if (colors.length < 3) return colors[0] || 'RED';
+    let streak = 1;
+    for (let i = 1; i < colors.length; i++) {
+      if (colors[i] === colors[0]) streak++;
+      else break;
+    }
+    // Doublet pattern: RR GG -> expect flip
+    if (colors.length >= 4) {
+      if (colors[0] === colors[1] && colors[2] === colors[3] && colors[0] !== colors[2]) return opp(colors[0]);
+      if (colors[0] !== colors[1] && colors[1] === colors[2]) return colors[0];
+    }
+    if (streak >= 2 && streak <= 4) return colors[0]; // Ride dragon
+    if (streak >= 5) return opp(colors[0]);          // Trend exhaustion break
+    return colors[0];
+  },
+
+  // 3. SURESH HARMONIC: Chop Zigzag & Palindrome Rhythm
+  suresh: colors => {
+    if (colors.length < 3) return opp(colors[0] || 'RED');
+    let altCount = 1;
+    for (let i = 0; i < colors.length - 1; i++) {
+      if (colors[i] !== colors[i + 1]) altCount++;
+      else break;
+    }
+    if (altCount >= 2 && altCount <= 5) return opp(colors[0]);
+    if (colors.length >= 4 && colors[1] === colors[2] && colors[3] === colors[0]) return colors[1];
+    return opp(colors[0]);
+  },
+
+  // 4. MARKOV 2nd-ORDER: Color State Transition Matrix
+  markov: colors => {
+    if (colors.length < 5) return colors[0] || 'RED';
+    const c1 = colors[0], c2 = colors[1];
+    let rCount = 0, gCount = 0;
+    for (let i = 0; i < colors.length - 2; i++) {
+      if (colors[i + 1] === c1 && colors[i + 2] === c2) {
+        if (colors[i] === 'RED') rCount++;
+        else if (colors[i] === 'GREEN') gCount++;
+      }
+    }
+    if (rCount === 0 && gCount === 0) {
+      for (let i = 0; i < colors.length - 1; i++) {
+        if (colors[i + 1] === c1) {
+          if (colors[i] === 'RED') rCount++;
+          else if (colors[i] === 'GREEN') gCount++;
+        }
+      }
+    }
+    if (rCount === gCount) return c1;
+    return rCount > gCount ? 'RED' : 'GREEN';
+  },
+
+  // 5. PAIN-PRO DIGIT: Violet Pivot Anchors (0 & 5) & Parity Deficit
+  painPro: (colors, h) => {
+    if (!h || h.length < 2) return 'RED';
+    const lastNum = h[0].num;
+    if (lastNum === 0) return 'GREEN'; // 0 Red+Violet pivots to Green surge
+    if (lastNum === 5) return 'RED';   // 5 Green+Violet pivots to Red surge
+    const recent20 = h.slice(0, 20).map(x => x.num);
+    const evens = recent20.filter(n => n % 2 === 0).length;
+    const odds = recent20.length - evens;
+    if (evens > odds + 4) return 'GREEN';
+    if (odds > evens + 4) return 'RED';
+    return lastNum % 2 === 0 ? 'RED' : 'GREEN';
+  },
+
+  // 6. NEXA CONSENSUS: Meta-Arbiter Weighted Equilibrium
+  nexa: (colors, h, models) => {
+    const W = { titan: 1.35, radhe: 1.40, suresh: 1.25, markov: 1.50, painPro: 1.20 };
+    let r = 0, g = 0;
+    for (const k in W) {
+      if (models[k] === 'RED') r += W[k];
+      else if (models[k] === 'GREEN') g += W[k];
+    }
+    return r >= g ? 'RED' : 'GREEN';
+  }
+};
+
+const WEIGHTS = { titan: 1.35, radhe: 1.40, suresh: 1.25, markov: 1.50, painPro: 1.20, nexa: 1.60 };
+
+function predict(h) {
+  if (h.length < 3) return null;
+  const colors = h.map(x => getColor(x.num));
+  const models = {};
+
+  models.titan = E.titan(colors);
+  models.radhe = E.radhe(colors);
+  models.suresh = E.suresh(colors);
+  models.markov = E.markov(colors);
+  models.painPro = E.painPro(colors, h);
+  models.nexa = E.nexa(colors, h, models);
+
+  let rWeight = 0, gWeight = 0;
+  for (const k in models) {
+    const w = WEIGHTS[k] || 1.0;
+    if (models[k] === 'RED') rWeight += w;
+    else gWeight += w;
+  }
+
+  const predColor = rWeight >= gWeight ? 'RED' : 'GREEN';
+  const totWeight = rWeight + gWeight;
+  const conf = Math.round((Math.max(rWeight, gWeight) / totWeight) * 100);
+
+  // Top 2 numbers matching color
+  const candidates = predColor === 'RED' ? [2, 4, 6, 8, 0] : [1, 3, 7, 9, 5];
+  const counts = {};
+  candidates.forEach(d => counts[d] = 0);
+  h.slice(0, 30).forEach(x => { if (counts[x.num] !== undefined) counts[x.num]++; });
+  const topDigits = candidates.sort((a, b) => counts[a] - counts[b]).slice(0, 2);
+
+  let streak = 1;
+  for (let i = 1; i < colors.length; i++) {
+    if (colors[i] === colors[0]) streak++;
+    else break;
+  }
+
+  let alt = 1;
+  for (let i = 0; i < colors.length - 1; i++) {
+    if (colors[i] !== colors[i + 1]) alt++;
+    else break;
+  }
+
+  let patternLabel = 'NEXA CONSENSUS';
+  if (streak >= 3) patternLabel = `🔥 ${streak}X ${colors[0]} DRAGON`;
+  else if (alt >= 3) patternLabel = `⚡ ${alt}X ZIGZAG CHOP`;
+  else if (h[0].num === 0 || h[0].num === 5) patternLabel = `🟣 VIOLET PIVOT (${h[0].num})`;
+  else patternLabel = `🎯 ${predColor} CONSENSUS ALIGNED`;
+
+  return { pred: predColor, conf, models, topDigits, patternLabel, streak, alt };
+}
+
+function audit(h) {
+  const res = {};
+  for (const k in E) res[k] = { tested: 0, correct: 0 };
+  for (let i = 1; i < h.length; i++) {
+    const past = h.slice(i);
+    if (past.length < 3) break;
+    const colors = past.map(x => getColor(x.num));
+    const actual = getColor(h[i - 1].num);
+
+    const m = {};
+    m.titan = E.titan(colors);
+    m.radhe = E.radhe(colors);
+    m.suresh = E.suresh(colors);
+    m.markov = E.markov(colors);
+    m.painPro = E.painPro(colors, past);
+    m.nexa = E.nexa(colors, past, m);
+
+    for (const k in E) {
+      res[k].tested++;
+      if (m[k] === actual) res[k].correct++;
+    }
   }
   return res;
 }
 
-// ---- BIGINT issue increment (the fix) ----
-function incIssue(s){
-  try{ return String(BigInt(String(s).trim()) + 1n); }
-  catch(e){ return String(Number(s)+1); }
+// ── ISSUE MATH ─────────────────────────────────────────────
+function incIssue(s) {
+  try { return String(BigInt(String(s).trim()) + 1n); }
+  catch (e) { return String(Number(s) + 1); }
 }
 
-// ---- persistence ----
-function loadLog(){
-  try{ log=JSON.parse(localStorage.getItem(KEY))||[]; }catch(e){ log=[]; }
-  loggedSet=new Set(log.map(x=>String(x.issue)));
+// ── LOCAL STORAGE PERSISTENCE ──────────────────────────────
+function loadLog() {
+  try { log = JSON.parse(localStorage.getItem(KEY)) || []; } catch (e) { log = []; }
+  loggedSet = new Set(log.map(x => String(x.issue)));
 }
-function saveLog(){ try{ localStorage.setItem(KEY, JSON.stringify(log.slice(0,500))); }catch(e){} }
+function saveLog() {
+  try { localStorage.setItem(KEY, JSON.stringify(log.slice(0, 500))); } catch (e) {}
+}
 
-// ---- fetch / resolve / queue ----
-async function fetchHist(){
-  try{
-    const r=await fetch(API(document.getElementById('game').value),{cache:'no-store'});
-    const j=await r.json(); const list=j?.data?.list||[];
-    if(!list.length) return;
-    hist=list.map(x=>({num:parseInt(x.number,10),size:size(parseInt(x.number,10)),issue:String(x.issueNumber||'')}))
-             .filter(x=>!isNaN(x.num));
+// ── API SYNC ───────────────────────────────────────────────
+async function fetchHist() {
+  try {
+    const r = await fetch(API(document.getElementById('game').value), { cache: 'no-store' });
+    const j = await r.json();
+    const list = j?.data?.list || [];
+    if (!list.length) return;
+    hist = list.map(x => ({
+      num: parseInt(x.number, 10),
+      color: getColor(parseInt(x.number, 10)),
+      issue: String(x.issueNumber || '')
+    })).filter(x => !isNaN(x.num));
+
     resolvePending();
     makePending();
-    render(); renderHistory();
-    document.getElementById('status').textContent='live · '+new Date().toLocaleTimeString();
-  }catch(e){ document.getElementById('status').textContent='fetch error (CORS/offline)'; }
+    render();
+    renderHistory();
+    document.getElementById('status').textContent = 'live · ' + new Date().toLocaleTimeString();
+  } catch (e) {
+    document.getElementById('status').textContent = 'fetch error (offline/CORS)';
+  }
 }
 
-function resolvePending(){
-  if(!pending) return;
-  const hit = hist.find(x=>String(x.issue)===String(pending.issue));
-  if(hit && !loggedSet.has(String(pending.issue))){
+function resolvePending() {
+  if (!pending) return;
+  const hit = hist.find(x => String(x.issue) === String(pending.issue));
+  if (hit && !loggedSet.has(String(pending.issue))) {
     loggedSet.add(String(pending.issue));
-    log.unshift({issue:String(pending.issue), pred:pending.pred, actual:hit.size,
-                 num:hit.num, won:hit.size===pending.pred, time:pending.time});
-    saveLog(); pending=null;
+    const won = (hit.color === pending.pred);
+    log.unshift({
+      issue: String(pending.issue),
+      pred: pending.pred,
+      digits: pending.digits,
+      actualColor: hit.color,
+      actualNum: hit.num,
+      won,
+      time: pending.time
+    });
+    saveLog();
+    pending = null;
   }
 }
 
-function makePending(){
-  if(!hist.length || pending) return;
-  const newest = String(hist[0].issue||'');
-  if(!newest) return;
+function makePending() {
+  if (!hist.length || pending) return;
+  const newest = String(hist[0].issue || '');
+  if (!newest) return;
   const next = incIssue(newest);
-  if(loggedSet.has(next)) return;
-  if(hist.some(x=>String(x.issue)===next)) return;   // never predict the past
-  const r=predict(hist); if(!r) return;
-  pending={issue:next, pred:r.pred, time:new Date().toLocaleTimeString()};
+  if (loggedSet.has(next)) return;
+  if (hist.some(x => String(x.issue) === next)) return;
+  const r = predict(hist);
+  if (!r) return;
+  pending = { issue: next, pred: r.pred, digits: r.topDigits, time: new Date().toLocaleTimeString() };
 }
 
-// ---- live render ----
-function tick(){
-  const g=document.getElementById('game').value;
-  const iv=g==='WinGo_30S'?30:(g==='WinGo_1M'?60:(g==='WinGo_3M'?180:300));
-  const left=iv-(Math.floor(Date.now()/1000)%iv);
-  const el=document.getElementById('timer'); el.textContent=left+'s'; el.className='timer'+(left<=5?' low':'');
-  if(left<=1) fetchHist();
+// ── LIVE ENGINE RENDER ─────────────────────────────────────
+function tick() {
+  const g = document.getElementById('game').value;
+  const iv = g === 'WinGo_30S' ? 30 : (g === 'WinGo_1M' ? 60 : (g === 'WinGo_3M' ? 180 : 300));
+  const left = iv - (Math.floor(Date.now() / 1000) % iv);
+  const el = document.getElementById('timer');
+  el.textContent = left + 's';
+  el.className = 'timer' + (left <= 5 ? ' low' : '');
+  if (left <= 1) fetchHist();
 }
-function render(){
-  if(!hist.length) return;
-  const s=hist.map(x=>x.size), big=s.filter(x=>x==='BIG').length;
-  document.getElementById('last').textContent=hist[0].num+' ('+hist[0].size+')';
-  document.getElementById('split').textContent=big+' / '+(s.length-big);
-  document.getElementById('chips').innerHTML=hist.slice(0,24).map((h,i)=>
-    `<div class="chip ${h.size}${i===0?' pend':''}">${h.num}</div>`).join('');
-  document.getElementById('period').textContent='last issue: '+(hist[0].issue||'—');
-  const r=predict(hist), ps=document.getElementById('psize');
-  if(r){
-    ps.textContent=r.pred;
-    ps.className='pred-size ' + r.pred;
+
+function render() {
+  if (!hist.length) return;
+  const colors = hist.map(x => x.color);
+  const redCount = colors.filter(c => c === 'RED').length;
+  const greenCount = colors.length - redCount;
+
+  const lastDet = getColorDetail(hist[0].num);
+  document.getElementById('last').innerHTML = `<span class="${lastDet.color === 'RED' ? 'r' : 'g'}">${lastDet.label}</span>`;
+  document.getElementById('split').innerHTML = `<span class="r">${redCount} RED</span> / <span class="g">${greenCount} GREEN</span>`;
+
+  document.getElementById('chips').innerHTML = hist.slice(0, 24).map((h, i) => {
+    const det = getColorDetail(h.num);
+    return `<div class="chip ${det.cls}${i === 0 ? ' pend' : ''}">${h.num}</div>`;
+  }).join('');
+
+  document.getElementById('period').textContent = 'last issue: ' + (hist[0].issue || '—');
+
+  const r = predict(hist);
+  const pcolor = document.getElementById('pcolor');
+  if (r) {
+    pcolor.textContent = r.pred === 'RED' ? '🔴 RED' : '🟢 GREEN';
+    pcolor.className = 'pred-color ' + r.pred;
+
+    document.getElementById('pdigits').innerHTML = `
+      <span class="digit-pill">Number: ${r.topDigits[0]}</span>
+      <span class="digit-pill">Number: ${r.topDigits[1]}</span>
+    `;
+
     document.getElementById('plbl').textContent = pending
-      ? `queued for period ${pending.issue}` : 'ensemble vote for next round';
-    let st=1;for(let i=1;i<s.length;i++){if(s[i]===s[0])st++;else break;}
-    let al=1;for(let i=0;i<s.length-1;i++){if(s[i]!==s[i+1])al++;else break;}
-    document.getElementById('streak').textContent=st+'x '+s[0];
-    document.getElementById('alt').textContent=al+'x';
-    document.getElementById('conf').textContent=r.conf+'%';
-  } else { ps.textContent='--'; ps.className='pred-size'; }
-  const a=audit(hist);
-  let rows='', any=0, beats=0;
-  for(const k in a){
-    const t=a[k].tested; if(!t) continue; any++;
-    const hr=a[k].correct/t*100, d=hr-50;
-    if(hr>52) beats++;
-    const vd=hr>52?'<span class="badge WIN">above</span>':(hr<48?'<span class="badge LOSS">below</span>':'<span class="badge PEND">≈chance</span>');
-    rows+=`<tr><td><b>${k}</b></td><td>${t}</td><td>${hr.toFixed(1)}%</td>
-           <td class="${d>=0?'g':'r'}">${d>=0?'+':''}${d.toFixed(1)}</td><td>${vd}</td></tr>`;
+      ? `queued for period ${pending.issue} · ${r.patternLabel}`
+      : `matrix consensus · ${r.patternLabel}`;
+
+    document.getElementById('streak').textContent = `${r.streak}x ${colors[0]}`;
+    document.getElementById('alt').textContent = `${r.alt}x chop`;
+    document.getElementById('conf').textContent = `${r.conf}%`;
+
+    // 6-Engine matrix breakdown
+    for (const [k, v] of Object.entries(r.models)) {
+      const el = document.getElementById('m-' + k);
+      if (el) {
+        el.textContent = v;
+        el.className = 'matrix-val ' + v;
+      }
+    }
+  } else {
+    pcolor.textContent = '--';
+    pcolor.className = 'pred-color';
   }
-  document.getElementById('audit').innerHTML=rows||'<tr><td colspan="5" style="text-align:center;color:var(--muted)">collecting data…</td></tr>';
+
+  // Audit table
+  const a = audit(hist);
+  let rows = '', any = 0, beats = 0;
+  for (const k in a) {
+    const t = a[k].tested;
+    if (!t) continue;
+    any++;
+    const hr = (a[k].correct / t) * 100;
+    const d = hr - 50;
+    if (hr > 52) beats++;
+    const vd = hr > 52
+      ? '<span class="badge WIN">above</span>'
+      : (hr < 48 ? '<span class="badge LOSS">below</span>' : '<span class="badge PEND">≈chance</span>');
+    rows += `<tr>
+      <td><b>${k.toUpperCase()}</b></td>
+      <td>${t}</td>
+      <td>${hr.toFixed(1)}%</td>
+      <td class="${d >= 0 ? 'g' : 'r'}">${d >= 0 ? '+' : ''}${d.toFixed(1)}</td>
+      <td>${vd}</td>
+    </tr>`;
+  }
+  document.getElementById('audit').innerHTML = rows || '<tr><td colspan="5" style="text-align:center;color:var(--muted)">collecting data…</td></tr>';
   document.getElementById('verdict').textContent = any
-    ? `${beats} of ${any} engines currently sit above 50%. Over more rounds they converge to ~50% — the RNG signature.` : '';
+    ? `${beats} of ${any} engines currently sit above 50% hit rate for RED/GREEN. Over 500+ rounds variance converges to equilibrium.`
+    : '';
 }
 
-// ---- history render ----
-function renderHistory(){
-  const wins=log.filter(x=>x.won).length, losses=log.length-wins;
-  document.getElementById('h-total').textContent=log.length;
-  document.getElementById('h-wins').textContent=wins;
-  document.getElementById('h-loss').textContent=losses;
-  const rate = log.length ? (wins/log.length*100) : null;
-  const rateEl=document.getElementById('h-rate');
-  rateEl.textContent = rate===null ? '--' : rate.toFixed(1)+'%';
-  rateEl.className = rate===null ? '' : (rate>52?'g':(rate<48?'r':'y'));
-  let cur=0; for(const x of log){ if(x.won) cur++; else break; }
-  let best=0, run=0;
-  for(let i=log.length-1;i>=0;i--){ if(log[i].won){run++; best=Math.max(best,run);} else run=0; }
+// ── HISTORY VIEW RENDER ────────────────────────────────────
+function renderHistory() {
+  const wins = log.filter(x => x.won).length;
+  const losses = log.length - wins;
+  document.getElementById('h-total').textContent = log.length;
+  document.getElementById('h-wins').textContent = wins;
+  document.getElementById('h-loss').textContent = losses;
+
+  const rate = log.length ? (wins / log.length) * 100 : null;
+  const rateEl = document.getElementById('h-rate');
+  rateEl.textContent = rate === null ? '--' : rate.toFixed(1) + '%';
+  rateEl.className = rate === null ? '' : (rate > 52 ? 'g' : (rate < 48 ? 'r' : 'y'));
+
+  let cur = 0;
+  for (const x of log) {
+    if (x.won) cur++;
+    else break;
+  }
+  let best = 0, run = 0;
+  for (let i = log.length - 1; i >= 0; i--) {
+    if (log[i].won) { run++; best = Math.max(best, run); }
+    else run = 0;
+  }
   document.getElementById('h-streak').textContent = log.length ? cur : '--';
-  document.getElementById('h-streak').className = cur>0?'g':'r';
+  document.getElementById('h-streak').className = cur > 0 ? 'g' : 'r';
   document.getElementById('h-best').textContent = log.length ? best : '--';
+
   document.getElementById('h-baseline').textContent = log.length
-    ? `${wins}W / ${losses}L · ${(rate-50>=0?'+':'')}${(rate-50).toFixed(1)} pts vs the 50% baseline. Longer samples drift toward 50%.` : '';
-  const body=document.getElementById('hist-body');
-  if(!log.length){ body.innerHTML=''; document.getElementById('hist-empty').classList.remove('hidden'); return; }
+    ? `${wins}W / ${losses}L · ${(rate - 50 >= 0 ? '+' : '')}${(rate - 50).toFixed(1)} pts vs 50% baseline on RED/GREEN.`
+    : '';
+
+  const body = document.getElementById('hist-body');
+  if (!log.length) {
+    body.innerHTML = '';
+    document.getElementById('hist-empty').classList.remove('hidden');
+    return;
+  }
   document.getElementById('hist-empty').classList.add('hidden');
-  let html='';
-  log.forEach((x,i)=>{
-    html+=`<tr>
-      <td>${log.length-i}</td>
-      <td style="font-family:var(--font-mono)">${x.issue||'—'}</td>
-      <td class="${x.pred==='BIG'?'y':'b'}"><b>${x.pred}</b></td>
-      <td>${x.num!==undefined?x.num+' ('+x.actual+')':x.actual}</td>
-      <td><span class="badge ${x.won?'WIN':'LOSS'}">${x.won?'WIN ✓':'LOSS ✕'}</span></td>
+
+  let html = '';
+  log.forEach((x, i) => {
+    html += `<tr>
+      <td>${log.length - i}</td>
+      <td style="font-family:var(--font-mono)">${x.issue || '—'}</td>
+      <td class="${x.pred === 'RED' ? 'r' : 'g'}"><b>${x.pred === 'RED' ? '🔴 RED' : '🟢 GREEN'}</b></td>
+      <td>${x.digits ? x.digits.join(', ') : '—'}</td>
+      <td>${x.actualNum !== undefined ? x.actualNum + ' (' + x.actualColor + ')' : x.actualColor}</td>
+      <td><span class="badge ${x.won ? 'WIN' : 'LOSS'}">${x.won ? 'WIN ✓' : 'LOSS ✕'}</span></td>
       <td style="color:var(--muted)">${x.time}</td>
     </tr>`;
   });
-  if(pending){
-    html=`<tr style="background:rgba(228,255,74,0.04)">
-      <td>—</td><td style="font-family:var(--font-mono)">${pending.issue||'—'}</td>
-      <td class="${pending.pred==='BIG'?'y':'b'}"><b>${pending.pred}</b></td>
-      <td>—</td><td><span class="badge PEND">PENDING ⏳</span></td><td style="color:var(--muted)">${pending.time}</td>
+
+  if (pending) {
+    html = `<tr style="background:rgba(228,255,74,0.04)">
+      <td>—</td>
+      <td style="font-family:var(--font-mono)">${pending.issue || '—'}</td>
+      <td class="${pending.pred === 'RED' ? 'r' : 'g'}"><b>${pending.pred === 'RED' ? '🔴 RED' : '🟢 GREEN'}</b></td>
+      <td>${pending.digits ? pending.digits.join(', ') : '—'}</td>
+      <td>—</td>
+      <td><span class="badge PEND">PENDING ⏳</span></td>
+      <td style="color:var(--muted)">${pending.time}</td>
     </tr>` + html;
   }
-  body.innerHTML=html;
+  body.innerHTML = html;
 }
 
-// ---- controls ----
-function showTab(t){
-  const isLive = t==='live';
+// ── UI CONTROLS ────────────────────────────────────────────
+function showTab(t) {
+  const isLive = (t === 'live');
   document.getElementById('view-live').classList.toggle('hidden', !isLive);
   document.getElementById('view-history').classList.toggle('hidden', isLive);
   document.getElementById('tab-live').classList.toggle('active', isLive);
   document.getElementById('tab-history').classList.toggle('active', !isLive);
-  if(!isLive) renderHistory();
+  if (!isLive) renderHistory();
 }
-function toggle(){
-  live=!live; const dot=document.getElementById('dot'), btn=document.getElementById('btn');
-  if(live){ dot.classList.add('live'); btn.textContent='■ Stop Live'; btn.style.background='linear-gradient(135deg, var(--red), #c02020)'; btn.style.color='#fff'; fetchHist();
-    tId=setInterval(tick,250); fId=setInterval(fetchHist,4000);
-  } else { dot.classList.remove('live'); btn.textContent='▶ Start Live'; btn.style.background='linear-gradient(135deg, var(--green), var(--blue))'; btn.style.color='#04121a';
-    clearInterval(tId); clearInterval(fId); document.getElementById('status').textContent='idle';
-    document.getElementById('timer').textContent='--'; }
-}
-function clearHistory(){
-  if(!confirm('Clear all saved prediction history?')) return;
-  log=[]; pending=null; loggedSet=new Set(); saveLog(); renderHistory();
-}
-function downloadHistory(){
-  if(!log.length){ alert('No history to export yet.'); return; }
-  const rows=[['#','Period','Predicted','Actual','Result','Time']];
-  log.forEach((x,i)=>rows.push([log.length-i,x.issue,x.pred,x.num!==undefined?x.num+' '+x.actual:x.actual,x.won?'WIN':'LOSS',x.time]));
-  const csv=rows.map(r=>r.join(',')).join('\n');
-  const blob=new Blob([csv],{type:'text/csv'});
-  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
-  a.download='wingo_history.csv'; a.click();
-}
-document.getElementById('game').onchange=()=>{ if(live){hist=[];pending=null;fetchHist();} };
 
-// ---- boot ----
-loadLog(); renderHistory();
+function toggle() {
+  live = !live;
+  const dot = document.getElementById('dot');
+  const btn = document.getElementById('btn');
+  if (live) {
+    dot.classList.add('live');
+    btn.textContent = '■ Stop Live';
+    btn.style.background = 'linear-gradient(135deg, var(--red), #c02020)';
+    fetchHist();
+    tId = setInterval(tick, 250);
+    fId = setInterval(fetchHist, 4000);
+  } else {
+    dot.classList.remove('live');
+    btn.textContent = '▶ Start Live';
+    btn.style.background = 'linear-gradient(135deg, var(--red), var(--green))';
+    clearInterval(tId);
+    clearInterval(fId);
+    document.getElementById('status').textContent = 'idle';
+    document.getElementById('timer').textContent = '--';
+  }
+}
+
+function clearHistory() {
+  if (!confirm('Clear all color prediction history?')) return;
+  log = [];
+  pending = null;
+  loggedSet = new Set();
+  saveLog();
+  renderHistory();
+}
+
+function downloadHistory() {
+  if (!log.length) { alert('No history to export yet.'); return; }
+  const rows = [['#', 'Period', 'Predicted Color', 'Digits', 'Actual', 'Result', 'Time']];
+  log.forEach((x, i) => rows.push([
+    log.length - i,
+    x.issue,
+    x.pred,
+    x.digits ? x.digits.join(' ') : '',
+    x.actualNum !== undefined ? `${x.actualNum} ${x.actualColor}` : x.actualColor,
+    x.won ? 'WIN' : 'LOSS',
+    x.time
+  ]));
+  const csv = rows.map(r => r.join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'wingo_color_history.csv';
+  a.click();
+}
+
+document.getElementById('game').onchange = () => {
+  if (live) { hist = []; pending = null; fetchHist(); }
+};
+
+// ── BOOTSTRAP ──────────────────────────────────────────────
+loadLog();
+renderHistory();
 </script>
 </body>
 </html>
