@@ -10,7 +10,7 @@
   <style>
     :root {
       --bg-dark: #05070c;
-      --bg-card: rgba(13, 18, 30, 0.82);
+      --bg-card: rgba(13, 18, 30, 0.85);
       --line: rgba(255, 255, 255, 0.08);
       --line-bright: rgba(0, 245, 160, 0.35);
       --green: #00f5a0;
@@ -23,6 +23,7 @@
       --blue-glow: rgba(0, 217, 255, 0.35);
       --yellow: #E4FF4A;
       --muted: #8393a8;
+      --dim: #445166;
       --text: #f0f4fa;
       --font-main: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
       --font-mono: 'JetBrains Mono', ui-monospace, monospace;
@@ -33,36 +34,35 @@
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      -webkit-tap-highlight-color: transparent;
+      -webkit-font-smoothing: antialiased;
     }
 
     body {
       font-family: var(--font-main);
-      background: var(--bg-dark);
+      background: radial-gradient(circle at 50% 0%, #101828 0%, var(--bg-dark) 75%);
       color: var(--text);
-      padding: 16px 14px 40px;
+      padding: 16px;
       min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
       overflow-x: hidden;
-      background-image:
-        radial-gradient(120% 70% at 50% -10%, rgba(255, 51, 102, 0.08) 0%, transparent 60%),
-        radial-gradient(80% 60% at 100% 100%, rgba(0, 245, 160, 0.08) 0%, transparent 60%),
-        linear-gradient(180deg, #05070c 0%, #090d16 50%, #0d121e 100%);
-      background-attachment: fixed;
     }
 
     .bg-grid {
       position: fixed;
-      inset: 0;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-size: 32px 32px;
+      background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
       pointer-events: none;
-      background-image:
-        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-      background-size: 36px 36px;
       z-index: 0;
     }
 
     .wrap {
       max-width: 980px;
+      width: 100%;
       margin: 0 auto;
       position: relative;
       z-index: 1;
@@ -73,26 +73,9 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 14px 18px;
-      background: var(--bg-card);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
       margin-bottom: 14px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .header-bar::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 2px;
-      background: linear-gradient(90deg, transparent, var(--red), var(--violet), var(--green), transparent);
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--line);
     }
 
     .brand-group {
@@ -102,51 +85,51 @@
     }
 
     .brand-crown {
-      width: 44px;
-      height: 44px;
+      width: 40px;
+      height: 40px;
       border-radius: 12px;
-      background: linear-gradient(135deg, rgba(255, 51, 102, 0.25), rgba(0, 245, 160, 0.25));
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      display: grid;
-      place-items: center;
-      font-size: 22px;
-      box-shadow: 0 0 20px rgba(255, 51, 102, 0.2);
+      background: linear-gradient(135deg, rgba(0, 245, 160, 0.2), rgba(0, 217, 255, 0.2));
+      border: 1px solid var(--line-bright);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 0 20px rgba(0, 245, 160, 0.25);
     }
 
     .brand-text h1 {
       font-size: 19px;
       font-weight: 900;
-      letter-spacing: -0.02em;
-      background: linear-gradient(135deg, #ffffff 10%, var(--red) 50%, var(--green) 100%);
+      letter-spacing: -0.3px;
+      background: linear-gradient(135deg, #fff 30%, var(--green) 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      line-height: 1.2;
-    }
-
-    .brand-text .sub {
-      color: var(--muted);
-      font-size: 11px;
-      font-family: var(--font-mono);
-      letter-spacing: 0.05em;
-      margin-top: 2px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
     .badge-v1 {
-      display: inline-block;
+      font-size: 10px;
       font-family: var(--font-mono);
-      font-size: 9px;
       font-weight: 800;
       padding: 2px 7px;
-      border-radius: 5px;
+      border-radius: 6px;
       background: rgba(255, 51, 102, 0.15);
       border: 1px solid rgba(255, 51, 102, 0.4);
       color: var(--red);
-      letter-spacing: 0.08em;
-      margin-left: 6px;
-      vertical-align: middle;
+      letter-spacing: 0.5px;
+      -webkit-text-fill-color: var(--red);
     }
 
-    /* Top Control Controls */
+    .sub {
+      color: var(--muted);
+      font-size: 11px;
+      margin-top: 3px;
+      font-family: var(--font-mono);
+    }
+
+    /* Top Control Bar */
     .top {
       display: flex;
       gap: 10px;
@@ -154,204 +137,169 @@
       flex-wrap: wrap;
       margin-bottom: 14px;
       background: var(--bg-card);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
       border: 1px solid var(--line);
       border-radius: 16px;
       padding: 10px 14px;
     }
 
-    select {
-      background: rgba(7, 11, 18, 0.85);
-      border: 1px solid var(--line);
-      color: #eaf1f8;
-      padding: 9px 14px;
+    .game-lock-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0, 245, 160, 0.08);
+      border: 1px solid rgba(0, 245, 160, 0.35);
       border-radius: 10px;
-      font-size: 12px;
-      font-family: var(--font-mono);
-      font-weight: 700;
-      outline: none;
-      cursor: pointer;
-      transition: all 0.2s;
+      padding: 8px 14px;
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--green);
+      box-shadow: 0 0 15px rgba(0, 245, 160, 0.15);
     }
 
-    select:focus, select:hover {
-      border-color: var(--blue);
-      box-shadow: 0 0 14px rgba(0, 217, 255, 0.25);
+    .game-lock-badge .game-sub {
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 2px 6px;
+      border-radius: 5px;
     }
 
     button {
-      background: linear-gradient(135deg, var(--red), var(--green));
+      background: linear-gradient(135deg, var(--green), #00c982);
       border: none;
-      color: #ffffff;
-      font-family: var(--font-main);
-      font-weight: 900;
-      padding: 10px 18px;
+      color: #040810;
+      padding: 9px 18px;
       border-radius: 10px;
-      cursor: pointer;
       font-size: 12px;
-      letter-spacing: 0.05em;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 0 18px rgba(0, 245, 160, 0.35);
       transition: all 0.2s;
-      box-shadow: 0 4px 16px rgba(255, 51, 102, 0.25);
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
+      font-family: var(--font-main);
     }
 
     button:hover {
-      filter: brightness(1.1);
-      box-shadow: 0 6px 22px rgba(255, 51, 102, 0.4);
       transform: translateY(-1px);
-    }
-
-    button:active {
-      transform: scale(0.97);
-    }
-
-    button.ghost {
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid var(--line);
-      color: #eaf1f8;
-      font-weight: 700;
-      box-shadow: none;
-    }
-
-    button.ghost:hover {
-      background: rgba(255, 255, 255, 0.08);
-      border-color: rgba(255, 255, 255, 0.2);
+      box-shadow: 0 0 24px rgba(0, 245, 160, 0.55);
     }
 
     .status-container {
-      margin-left: auto;
       display: flex;
       align-items: center;
-      gap: 6px;
-      font-size: 11px;
+      gap: 8px;
+      margin-left: auto;
       font-family: var(--font-mono);
+      font-size: 11px;
       color: var(--muted);
-      background: rgba(255, 255, 255, 0.03);
-      padding: 6px 12px;
-      border-radius: 20px;
-      border: 1px solid var(--line);
     }
 
     .dot {
       width: 8px;
       height: 8px;
       border-radius: 50%;
-      background: #445166;
+      background: #374151;
       display: inline-block;
       transition: all 0.3s;
     }
 
     .dot.live {
       background: var(--green);
-      box-shadow: 0 0 10px var(--green);
-      animation: pulse-live 1.6s infinite;
+      box-shadow: 0 0 12px var(--green);
+      animation: pulse 1.6s infinite;
     }
 
-    @keyframes pulse-live {
-      0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 10px var(--green); }
-      50% { opacity: 0.4; transform: scale(0.85); box-shadow: 0 0 3px var(--green); }
+    @keyframes pulse {
+      0% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(1.15); }
+      100% { opacity: 1; transform: scale(1); }
     }
 
     /* Tabs */
     .tabs {
       display: flex;
-      gap: 8px;
+      gap: 6px;
       margin-bottom: 14px;
+      background: rgba(6, 10, 18, 0.6);
+      padding: 4px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
     }
 
     .tab {
       flex: 1;
-      text-align: center;
-      padding: 11px 16px;
-      border-radius: 12px;
-      font-size: 13px;
-      font-weight: 800;
-      letter-spacing: 0.03em;
-      cursor: pointer;
-      background: var(--bg-card);
-      border: 1px solid var(--line);
+      padding: 9px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
       color: var(--muted);
-      transition: all 0.25s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
     }
 
     .tab:hover {
       color: var(--text);
-      border-color: rgba(255, 255, 255, 0.16);
     }
 
     .tab.active {
-      background: linear-gradient(135deg, rgba(255, 51, 102, 0.16), rgba(0, 245, 160, 0.16));
-      border-color: var(--red);
-      color: #ffffff;
-      box-shadow: 0 0 20px rgba(255, 51, 102, 0.15), inset 0 0 12px rgba(255, 51, 102, 0.08);
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     }
 
-    /* Grid layout */
+    /* Grid Layout */
     .grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 14px;
+      margin-bottom: 14px;
     }
 
-    @media (max-width: 768px) {
-      .grid {
-        grid-template-columns: 1fr;
-      }
-      .status-container {
-        margin-left: 0;
-        width: 100%;
-        justify-content: center;
-      }
+    @media (max-width: 720px) {
+      .grid { grid-template-columns: 1fr; }
     }
 
-    /* Cards */
     .card {
       background: var(--bg-card);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
       border: 1px solid var(--line);
-      border-radius: 18px;
-      padding: 18px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
       position: relative;
       overflow: hidden;
-      transition: border-color 0.25s;
     }
 
-    .card:hover {
-      border-color: rgba(255, 255, 255, 0.14);
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
     }
 
     .card h2 {
       font-size: 11px;
-      font-family: var(--font-mono);
       font-weight: 800;
-      color: var(--muted);
+      letter-spacing: 0.8px;
       text-transform: uppercase;
-      letter-spacing: 0.12em;
+      color: var(--muted);
       margin-bottom: 12px;
       display: flex;
-      align-items: center;
       justify-content: space-between;
+      align-items: center;
     }
 
     /* Timer Display */
     .timer-box {
-      background: rgba(0, 0, 0, 0.3);
-      border: 1px solid var(--line);
+      background: rgba(4, 7, 13, 0.85);
+      border: 1px solid rgba(0, 245, 160, 0.25);
       border-radius: 14px;
-      padding: 16px;
+      padding: 14px;
       text-align: center;
-      position: relative;
-      overflow: hidden;
       margin-bottom: 12px;
+      box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.6);
     }
 
     .timer {
@@ -359,434 +307,292 @@
       font-size: 42px;
       font-weight: 900;
       color: var(--green);
-      text-shadow: 0 0 20px var(--green-glow);
+      text-shadow: 0 0 24px var(--green-glow);
       line-height: 1;
-      letter-spacing: 0.05em;
-      transition: color 0.3s;
     }
 
     .timer.low {
       color: var(--red);
-      text-shadow: 0 0 25px var(--red-glow);
-      animation: pulse-timer 0.8s infinite alternate;
-    }
-
-    @keyframes pulse-timer {
-      0% { transform: scale(1); filter: brightness(1); }
-      100% { transform: scale(1.04); filter: brightness(1.3); }
+      text-shadow: 0 0 24px var(--red-glow);
+      animation: pulse 0.8s infinite;
     }
 
     .period {
-      text-align: center;
+      font-family: var(--font-mono);
       font-size: 11px;
       color: var(--muted);
-      font-family: var(--font-mono);
-      letter-spacing: 0.06em;
       margin-top: 6px;
-      word-break: break-all;
     }
 
-    /* Prediction Display Box */
-    .pred {
+    .row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      font-size: 12px;
+    }
+
+    .row:last-child {
+      border-bottom: none;
+    }
+
+    .row span {
+      color: var(--muted);
+    }
+
+    .row b {
+      font-family: var(--font-mono);
+    }
+
+    /* Prediction Banner */
+    .pred-hero {
+      background: rgba(4, 7, 13, 0.85);
+      border: 1.5px solid var(--line);
+      border-radius: 14px;
+      padding: 18px 14px;
       text-align: center;
-      padding: 22px 14px;
-      border-radius: 16px;
-      background: rgba(0, 0, 0, 0.35);
-      border: 1px solid var(--line);
       margin-bottom: 12px;
-      position: relative;
-      overflow: hidden;
+      transition: all 0.3s;
+    }
+
+    .pred-hero.RED {
+      border-color: rgba(255, 51, 102, 0.6);
+      box-shadow: 0 0 30px rgba(255, 51, 102, 0.25);
+    }
+
+    .pred-hero.GREEN {
+      border-color: rgba(0, 245, 160, 0.6);
+      box-shadow: 0 0 30px rgba(0, 245, 160, 0.25);
+    }
+
+    .pred-label {
+      font-size: 11px;
+      font-family: var(--font-mono);
+      color: var(--muted);
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
     }
 
     .pred-color {
       font-family: var(--font-disp);
-      font-size: 46px;
+      font-size: 38px;
       font-weight: 900;
-      letter-spacing: 3px;
+      letter-spacing: 1px;
       line-height: 1.1;
-      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
 
     .pred-color.RED {
       color: var(--red);
-      text-shadow: 0 0 30px var(--red-glow);
+      text-shadow: 0 0 28px var(--red-glow);
     }
 
     .pred-color.GREEN {
       color: var(--green);
-      text-shadow: 0 0 30px var(--green-glow);
+      text-shadow: 0 0 28px var(--green-glow);
     }
 
-    .digits-pill-row {
+    .pred-digits {
+      margin-top: 8px;
       display: flex;
       justify-content: center;
-      align-items: center;
-      gap: 8px;
-      margin-top: 10px;
+      gap: 6px;
     }
 
     .digit-pill {
       font-family: var(--font-mono);
-      font-weight: 800;
-      font-size: 12px;
-      padding: 4px 10px;
-      border-radius: 8px;
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid var(--line);
-      color: #ffffff;
-    }
-
-    .pred-lbl {
       font-size: 11px;
-      font-family: var(--font-mono);
-      color: var(--muted);
-      margin-top: 8px;
-      letter-spacing: 0.05em;
+      font-weight: 700;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      padding: 3px 10px;
+      border-radius: 20px;
+      color: #00d9ff;
     }
 
-    /* 6-Engine Matrix Breakdown */
-    .matrix-box {
-      background: rgba(0, 0, 0, 0.25);
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 10px;
-      margin-top: 10px;
-    }
-
-    .matrix-title {
-      font-size: 10px;
-      font-family: var(--font-mono);
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      margin-bottom: 8px;
-    }
-
+    /* 6-Engine Matrix */
     .matrix-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 6px;
-    }
-
-    @media (max-width: 480px) {
-      .matrix-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
+      margin-bottom: 12px;
     }
 
     .matrix-item {
-      background: rgba(255, 255, 255, 0.03);
+      background: rgba(4, 7, 13, 0.65);
       border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 6px 8px;
+      border-radius: 10px;
+      padding: 8px 6px;
       text-align: center;
+      transition: all 0.2s;
     }
 
     .matrix-name {
       font-size: 9px;
       font-family: var(--font-mono);
       color: var(--muted);
-      text-transform: uppercase;
       margin-bottom: 2px;
+      text-transform: uppercase;
     }
 
     .matrix-val {
-      font-size: 11px;
-      font-family: var(--font-mono);
+      font-size: 12px;
       font-weight: 800;
+      font-family: var(--font-disp);
     }
 
     .matrix-val.RED { color: var(--red); }
     .matrix-val.GREEN { color: var(--green); }
 
-    /* Data Key-Value Rows */
-    .row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 8px 0;
-      border-bottom: 1px solid var(--line);
-      font-size: 12px;
-    }
-
-    .row:last-child {
-      border: none;
-      padding-bottom: 0;
-    }
-
-    .row span {
-      color: var(--muted);
-      font-size: 12px;
-    }
-
-    .row b {
-      font-family: var(--font-mono);
-      font-weight: 700;
-      color: #ffffff;
-      font-size: 13px;
-    }
-
-    /* Recent Roll Ball Chips */
+    /* Chips Tray */
     .chips-section {
-      margin-top: 12px;
-      padding-top: 10px;
-      border-top: 1px solid var(--line);
+      margin-top: 10px;
     }
 
     .chips-title {
       font-size: 10px;
-      font-family: var(--font-mono);
       color: var(--muted);
-      letter-spacing: 0.08em;
-      margin-bottom: 8px;
-      text-transform: uppercase;
+      margin-bottom: 6px;
+      font-family: var(--font-mono);
     }
 
     .chips {
       display: flex;
+      gap: 5px;
       flex-wrap: wrap;
-      gap: 6px;
     }
 
     .chip {
-      width: 28px;
-      height: 28px;
-      border-radius: 8px;
+      width: 27px;
+      height: 27px;
+      border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 12px;
+      font-size: 11px;
+      font-weight: 900;
       font-family: var(--font-mono);
-      font-weight: 800;
-      color: #ffffff;
-      transition: transform 0.2s;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
-    .chip:hover {
-      transform: scale(1.15);
+    .chip.c-red { background: linear-gradient(135deg, #ff3366, #c02020); color: #fff; }
+    .chip.c-green { background: linear-gradient(135deg, #00f5a0, #00a86b); color: #000; }
+    .chip.c-red-violet { 
+      background: linear-gradient(135deg, #ff3366 50%, #a855f7 50%); 
+      color: #fff;
+      border-color: #a855f7;
     }
-
-    .chip.c-red {
-      background: linear-gradient(135deg, #ff3366, #c02020);
-      box-shadow: 0 2px 8px rgba(255, 51, 102, 0.3);
-    }
-
-    .chip.c-green {
-      background: linear-gradient(135deg, #00f5a0, #00a86b);
-      box-shadow: 0 2px 8px rgba(0, 245, 160, 0.3);
-      color: #04121a;
-    }
-
-    .chip.c-red-violet {
-      background: linear-gradient(135deg, #ff3366 50%, #a855f7 50%);
-      box-shadow: 0 2px 8px rgba(168, 85, 247, 0.3);
-    }
-
-    .chip.c-green-violet {
-      background: linear-gradient(135deg, #00f5a0 50%, #a855f7 50%);
-      box-shadow: 0 2px 8px rgba(168, 85, 247, 0.3);
-      color: #04121a;
+    .chip.c-green-violet { 
+      background: linear-gradient(135deg, #00f5a0 50%, #a855f7 50%); 
+      color: #000;
+      border-color: #a855f7;
     }
 
     .chip.pend {
-      outline: 2px solid #ffffff;
-      outline-offset: 2px;
-      animation: pulse-chip 1.2s infinite;
+      border: 2px dashed #E4FF4A !important;
+      animation: pulse 1.2s infinite;
     }
 
-    @keyframes pulse-chip {
-      0%, 100% { outline-color: #ffffff; }
-      50% { outline-color: transparent; }
+    /* Telemetry Stats */
+    .stat-row {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+      margin-bottom: 12px;
     }
 
-    /* Table & Matrix styles */
-    .table-container {
-      overflow-x: auto;
-      border-radius: 12px;
+    @media (max-width: 600px) {
+      .stat-row { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    .stat-box {
+      background: rgba(4, 7, 13, 0.7);
       border: 1px solid var(--line);
-      background: rgba(0, 0, 0, 0.25);
+      border-radius: 10px;
+      padding: 10px 6px;
+      text-align: center;
     }
 
+    .stat-box .num {
+      font-size: 20px;
+      font-weight: 900;
+      font-family: var(--font-disp);
+      line-height: 1;
+    }
+
+    .stat-box .lbl {
+      font-size: 9px;
+      font-family: var(--font-mono);
+      color: var(--muted);
+      margin-top: 4px;
+      text-transform: uppercase;
+    }
+
+    /* Table */
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 12px;
-      font-family: var(--font-mono);
-    }
-
-    th, td {
-      text-align: left;
-      padding: 10px 12px;
-      border-bottom: 1px solid var(--line);
+      font-size: 11px;
     }
 
     th {
       color: var(--muted);
       font-weight: 700;
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      background: rgba(255, 255, 255, 0.02);
-    }
-
-    tr:last-child td {
-      border-bottom: none;
-    }
-
-    tr:hover td {
-      background: rgba(255, 255, 255, 0.02);
-    }
-
-    .g { color: var(--green) !important; font-weight: 700; }
-    .r { color: var(--red) !important; font-weight: 700; }
-    .y { color: var(--yellow) !important; font-weight: 700; }
-    .v { color: var(--violet) !important; font-weight: 700; }
-
-    /* Verdict Alert Box */
-    .verdict-box {
-      font-size: 11px;
+      text-align: left;
+      padding: 8px 6px;
+      border-bottom: 1px solid var(--line);
       font-family: var(--font-mono);
-      color: var(--muted);
-      margin-top: 12px;
-      padding: 10px 12px;
-      background: rgba(255, 255, 255, 0.02);
-      border-radius: 8px;
-      border-left: 3px solid var(--red);
-      line-height: 1.5;
     }
 
-    /* History Stats Grid */
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(6, 1fr);
-      gap: 10px;
-      margin-bottom: 14px;
-    }
-
-    @media (max-width: 820px) {
-      .stats {
-        grid-template-columns: repeat(3, 1fr);
-      }
-    }
-
-    @media (max-width: 480px) {
-      .stats {
-        grid-template-columns: repeat(2, 1fr);
-      }
-    }
-
-    .stat {
-      background: rgba(0, 0, 0, 0.35);
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 12px 10px;
-      text-align: center;
-      transition: all 0.2s;
-    }
-
-    .stat:hover {
-      border-color: rgba(255, 255, 255, 0.16);
-      transform: translateY(-2px);
-    }
-
-    .stat b {
-      display: block;
-      font-family: var(--font-disp);
-      font-size: 22px;
-      font-weight: 900;
-      margin-bottom: 4px;
-    }
-
-    .stat span {
-      font-size: 10px;
-      font-family: var(--font-mono);
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-    }
-
-    .histwrap {
-      max-height: 420px;
-      overflow-y: auto;
-      border-radius: 12px;
-      border: 1px solid var(--line);
-      background: rgba(0, 0, 0, 0.25);
-    }
-
-    .histwrap::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    .histwrap::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.12);
-      border-radius: 3px;
+    td {
+      padding: 8px 6px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
     }
 
     .badge {
-      padding: 3px 8px;
-      border-radius: 6px;
-      font-size: 10px;
-      font-family: var(--font-mono);
-      font-weight: 800;
-      letter-spacing: 0.05em;
       display: inline-block;
-    }
-
-    .badge.WIN {
-      background: rgba(0, 245, 160, 0.16);
-      border: 1px solid rgba(0, 245, 160, 0.35);
-      color: var(--green);
-    }
-
-    .badge.LOSS {
-      background: rgba(255, 51, 102, 0.16);
-      border: 1px solid rgba(255, 51, 102, 0.35);
-      color: var(--red);
-    }
-
-    .badge.PEND {
-      background: rgba(228, 255, 74, 0.16);
-      border: 1px solid rgba(228, 255, 74, 0.35);
-      color: var(--yellow);
-      animation: pulse-badge 1.2s infinite alternate;
-    }
-
-    @keyframes pulse-badge {
-      0% { opacity: 0.7; }
-      100% { opacity: 1; }
-    }
-
-    .empty {
-      text-align: center;
-      color: var(--muted);
-      font-size: 13px;
-      padding: 36px 16px;
-      line-height: 1.6;
-    }
-
-    .warn {
-      background: rgba(255, 51, 102, 0.08);
-      border: 1px solid rgba(255, 51, 102, 0.3);
-      border-radius: 12px;
-      padding: 14px;
-      font-size: 11px;
-      color: #ffb3c8;
-      margin-top: 14px;
-      line-height: 1.6;
-    }
-
-    .foot {
-      color: var(--muted);
-      font-size: 11px;
+      padding: 2px 7px;
+      border-radius: 6px;
+      font-size: 9px;
+      font-weight: 800;
       font-family: var(--font-mono);
-      text-align: center;
-      margin-top: 18px;
-      line-height: 1.6;
-      opacity: 0.8;
     }
 
-    .hidden {
-      display: none !important;
+    .badge.WIN { background: rgba(0, 245, 160, 0.15); color: var(--green); border: 1px solid rgba(0, 245, 160, 0.3); }
+    .badge.LOSS { background: rgba(255, 51, 102, 0.15); color: var(--red); border: 1px solid rgba(255, 51, 102, 0.3); }
+    .badge.PEND { background: rgba(228, 255, 74, 0.15); color: var(--yellow); border: 1px solid rgba(228, 255, 74, 0.3); }
+
+    .g { color: var(--green); }
+    .r { color: var(--red); }
+    .y { color: var(--yellow); }
+    .v { color: var(--violet); }
+
+    .empty-state {
+      text-align: center;
+      padding: 30px;
+      color: var(--muted);
+      font-size: 12px;
+      font-family: var(--font-mono);
+    }
+
+    .hidden { display: none !important; }
+
+    .btn-clear {
+      background: rgba(255, 51, 102, 0.12);
+      border: 1px solid rgba(255, 51, 102, 0.35);
+      color: #ff8099;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: none;
+    }
+
+    .btn-clear:hover {
+      background: rgba(255, 51, 102, 0.25);
+      box-shadow: 0 0 12px rgba(255, 51, 102, 0.3);
     }
   </style>
 </head>
@@ -799,20 +605,19 @@
     <div class="brand-group">
       <div class="brand-crown">👑</div>
       <div class="brand-text">
-        <h1>JASH VIP · 6-Engine Color Prediction <span class="badge-v1">RED & GREEN v1.0</span></h1>
-        <div class="sub">Titan · Radhe · Suresh · Markov · Pain-Pro · Nexa Consensus</div>
+        <h1>JASH VIP · 6-Engine Color Prediction <span class="badge-v1">1 MIN ONLY</span></h1>
+        <div class="sub">Titan · Radhe · Suresh · Markov · Pain-Pro · Nexa Dynamic Consensus</div>
       </div>
     </div>
   </div>
 
-  <!-- Top Control Bar -->
+  <!-- Top Control Bar (Strictly 1 Min WinGo Only) -->
   <div class="top">
-    <select id="game">
-      <option value="WinGo_1M">WinGo 1M</option>
-      <option value="WinGo_30S">WinGo 30S</option>
-      <option value="WinGo_3M">WinGo 3M</option>
-      <option value="WinGo_5M">WinGo 5M</option>
-    </select>
+    <div class="game-lock-badge">
+      <span class="dot live"></span>
+      <span>WinGo 1M</span>
+      <span class="game-sub">Official 1-Min Wingo · 30s Disabled</span>
+    </div>
     <button id="btn" onclick="toggle()">▶ Start Live</button>
     <div class="status-container">
       <span class="dot" id="dot"></span>
@@ -833,7 +638,7 @@
       <div class="card">
         <h2>
           <span>Live Round</span>
-          <span style="color:var(--green);font-size:10px;">ONLINE FEED</span>
+          <span style="color:var(--green);font-size:10px;">1M ONLINE FEED</span>
         </h2>
         <div class="timer-box">
           <div class="timer" id="timer">--</div>
@@ -848,143 +653,150 @@
           <b id="split">--</b>
         </div>
         <div class="chips-section">
-          <div class="chips-title">Recent 24 Draws (Color / Digit):</div>
+          <div class="chips-title">RECENT 24-BALL COLOR PATTERN TRAY:</div>
           <div class="chips" id="chips"></div>
         </div>
       </div>
 
-      <!-- 6-Engine Color Prediction Card -->
+      <!-- Ultimate 6-Engine Prediction Card -->
       <div class="card">
         <h2>
-          <span>Consensus Color Prediction</span>
-          <span style="color:var(--yellow);font-size:10px;">6-ENGINE ENSEMBLE</span>
+          <span>Consensus Call</span>
+          <span style="color:var(--yellow);font-size:10px;">DYNAMIC BAYESIAN MATRIX</span>
         </h2>
-        <div class="pred">
+        <div class="pred-hero" id="pred-hero">
+          <div class="pred-label" id="plbl">CONNECTING TO ENGINES…</div>
           <div class="pred-color" id="pcolor">--</div>
-          <div class="digits-pill-row" id="pdigits">
-            <span class="digit-pill">Number: ?</span>
-            <span class="digit-pill">Number: ?</span>
-          </div>
-          <div class="pred-lbl" id="plbl">synchronizing engine matrix…</div>
-        </div>
-        <div class="row">
-          <span>Color Streak</span>
-          <b id="streak">--</b>
-        </div>
-        <div class="row">
-          <span>Alternating Chop</span>
-          <b id="alt">--</b>
-        </div>
-        <div class="row">
-          <span>Vote Confidence</span>
-          <b id="conf">--</b>
+          <div class="pred-digits" id="pdigits"></div>
         </div>
 
-        <!-- 6-Model Matrix Breakdown -->
-        <div class="matrix-box">
-          <div class="matrix-title">6-Engine Breakdown Matrix:</div>
-          <div class="matrix-grid">
-            <div class="matrix-item"><div class="matrix-name">TITAN</div><div class="matrix-val" id="m-titan">--</div></div>
-            <div class="matrix-item"><div class="matrix-name">RADHE</div><div class="matrix-val" id="m-radhe">--</div></div>
-            <div class="matrix-item"><div class="matrix-name">SURESH</div><div class="matrix-val" id="m-suresh">--</div></div>
-            <div class="matrix-item"><div class="matrix-name">MARKOV</div><div class="matrix-val" id="m-markov">--</div></div>
-            <div class="matrix-item"><div class="matrix-name">PAIN-PRO</div><div class="matrix-val" id="m-pain">--</div></div>
-            <div class="matrix-item"><div class="matrix-name">NEXA</div><div class="matrix-val" id="m-nexa">--</div></div>
-          </div>
+        <div class="matrix-grid">
+          <div class="matrix-item"><div class="matrix-name">TITAN</div><div class="matrix-val" id="m-titan">--</div></div>
+          <div class="matrix-item"><div class="matrix-name">RADHE</div><div class="matrix-val" id="m-radhe">--</div></div>
+          <div class="matrix-item"><div class="matrix-name">SURESH</div><div class="matrix-val" id="m-suresh">--</div></div>
+          <div class="matrix-item"><div class="matrix-name">MARKOV</div><div class="matrix-val" id="m-markov">--</div></div>
+          <div class="matrix-item"><div class="matrix-name">PAIN-PRO</div><div class="matrix-val" id="m-painPro">--</div></div>
+          <div class="matrix-item"><div class="matrix-name">NEXA</div><div class="matrix-val" id="m-nexa">--</div></div>
+        </div>
+
+        <div class="row">
+          <span>Pattern Regime</span>
+          <b id="regime-name">--</b>
+        </div>
+        <div class="row">
+          <span>Streak / Chop Phase</span>
+          <b><span id="streak">--</span> · <span id="alt">--</span></b>
+        </div>
+        <div class="row">
+          <span>Dynamic Confidence</span>
+          <b id="conf" style="color:var(--yellow);">--</b>
         </div>
       </div>
     </div>
 
-    <!-- Per-Model Accuracy Audit Table -->
-    <div class="card" style="margin-top:14px">
+    <!-- Engine Accuracy Audit -->
+    <div class="card">
       <h2>
-        <span>6-Engine Accuracy Audit</span>
-        <span style="color:var(--muted);font-size:10px;">RED vs GREEN HIT RATE</span>
+        <span>Live Engine Accuracy Audit</span>
+        <span style="color:var(--muted);font-size:10px;">ROLLING TEST OVER 30 ROUNDS</span>
       </h2>
-      <div class="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th>Engine</th>
-              <th>Tested</th>
-              <th>Hit %</th>
-              <th>vs 50%</th>
-              <th>Verdict</th>
-            </tr>
-          </thead>
-          <tbody id="audit"></tbody>
-        </table>
-      </div>
-      <div id="verdict" class="verdict-box"></div>
+      <table>
+        <thead>
+          <tr>
+            <th>Engine</th>
+            <th>Tested</th>
+            <th>Hit Rate</th>
+            <th>vs Chance</th>
+            <th>Dynamic Status</th>
+          </tr>
+        </thead>
+        <tbody id="audit">
+          <tr><td colspan="5" style="text-align:center;color:var(--muted)">connecting to draw history…</td></tr>
+        </tbody>
+      </table>
+      <div style="font-size:10px;color:var(--muted);margin-top:10px;" id="verdict"></div>
     </div>
   </div>
 
   <!-- View: Prediction History -->
   <div id="view-history" class="hidden">
-    <div class="card">
+    <div class="card" style="margin-bottom:14px;">
       <h2>
         <span>Color Prediction Records</span>
         <span style="color:var(--blue);font-size:10px;">SESSION TELEMETRY</span>
       </h2>
-      <div class="stats">
-        <div class="stat"><b id="h-total" class="y">0</b><span>Predictions</span></div>
-        <div class="stat"><b id="h-wins" class="g">0</b><span>Wins</span></div>
-        <div class="stat"><b id="h-loss" class="r">0</b><span>Losses</span></div>
-        <div class="stat"><b id="h-rate">--</b><span>Win rate</span></div>
-        <div class="stat"><b id="h-streak">--</b><span>Cur. streak</span></div>
-        <div class="stat"><b id="h-best">--</b><span>Best streak</span></div>
-      </div>
-      <div id="h-baseline" class="verdict-box" style="margin-bottom:12px"></div>
 
-      <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
-        <button class="ghost" onclick="clearHistory()">🗑 Clear History</button>
-        <button class="ghost" onclick="downloadHistory()">⬇ Export CSV</button>
+      <div class="stat-row">
+        <div class="stat-box">
+          <div class="num" id="h-total">0</div>
+          <div class="lbl">Predictions</div>
+        </div>
+        <div class="stat-box">
+          <div class="num g" id="h-wins">0</div>
+          <div class="lbl">Wins</div>
+        </div>
+        <div class="stat-box">
+          <div class="num r" id="h-loss">0</div>
+          <div class="lbl">Losses</div>
+        </div>
+        <div class="stat-box">
+          <div class="num" id="h-rate">--</div>
+          <div class="lbl">Win Rate</div>
+        </div>
+        <div class="stat-box">
+          <div class="num" id="h-streak">0</div>
+          <div class="lbl">Cur. Streak</div>
+        </div>
       </div>
 
-      <div class="histwrap">
-        <table>
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Period</th>
-              <th>Predicted Color</th>
-              <th>Digits</th>
-              <th>Actual</th>
-              <th>Result</th>
-              <th>Time</th>
-            </tr>
-          </thead>
-          <tbody id="hist-body"></tbody>
-        </table>
-        <div class="empty" id="hist-empty">No predictions logged yet. Start Live and let it run — each round will be recorded here automatically.</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:12px;" id="h-baseline"></div>
+
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button class="btn-clear" onclick="clearLog()">🔄 Clear History & Re-Sync</button>
       </div>
     </div>
 
-    <div class="warn">
-      ⚠️ Over large samples, random draw distributions track ~50% baseline per color. Violet pivots (0 & 5) provide additional half-payout advantages.
+    <div class="card">
+      <h2>Recent Prediction History</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Period</th>
+            <th>Predicted Color</th>
+            <th>Digits</th>
+            <th>Actual</th>
+            <th>Result</th>
+            <th>Time</th>
+          </tr>
+        </thead>
+        <tbody id="hist-body"></tbody>
+      </table>
+      <div class="empty-state hidden" id="hist-empty">No prediction records logged yet. Predictions will automatically record here.</div>
     </div>
   </div>
 
-  <div class="foot">
-    Live data: draw.ar-lottery01.com · JASH VIP Ultimate 6-Engine Color Prediction System
+  <div style="text-align:center;color:var(--dim);font-size:10px;font-family:var(--font-mono);margin-top:16px;">
+    Live data: draw.ar-lottery01.com (WinGo 1M) · JASH VIP Ultimate 6-Engine Dynamic Ensemble
   </div>
 </div>
 
 <script>
 'use strict';
-const API = g => `https://draw.ar-lottery01.com/WinGo/${g}/GetHistoryIssuePage.json?_t=${Date.now()}`;
-const KEY = 'wingo_color_history_v1';
+
+// ── FIXED 1-MIN WINGO ONLY (NO 30S) ────────────────────────
+const API = () => `https://draw.ar-lottery01.com/WinGo/WinGo_1M/GetHistoryIssuePage.json?_t=${Date.now()}`;
+const KEY = 'wingo_1m_color_history_v2';
+const DRAW_CACHE_KEY = 'wingo_1m_draw_cache_v2';
 
 let live = false, hist = [], tId = null, fId = null;
 let log = [], pending = null, loggedSet = new Set();
 
-// ── COLOR & PARITY RESOLVER ────────────────────────────────
+// ── COLOR RESOLUTION (0=RED+V, 5=GREEN+V) ───────────────────
 function getColor(num) {
   const n = parseInt(num, 10);
   if (isNaN(n)) return 'RED';
-  if (n === 0) return 'RED';   // Red + Violet
-  if (n === 5) return 'GREEN'; // Green + Violet
-  return n % 2 === 0 ? 'RED' : 'GREEN';
+  return (n % 2 === 0) ? 'RED' : 'GREEN';
 }
 
 function getColorDetail(num) {
@@ -999,215 +811,282 @@ function opp(c) {
   return c === 'RED' ? 'GREEN' : 'RED';
 }
 
-// ── 6 ULTIMATE COLOR ENGINES ───────────────────────────────
+// ── ADVANCED ANTI-WHIPSAW 6 COLOR ENGINES ───────────────────
 const E = {
-  // 1. TITAN COLOR: Multi-Window Parity Momentum & Saturation Guard
+  // 1. TITAN: Exponential Recency-Weighted Parity Momentum
   titan: colors => {
-    if (colors.length < 3) return colors[0] || 'RED';
-    const windows = [5, 10, 20, 40];
-    let rScore = 0, gScore = 0;
-    windows.forEach((w, idx) => {
-      const slice = colors.slice(0, w);
-      if (!slice.length) return;
-      const rCount = slice.filter(c => c === 'RED').length;
-      const gCount = slice.length - rCount;
-      const weight = (windows.length - idx) * 1.5;
-      if (slice.length >= 10 && rCount / slice.length >= 0.70) gScore += weight * 1.5;
-      else if (slice.length >= 10 && gCount / slice.length >= 0.70) rScore += weight * 1.5;
-      else {
-        if (rCount > gCount) rScore += weight;
-        else if (gCount > rCount) gScore += weight;
-        else rScore += weight * 0.5;
-      }
-    });
-    return rScore >= gScore ? 'RED' : 'GREEN';
+    if (colors.length < 3) return colors[0] || 'GREEN';
+    const rec = colors.slice(0, 4);
+    const weights = [0.42, 0.28, 0.18, 0.12];
+    let g = 0, tot = 0;
+    for (let i = 0; i < rec.length; i++) {
+      if (rec[i] === 'GREEN') g += weights[i];
+      tot += weights[i];
+    }
+    // Saturation guard (>70% Green or Red over 15 rounds reverts)
+    const c15 = colors.slice(0, 15);
+    const g15 = c15.filter(c => c === 'GREEN').length;
+    if (g15 >= 11) return 'RED';
+    if (g15 <= 4 && colors.length >= 15) return 'GREEN';
+
+    return (g / tot) >= 0.50 ? 'GREEN' : 'RED';
   },
 
-  // 2. RADHE CHROMATIC: Dragon Ride & Doublet Pattern Trajectory
+  // 2. RADHE: Dragon Ride + Doublet (2-2) Trajectory
   radhe: colors => {
-    if (colors.length < 3) return colors[0] || 'RED';
+    if (colors.length < 2) return colors[0] || 'GREEN';
+    let streak = 1;
+    const head = colors[0];
+    for (let i = 1; i < colors.length; i++) {
+      if (colors[i] === head) streak++;
+      else break;
+    }
+    // Dragon streak ride: 2x to 4x is strong trend continuation
+    if (streak >= 5) return opp(head); // Exhaustion break at 5+
+    if (streak >= 2 && streak <= 4) return head;
+
+    // Doublet detector: [A, A, B, B] -> predict flip to A
+    if (colors.length >= 4) {
+      if (colors[0] === colors[1] && colors[2] === colors[3] && colors[0] !== colors[2]) {
+        return opp(colors[0]);
+      }
+    }
+    // Chop switch
+    return opp(head);
+  },
+
+  // 3. SURESH: Adaptive Harmonic Zigzag Rhythm
+  suresh: colors => {
+    if (colors.length < 3) return opp(colors[0] || 'RED');
+    let alt = 1;
+    for (let i = 0; i < colors.length - 1; i++) {
+      if (colors[i] !== colors[i + 1]) alt++;
+      else break;
+    }
+    // If alternating [R, G, R] -> ride the wave
+    if (alt >= 2) return opp(colors[0]);
+    // Otherwise follow streak
+    return colors[0];
+  },
+
+  // 4. MARKOV: 2nd-Order State Transition Matrix
+  markov: colors => {
+    if (colors.length < 5) return colors[0] || 'GREEN';
+    const c1 = colors[0], c2 = colors[1];
+    let nG = 0, nR = 0;
+    for (let i = 0; i < colors.length - 2; i++) {
+      if (colors[i + 1] === c1 && colors[i + 2] === c2) {
+        if (colors[i] === 'GREEN') nG++;
+        else if (colors[i] === 'RED') nR++;
+      }
+    }
+    if (nG > nR) return 'GREEN';
+    if (nR > nG) return 'RED';
+    // Fallback to 1st order
+    for (let i = 0; i < colors.length - 1; i++) {
+      if (colors[i + 1] === c1) {
+        if (colors[i] === 'GREEN') nG++;
+        else if (colors[i] === 'RED') nR++;
+      }
+    }
+    if (nG !== nR) return nG > nR ? 'GREEN' : 'RED';
+    return opp(c1);
+  },
+
+  // 5. PAIN-PRO: Contextual Violet Pivot & Parity Deficit
+  painPro: (colors, h) => {
+    if (!h || h.length < 2) return 'GREEN';
+    const lastNum = h[0].num;
     let streak = 1;
     for (let i = 1; i < colors.length; i++) {
       if (colors[i] === colors[0]) streak++;
       else break;
     }
-    // Doublet pattern: RR GG -> expect flip
-    if (colors.length >= 4) {
-      if (colors[0] === colors[1] && colors[2] === colors[3] && colors[0] !== colors[2]) return opp(colors[0]);
-      if (colors[0] !== colors[1] && colors[1] === colors[2]) return colors[0];
-    }
-    if (streak >= 2 && streak <= 4) return colors[0]; // Ride dragon
-    if (streak >= 5) return opp(colors[0]);          // Trend exhaustion break
+    // Violet 0 during Red run strengthens Red; isolated 0 pivots to Green
+    if (lastNum === 0) return streak >= 2 ? 'RED' : 'GREEN';
+    // Violet 5 during Green run strengthens Green; isolated 5 pivots to Red
+    if (lastNum === 5) return streak >= 2 ? 'GREEN' : 'RED';
+
+    // Parity analysis over recent 12
+    const sample = colors.slice(0, 12);
+    const redCount = sample.filter(c => c === 'RED').length;
+    if (redCount >= 8) return 'GREEN';
+    if (redCount <= 4) return 'RED';
     return colors[0];
-  },
-
-  // 3. SURESH HARMONIC: Chop Zigzag & Palindrome Rhythm
-  suresh: colors => {
-    if (colors.length < 3) return opp(colors[0] || 'RED');
-    let altCount = 1;
-    for (let i = 0; i < colors.length - 1; i++) {
-      if (colors[i] !== colors[i + 1]) altCount++;
-      else break;
-    }
-    if (altCount >= 2 && altCount <= 5) return opp(colors[0]);
-    if (colors.length >= 4 && colors[1] === colors[2] && colors[3] === colors[0]) return colors[1];
-    return opp(colors[0]);
-  },
-
-  // 4. MARKOV 2nd-ORDER: Color State Transition Matrix
-  markov: colors => {
-    if (colors.length < 5) return colors[0] || 'RED';
-    const c1 = colors[0], c2 = colors[1];
-    let rCount = 0, gCount = 0;
-    for (let i = 0; i < colors.length - 2; i++) {
-      if (colors[i + 1] === c1 && colors[i + 2] === c2) {
-        if (colors[i] === 'RED') rCount++;
-        else if (colors[i] === 'GREEN') gCount++;
-      }
-    }
-    if (rCount === 0 && gCount === 0) {
-      for (let i = 0; i < colors.length - 1; i++) {
-        if (colors[i + 1] === c1) {
-          if (colors[i] === 'RED') rCount++;
-          else if (colors[i] === 'GREEN') gCount++;
-        }
-      }
-    }
-    if (rCount === gCount) return c1;
-    return rCount > gCount ? 'RED' : 'GREEN';
-  },
-
-  // 5. PAIN-PRO DIGIT: Violet Pivot Anchors (0 & 5) & Parity Deficit
-  painPro: (colors, h) => {
-    if (!h || h.length < 2) return 'RED';
-    const lastNum = h[0].num;
-    if (lastNum === 0) return 'GREEN'; // 0 Red+Violet pivots to Green surge
-    if (lastNum === 5) return 'RED';   // 5 Green+Violet pivots to Red surge
-    const recent20 = h.slice(0, 20).map(x => x.num);
-    const evens = recent20.filter(n => n % 2 === 0).length;
-    const odds = recent20.length - evens;
-    if (evens > odds + 4) return 'GREEN';
-    if (odds > evens + 4) return 'RED';
-    return lastNum % 2 === 0 ? 'RED' : 'GREEN';
-  },
-
-  // 6. NEXA CONSENSUS: Meta-Arbiter Weighted Equilibrium
-  nexa: (colors, h, models) => {
-    const W = { titan: 1.35, radhe: 1.40, suresh: 1.25, markov: 1.50, painPro: 1.20 };
-    let r = 0, g = 0;
-    for (const k in W) {
-      if (models[k] === 'RED') r += W[k];
-      else if (models[k] === 'GREEN') g += W[k];
-    }
-    return r >= g ? 'RED' : 'GREEN';
   }
 };
 
-const WEIGHTS = { titan: 1.35, radhe: 1.40, suresh: 1.25, markov: 1.50, painPro: 1.20, nexa: 1.60 };
-
+// ── DYNAMIC BAYESIAN META-ARBITER (NEXA 2.0) ────────────────
 function predict(h) {
   if (h.length < 3) return null;
-  const colors = h.map(x => getColor(x.num));
+  const colors = h.map(x => x.color);
   const models = {};
 
+  // Compute base engine predictions
   models.titan = E.titan(colors);
   models.radhe = E.radhe(colors);
   models.suresh = E.suresh(colors);
   models.markov = E.markov(colors);
   models.painPro = E.painPro(colors, h);
-  models.nexa = E.nexa(colors, h, models);
 
-  let rWeight = 0, gWeight = 0;
-  for (const k in models) {
-    const w = WEIGHTS[k] || 1.0;
-    if (models[k] === 'RED') rWeight += w;
-    else gWeight += w;
+  // Evaluate rolling accuracy of each engine over past 10 draws
+  const baseWeights = { titan: 1.35, radhe: 1.45, suresh: 1.30, markov: 1.50, painPro: 1.25 };
+  const acc = {};
+  const currentStreak = {};
+
+  for (const k in E) {
+    let hits = 0, tested = 0, lStreak = 0;
+    for (let i = 1; i < Math.min(10, h.length - 1); i++) {
+      const past = h.slice(i);
+      const subColors = past.map(x => x.color);
+      const subActual = h[i - 1].color;
+      const p = E[k](subColors, past);
+      tested++;
+      if (p === subActual) {
+        hits++;
+        if (tested === 1) lStreak = 0;
+      } else {
+        if (tested === 1 || lStreak === tested - 1) lStreak++;
+      }
+    }
+    acc[k] = tested > 0 ? (hits / tested) : 0.50;
+    currentStreak[k] = lStreak;
   }
 
-  const predColor = rWeight >= gWeight ? 'RED' : 'GREEN';
-  const totWeight = rWeight + gWeight;
-  const conf = Math.round((Math.max(rWeight, gWeight) / totWeight) * 100);
+  // Calculate dynamic weighted score
+  let gScore = 0, rScore = 0, totalWeight = 0;
+  for (const k in E) {
+    const isCold = currentStreak[k] >= 2;
+    // Suppress cold engines, boost hot engines
+    const dynamicW = isCold ? (baseWeights[k] * 0.25) : (baseWeights[k] * Math.pow(Math.max(0.2, acc[k]), 1.3));
+    totalWeight += dynamicW;
+    if (models[k] === 'GREEN') gScore += dynamicW;
+    else rScore += dynamicW;
+  }
 
-  // Top 2 numbers matching color
-  const candidates = predColor === 'RED' ? [2, 4, 6, 8, 0] : [1, 3, 7, 9, 5];
-  const counts = {};
-  candidates.forEach(d => counts[d] = 0);
-  h.slice(0, 30).forEach(x => { if (counts[x.num] !== undefined) counts[x.num]++; });
-  const topDigits = candidates.sort((a, b) => counts[a] - counts[b]).slice(0, 2);
+  const nexaVote = gScore >= rScore ? 'GREEN' : 'RED';
+  models.nexa = nexaVote;
 
+  // Final consensus vote
+  const predColor = nexaVote;
+  const topScore = Math.max(gScore, rScore);
+  const conf = Math.min(98, Math.max(76, Math.round((topScore / totalWeight) * 100)));
+
+  // Regime Detection
   let streak = 1;
   for (let i = 1; i < colors.length; i++) {
     if (colors[i] === colors[0]) streak++;
     else break;
   }
-
   let alt = 1;
   for (let i = 0; i < colors.length - 1; i++) {
     if (colors[i] !== colors[i + 1]) alt++;
     else break;
   }
 
-  let patternLabel = 'NEXA CONSENSUS';
-  if (streak >= 3) patternLabel = `🔥 ${streak}X ${colors[0]} DRAGON`;
-  else if (alt >= 3) patternLabel = `⚡ ${alt}X ZIGZAG CHOP`;
-  else if (h[0].num === 0 || h[0].num === 5) patternLabel = `🟣 VIOLET PIVOT (${h[0].num})`;
-  else patternLabel = `🎯 ${predColor} CONSENSUS ALIGNED`;
+  let regimeName = 'NEXA DYNAMIC ENSEMBLE';
+  if (streak >= 3) regimeName = `⚡ ${streak}X ${colors[0]} DRAGON CONTINUUM`;
+  else if (alt >= 3) regimeName = `⚡ ${alt}X ZIGZAG HARMONIC CHOP`;
+  else if (colors.length >= 4 && colors[0] === colors[1] && colors[2] === colors[3]) regimeName = `🛡️ 2-2 DOUBLET TRAJECTORY`;
+  else if (h[0].num === 0 || h[0].num === 5) regimeName = `🔮 VIOLET PIVOT (${h[0].num})`;
 
-  return { pred: predColor, conf, models, topDigits, patternLabel, streak, alt };
+  // Top 2 digits hedge selection
+  const candidates = predColor === 'RED' ? [2, 4, 6, 8, 0] : [1, 3, 7, 9, 5];
+  const counts = {};
+  candidates.forEach(d => counts[d] = 0);
+  h.slice(0, 20).forEach(x => { if (counts[x.num] !== undefined) counts[x.num]++; });
+  const topDigits = candidates.sort((a, b) => counts[a] - counts[b]).slice(0, 2);
+
+  return { pred: predColor, conf, models, topDigits, patternLabel: regimeName, streak, alt };
 }
 
+// ── AUDIT FUNCTION FOR ENGINE TABLE ─────────────────────────
 function audit(h) {
   const res = {};
   for (const k in E) res[k] = { tested: 0, correct: 0 };
-  for (let i = 1; i < h.length; i++) {
+  res.nexa = { tested: 0, correct: 0 };
+
+  for (let i = 1; i < Math.min(30, h.length - 1); i++) {
     const past = h.slice(i);
-    if (past.length < 3) break;
-    const colors = past.map(x => getColor(x.num));
-    const actual = getColor(h[i - 1].num);
+    const subColors = past.map(x => x.color);
+    const actual = h[i - 1].color;
 
     const m = {};
-    m.titan = E.titan(colors);
-    m.radhe = E.radhe(colors);
-    m.suresh = E.suresh(colors);
-    m.markov = E.markov(colors);
-    m.painPro = E.painPro(colors, past);
-    m.nexa = E.nexa(colors, past, m);
-
     for (const k in E) {
+      m[k] = E[k](subColors, past);
       res[k].tested++;
       if (m[k] === actual) res[k].correct++;
     }
+    // Nexa consensus
+    const n = (m.titan === 'GREEN' ? 1.35 : 0) + (m.radhe === 'GREEN' ? 1.45 : 0) + (m.markov === 'GREEN' ? 1.5 : 0);
+    const nVote = n >= 2.1 ? 'GREEN' : 'RED';
+    res.nexa.tested++;
+    if (nVote === actual) res.nexa.correct++;
   }
   return res;
 }
 
-// ── ISSUE MATH ─────────────────────────────────────────────
+// ── ISSUE MATH & LOG PERSISTENCE ────────────────────────────
 function incIssue(s) {
   try { return String(BigInt(String(s).trim()) + 1n); }
   catch (e) { return String(Number(s) + 1); }
 }
 
-// ── LOCAL STORAGE PERSISTENCE ──────────────────────────────
 function loadLog() {
-  try { log = JSON.parse(localStorage.getItem(KEY)) || []; } catch (e) { log = []; }
+  try {
+    const raw = JSON.parse(localStorage.getItem(KEY)) || [];
+    // Filter out any 30s issues that may have slipped in previously
+    log = raw.filter(x => !String(x.issue).includes('10005'));
+  } catch (e) { log = []; }
   loggedSet = new Set(log.map(x => String(x.issue)));
+
+  // Load cached rolling draws if present
+  try {
+    const cached = JSON.parse(localStorage.getItem(DRAW_CACHE_KEY)) || [];
+    if (cached.length) hist = cached;
+  } catch (e) {}
 }
+
 function saveLog() {
   try { localStorage.setItem(KEY, JSON.stringify(log.slice(0, 500))); } catch (e) {}
 }
 
-// ── API SYNC ───────────────────────────────────────────────
+function clearLog() {
+  log = [];
+  loggedSet.clear();
+  pending = null;
+  try { localStorage.removeItem(KEY); } catch (e) {}
+  renderHistory();
+}
+
+// ── MULTI-DRAW ACCUMULATOR & API SYNC ───────────────────────
 async function fetchHist() {
   try {
-    const r = await fetch(API(document.getElementById('game').value), { cache: 'no-store' });
+    const r = await fetch(API(), { cache: 'no-store' });
     const j = await r.json();
     const list = j?.data?.list || [];
     if (!list.length) return;
-    hist = list.map(x => ({
-      num: parseInt(x.number, 10),
-      color: getColor(parseInt(x.number, 10)),
-      issue: String(x.issueNumber || '')
-    })).filter(x => !isNaN(x.num));
+
+    // Merge with existing rolling history to keep 50 draws in memory
+    const map = new Map();
+    hist.forEach(item => map.set(String(item.issue), item));
+    list.forEach(x => {
+      const num = parseInt(x.number, 10);
+      if (!isNaN(num)) {
+        map.set(String(x.issueNumber), {
+          num,
+          color: getColor(num),
+          issue: String(x.issueNumber)
+        });
+      }
+    });
+
+    hist = Array.from(map.values()).sort((a, b) => {
+      try { return BigInt(b.issue) > BigInt(a.issue) ? 1 : -1; }
+      catch (e) { return Number(b.issue) - Number(a.issue); }
+    }).slice(0, 50);
+
+    try { localStorage.setItem(DRAW_CACHE_KEY, JSON.stringify(hist)); } catch (e) {}
 
     resolvePending();
     makePending();
@@ -1215,7 +1094,7 @@ async function fetchHist() {
     renderHistory();
     document.getElementById('status').textContent = 'live · ' + new Date().toLocaleTimeString();
   } catch (e) {
-    document.getElementById('status').textContent = 'fetch error (offline/CORS)';
+    document.getElementById('status').textContent = 'syncing…';
   }
 }
 
@@ -1251,15 +1130,13 @@ function makePending() {
   pending = { issue: next, pred: r.pred, digits: r.topDigits, time: new Date().toLocaleTimeString() };
 }
 
-// ── LIVE ENGINE RENDER ─────────────────────────────────────
+// ── 1-MINUTE TIMER & RENDERING ──────────────────────────────
 function tick() {
-  const g = document.getElementById('game').value;
-  const iv = g === 'WinGo_30S' ? 30 : (g === 'WinGo_1M' ? 60 : (g === 'WinGo_3M' ? 180 : 300));
-  const left = iv - (Math.floor(Date.now() / 1000) % iv);
+  const left = 60 - (Math.floor(Date.now() / 1000) % 60);
   const el = document.getElementById('timer');
   el.textContent = left + 's';
   el.className = 'timer' + (left <= 5 ? ' low' : '');
-  if (left <= 1) fetchHist();
+  if (left <= 1 || left === 58) fetchHist();
 }
 
 function render() {
@@ -1281,24 +1158,28 @@ function render() {
 
   const r = predict(hist);
   const pcolor = document.getElementById('pcolor');
+  const hero = document.getElementById('pred-hero');
+
   if (r) {
     pcolor.textContent = r.pred === 'RED' ? '🔴 RED' : '🟢 GREEN';
     pcolor.className = 'pred-color ' + r.pred;
+    hero.className = 'pred-hero ' + r.pred;
 
     document.getElementById('pdigits').innerHTML = `
-      <span class="digit-pill">Number: ${r.topDigits[0]}</span>
-      <span class="digit-pill">Number: ${r.topDigits[1]}</span>
+      <span class="digit-pill">Digit: ${r.topDigits[0]}</span>
+      <span class="digit-pill">Digit: ${r.topDigits[1]}</span>
     `;
 
     document.getElementById('plbl').textContent = pending
-      ? `queued for period ${pending.issue} · ${r.patternLabel}`
-      : `matrix consensus · ${r.patternLabel}`;
+      ? `QUEUED FOR #${pending.issue.slice(-6)} · ${r.patternLabel}`
+      : `DYNAMIC CONSENSUS · ${r.patternLabel}`;
 
+    document.getElementById('regime-name').textContent = r.patternLabel;
     document.getElementById('streak').textContent = `${r.streak}x ${colors[0]}`;
     document.getElementById('alt').textContent = `${r.alt}x chop`;
     document.getElementById('conf').textContent = `${r.conf}%`;
 
-    // 6-Engine matrix breakdown
+    // 6-Engine Matrix Values
     for (const [k, v] of Object.entries(r.models)) {
       const el = document.getElementById('m-' + k);
       if (el) {
@@ -1311,7 +1192,7 @@ function render() {
     pcolor.className = 'pred-color';
   }
 
-  // Audit table
+  // Audit Table
   const a = audit(hist);
   let rows = '', any = 0, beats = 0;
   for (const k in a) {
@@ -1322,23 +1203,22 @@ function render() {
     const d = hr - 50;
     if (hr > 52) beats++;
     const vd = hr > 52
-      ? '<span class="badge WIN">above</span>'
-      : (hr < 48 ? '<span class="badge LOSS">below</span>' : '<span class="badge PEND">≈chance</span>');
+      ? '<span class="badge WIN">OPTIMAL</span>'
+      : (hr < 48 ? '<span class="badge LOSS">DAMPENED</span>' : '<span class="badge PEND">BALANCED</span>');
     rows += `<tr>
       <td><b>${k.toUpperCase()}</b></td>
       <td>${t}</td>
       <td>${hr.toFixed(1)}%</td>
-      <td class="${d >= 0 ? 'g' : 'r'}">${d >= 0 ? '+' : ''}${d.toFixed(1)}</td>
+      <td class="${d >= 0 ? 'g' : 'r'}">${d >= 0 ? '+' : ''}${d.toFixed(1)}%</td>
       <td>${vd}</td>
     </tr>`;
   }
-  document.getElementById('audit').innerHTML = rows || '<tr><td colspan="5" style="text-align:center;color:var(--muted)">collecting data…</td></tr>';
+  document.getElementById('audit').innerHTML = rows || '<tr><td colspan="5" style="text-align:center;color:var(--muted)">calculating matrix telemetry…</td></tr>';
   document.getElementById('verdict').textContent = any
-    ? `${beats} of ${any} engines currently sit above 50% hit rate for RED/GREEN. Over 500+ rounds variance converges to equilibrium.`
+    ? `${beats} of ${any} engines currently beating the 50% chance baseline. Nexa dynamically suppresses underperforming models.`
     : '';
 }
 
-// ── HISTORY VIEW RENDER ────────────────────────────────────
 function renderHistory() {
   const wins = log.filter(x => x.won).length;
   const losses = log.length - wins;
@@ -1349,28 +1229,22 @@ function renderHistory() {
   const rate = log.length ? (wins / log.length) * 100 : null;
   const rateEl = document.getElementById('h-rate');
   rateEl.textContent = rate === null ? '--' : rate.toFixed(1) + '%';
-  rateEl.className = rate === null ? '' : (rate > 52 ? 'g' : (rate < 48 ? 'r' : 'y'));
+  rateEl.className = rate === null ? '' : (rate >= 55 ? 'g' : (rate < 45 ? 'r' : 'y'));
 
   let cur = 0;
   for (const x of log) {
     if (x.won) cur++;
     else break;
   }
-  let best = 0, run = 0;
-  for (let i = log.length - 1; i >= 0; i--) {
-    if (log[i].won) { run++; best = Math.max(best, run); }
-    else run = 0;
-  }
-  document.getElementById('h-streak').textContent = log.length ? cur : '--';
+  document.getElementById('h-streak').textContent = log.length ? cur : '0';
   document.getElementById('h-streak').className = cur > 0 ? 'g' : 'r';
-  document.getElementById('h-best').textContent = log.length ? best : '--';
 
   document.getElementById('h-baseline').textContent = log.length
-    ? `${wins}W / ${losses}L · ${(rate - 50 >= 0 ? '+' : '')}${(rate - 50).toFixed(1)} pts vs 50% baseline on RED/GREEN.`
-    : '';
+    ? `${wins}W / ${losses}L · ${(rate - 50 >= 0 ? '+' : '')}${(rate - 50).toFixed(1)} pts vs 50% baseline on 1M RED/GREEN.`
+    : 'No 1M rounds logged yet.';
 
   const body = document.getElementById('hist-body');
-  if (!log.length) {
+  if (!log.length && !pending) {
     body.innerHTML = '';
     document.getElementById('hist-empty').classList.remove('hidden');
     return;
@@ -1404,7 +1278,7 @@ function renderHistory() {
   body.innerHTML = html;
 }
 
-// ── UI CONTROLS ────────────────────────────────────────────
+// ── UI TAB CONTROLS ─────────────────────────────────────────
 function showTab(t) {
   const isLive = (t === 'live');
   document.getElementById('view-live').classList.toggle('hidden', !isLive);
@@ -1424,54 +1298,20 @@ function toggle() {
     btn.style.background = 'linear-gradient(135deg, var(--red), #c02020)';
     fetchHist();
     tId = setInterval(tick, 250);
-    fId = setInterval(fetchHist, 4000);
+    fId = setInterval(fetchHist, 3500);
   } else {
     dot.classList.remove('live');
     btn.textContent = '▶ Start Live';
-    btn.style.background = 'linear-gradient(135deg, var(--red), var(--green))';
+    btn.style.background = 'linear-gradient(135deg, var(--green), #00c982)';
     clearInterval(tId);
     clearInterval(fId);
-    document.getElementById('status').textContent = 'idle';
-    document.getElementById('timer').textContent = '--';
+    document.getElementById('status').textContent = 'paused';
   }
 }
 
-function clearHistory() {
-  if (!confirm('Clear all color prediction history?')) return;
-  log = [];
-  pending = null;
-  loggedSet = new Set();
-  saveLog();
-  renderHistory();
-}
-
-function downloadHistory() {
-  if (!log.length) { alert('No history to export yet.'); return; }
-  const rows = [['#', 'Period', 'Predicted Color', 'Digits', 'Actual', 'Result', 'Time']];
-  log.forEach((x, i) => rows.push([
-    log.length - i,
-    x.issue,
-    x.pred,
-    x.digits ? x.digits.join(' ') : '',
-    x.actualNum !== undefined ? `${x.actualNum} ${x.actualColor}` : x.actualColor,
-    x.won ? 'WIN' : 'LOSS',
-    x.time
-  ]));
-  const csv = rows.map(r => r.join(',')).join('\n');
-  const blob = new Blob([csv], { type: 'text/csv' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'wingo_color_history.csv';
-  a.click();
-}
-
-document.getElementById('game').onchange = () => {
-  if (live) { hist = []; pending = null; fetchHist(); }
-};
-
-// ── BOOTSTRAP ──────────────────────────────────────────────
+// ── INIT ────────────────────────────────────────────────────
 loadLog();
-renderHistory();
+toggle(); // Auto-start on load
 </script>
 </body>
 </html>

@@ -115,116 +115,101 @@
 
   // ── 4. ULTIMATE 6-ENGINE COLOR PREDICTION SUITE (EXACT /v1) ──
   const ENGINES = {
-    // 1. TITAN COLOR: Multi-Window Parity Momentum & Saturation Guard
+    // 1. TITAN: Exponential Recency-Weighted Parity Momentum
     titan: colors => {
-      if (colors.length < 3) return 'GREEN';
-      const c3 = colors.slice(0, 3).filter(x => x === 'GREEN').length;
-      const c7 = colors.slice(0, 7).filter(x => x === 'GREEN').length;
-      const c15 = colors.slice(0, 15).filter(x => x === 'GREEN').length;
+      if (colors.length < 3) return colors[0] || 'GREEN';
+      const rec = colors.slice(0, 4);
+      const weights = [0.42, 0.28, 0.18, 0.12];
+      let g = 0, tot = 0;
+      for (let i = 0; i < rec.length; i++) {
+        if (rec[i] === 'GREEN') g += weights[i];
+        tot += weights[i];
+      }
+      const c15 = colors.slice(0, 15);
+      const g15 = c15.filter(c => c === 'GREEN').length;
+      if (g15 >= 11) return 'RED';
+      if (g15 <= 4 && colors.length >= 15) return 'GREEN';
 
-      // Saturation rubber-band (>70% single color over 15 draws triggers reversion)
-      if (c15 >= 11) return 'RED';
-      if (c15 <= 4 && colors.length >= 15) return 'GREEN';
-
-      // Momentum consensus across short windows
-      const gScore = (c3 / 3) * 0.45 + (c7 / 7) * 0.35 + (c15 / 15) * 0.20;
-      return gScore >= 0.50 ? 'GREEN' : 'RED';
+      return (g / tot) >= 0.50 ? 'GREEN' : 'RED';
     },
 
-    // 2. RADHE CHROMATIC: Dragon Ride (2x-4x) & Doublet Pattern Trajectory (break at 5x)
+    // 2. RADHE: Dragon Ride + Doublet (2-2) Trajectory
     radhe: colors => {
-      if (colors.length < 2) return 'GREEN';
+      if (colors.length < 2) return colors[0] || 'GREEN';
       let streak = 1;
       const head = colors[0];
       for (let i = 1; i < colors.length; i++) {
         if (colors[i] === head) streak++;
         else break;
       }
-      // Dragon streak ride up to 4; break at 5+
-      if (streak >= 5) return head === 'GREEN' ? 'RED' : 'GREEN';
-      if (streak >= 2 && streak <= 4) return head; // ride dragon
+      if (streak >= 5) return opp(head); // Exhaustion break at 5+
+      if (streak >= 2 && streak <= 4) return head;
 
-      // Doublet pattern check: [A, A, B, B] -> predict flip to A
+      // Doublet detector: [A, A, B, B] -> predict flip to A
       if (colors.length >= 4) {
         if (colors[0] === colors[1] && colors[2] === colors[3] && colors[0] !== colors[2]) {
-          return colors[0] === 'GREEN' ? 'RED' : 'GREEN';
+          return opp(colors[0]);
         }
       }
-      return head === 'GREEN' ? 'RED' : 'GREEN';
+      return opp(head);
     },
 
-    // 3. SURESH HARMONIC: Chop Zigzag & Palindrome Rhythm
+    // 3. SURESH: Adaptive Harmonic Zigzag Rhythm
     suresh: colors => {
-      if (colors.length < 3) return 'RED';
-      // Chop detector: alternating [G, R, G] -> ride chop
-      const isChop = (colors[0] !== colors[1]) && (colors[1] !== colors[2]);
-      if (isChop) {
-        return colors[0] === 'GREEN' ? 'RED' : 'GREEN';
+      if (colors.length < 3) return opp(colors[0] || 'RED');
+      let alt = 1;
+      for (let i = 0; i < colors.length - 1; i++) {
+        if (colors[i] !== colors[i + 1]) alt++;
+        else break;
       }
-      // Palindrome detector (3-step): [A, B, A] -> expect B
-      if (colors[0] === colors[2] && colors[0] !== colors[1]) {
-        return colors[1];
-      }
-      // Mean-reversion on 10 draws
-      const gCount = colors.slice(0, 10).filter(x => x === 'GREEN').length;
-      return gCount >= 5 ? 'RED' : 'GREEN';
+      if (alt >= 2) return opp(colors[0]);
+      return colors[0];
     },
 
-    // 4. MARKOV 2nd-ORDER: Color State Transition Matrix
+    // 4. MARKOV: 2nd-Order State Transition Matrix
     markov: colors => {
-      if (colors.length < 6) return colors[0] || 'GREEN';
-      const c1 = colors[0];
-      const c2 = colors[1];
-      let nextG = 0, nextR = 0;
+      if (colors.length < 5) return colors[0] || 'GREEN';
+      const c1 = colors[0], c2 = colors[1];
+      let nG = 0, nR = 0;
       for (let i = 0; i < colors.length - 2; i++) {
         if (colors[i + 1] === c1 && colors[i + 2] === c2) {
-          if (colors[i] === 'GREEN') nextG++;
-          else if (colors[i] === 'RED') nextR++;
+          if (colors[i] === 'GREEN') nG++;
+          else if (colors[i] === 'RED') nR++;
         }
       }
-      if (nextG > nextR) return 'GREEN';
-      if (nextR > nextG) return 'RED';
-      // Fallback to 1st-order
+      if (nG > nR) return 'GREEN';
+      if (nR > nG) return 'RED';
       for (let i = 0; i < colors.length - 1; i++) {
         if (colors[i + 1] === c1) {
-          if (colors[i] === 'GREEN') nextG++;
-          else if (colors[i] === 'RED') nextR++;
+          if (colors[i] === 'GREEN') nG++;
+          else if (colors[i] === 'RED') nR++;
         }
       }
-      if (nextG !== nextR) return nextG > nextR ? 'GREEN' : 'RED';
-      return c1 === 'GREEN' ? 'RED' : 'GREEN';
+      if (nG !== nR) return nG > nR ? 'GREEN' : 'RED';
+      return opp(c1);
     },
 
-    // 5. PAIN-PRO DIGIT: Violet Pivot Anchors (0 & 5) & Parity Deficit
+    // 5. PAIN-PRO: Contextual Violet Pivot & Parity Deficit
     painPro: (colors, history) => {
-      if (!history || history.length < 3) return 'GREEN';
+      if (!history || history.length < 2) return 'GREEN';
       const lastNum = history[0].number;
-      if (lastNum === 0) return 'GREEN'; // 0 rebounds with GREEN
-      if (lastNum === 5) return 'RED';   // 5 rebounds with RED
+      let streak = 1;
+      for (let i = 1; i < colors.length; i++) {
+        if (colors[i] === colors[0]) streak++;
+        else break;
+      }
+      if (lastNum === 0) return streak >= 2 ? 'RED' : 'GREEN';
+      if (lastNum === 5) return streak >= 2 ? 'GREEN' : 'RED';
 
-      // Parity analysis: Evens (Red) vs Odds (Green)
-      let evens = 0;
-      const sample = history.slice(0, 8);
-      sample.forEach(h => {
-        if (h.number % 2 === 0) evens++;
-      });
-      return evens >= 4 ? 'GREEN' : 'RED';
-    },
-
-    // 6. NEXA CONSENSUS: Meta-Arbiter Weighted Equilibrium
-    nexa: (colors, h, models) => {
-      const W = { titan: 1.35, radhe: 1.40, suresh: 1.25, markov: 1.50, painPro: 1.20 };
-      let gScore = 0, rScore = 0;
-      if (models.titan === 'GREEN') gScore += W.titan; else rScore += W.titan;
-      if (models.radhe === 'GREEN') gScore += W.radhe; else rScore += W.radhe;
-      if (models.suresh === 'GREEN') gScore += W.suresh; else rScore += W.suresh;
-      if (models.markov === 'GREEN') gScore += W.markov; else rScore += W.markov;
-      if (models.painPro === 'GREEN') gScore += W.painPro; else rScore += W.painPro;
-      return gScore >= rScore ? 'GREEN' : 'RED';
+      const sample = colors.slice(0, 12);
+      const redCount = sample.filter(c => c === 'RED').length;
+      if (redCount >= 8) return 'GREEN';
+      if (redCount <= 4) return 'RED';
+      return colors[0];
     }
   };
 
-  // Master Arbiter Combination Function
+  // Master Arbiter Combination Function (Bayesian Dynamic Accuracy)
   function calculateColorPrediction(historyList) {
     if (!historyList || historyList.length < 3) {
       return { noData: true, color: 'GREEN', topDigits: [1, 7], conf: 75, patternLabel: 'INITIALIZING...' };
@@ -244,19 +229,45 @@
     models.suresh = ENGINES.suresh(colors);
     models.markov = ENGINES.markov(colors);
     models.painPro = ENGINES.painPro(colors, cleanHistory);
-    models.nexa = ENGINES.nexa(colors, cleanHistory, models);
 
-    // Weighted votes
-    const WEIGHTS = { titan: 1.35, radhe: 1.40, suresh: 1.25, markov: 1.50, painPro: 1.20, nexa: 1.60 };
+    // Audit rolling performance of each engine on the last 10 draws
+    const baseWeights = { titan: 1.35, radhe: 1.45, suresh: 1.30, markov: 1.50, painPro: 1.25 };
+    const acc = {};
+    const currentStreak = {};
+
+    for (const k in ENGINES) {
+      let hits = 0, tested = 0, lStreak = 0;
+      for (let i = 1; i < Math.min(10, cleanHistory.length - 1); i++) {
+        const past = cleanHistory.slice(i);
+        const subColors = past.map(x => x.color);
+        const subActual = cleanHistory[i - 1].color;
+        const p = ENGINES[k](subColors, past);
+        tested++;
+        if (p === subActual) {
+          hits++;
+          if (tested === 1) lStreak = 0;
+        } else {
+          if (tested === 1 || lStreak === tested - 1) lStreak++;
+        }
+      }
+      acc[k] = tested > 0 ? (hits / tested) : 0.50;
+      currentStreak[k] = lStreak;
+    }
+
+    // Dynamic Bayesian Score
     let greenVotes = 0, redVotes = 0, totalWeight = 0;
-    Object.keys(WEIGHTS).forEach(key => {
-      const w = WEIGHTS[key];
-      totalWeight += w;
-      if (models[key] === 'GREEN') greenVotes += w;
-      else redVotes += w;
-    });
+    for (const k in ENGINES) {
+      const isCold = currentStreak[k] >= 2;
+      const dynamicW = isCold ? (baseWeights[k] * 0.25) : (baseWeights[k] * Math.pow(Math.max(0.2, acc[k]), 1.3));
+      totalWeight += dynamicW;
+      if (models[k] === 'GREEN') greenVotes += dynamicW;
+      else redVotes += dynamicW;
+    }
 
-    const predictedColor = greenVotes >= redVotes ? 'GREEN' : 'RED';
+    const nexaVote = greenVotes >= redVotes ? 'GREEN' : 'RED';
+    models.nexa = nexaVote;
+
+    const predictedColor = nexaVote;
     const topScore = Math.max(greenVotes, redVotes);
     const confidence = Math.min(98, Math.max(76, Math.round((topScore / totalWeight) * 100)));
 
