@@ -125,7 +125,7 @@
     const cRun = runs[runs.length - 1];
     const cSide = cRun ? cRun.size : sizes[0];
     const cLen = cRun ? cRun.len : 1;
-    const lastS = sizes[sizes.length - 1];
+    const lastS = sizes[0]; // Most recent element for alternation flip
 
     let alt = 0;
     for (let i = runs.length - 1; i >= 0; i--) {
@@ -336,7 +336,13 @@
     } else if (isChopZone) {
       patternType = 'zigzag';
       patternLabel = '🛑 CAPITAL SHIELD: CHOP ZONE (FLAT 1X)';
-    } else if (alt >= 3) {
+    } else if (alt >= 4) {
+      // Strong alternation override: flip the most recent side
+      const zigzagPred = opp(sizes[0]);
+      votes[zigzagPred] += 3.5;
+      patternType = 'zigzag';
+      patternLabel = `⚡ ZIGZAG SWITCH (${alt}X)`;
+    } else if (alt === 3) {
       patternType = 'zigzag';
       patternLabel = `⚡ ZIGZAG SWITCH (${alt}X)`;
     } else {
@@ -367,28 +373,34 @@
     };
   }
 
-  // ── 4. DETERMINISTIC SIGNAL LEVEL RESOLVER ───────────────
-  function resolveLevel(list) {
-    if (!list || list.length < 3) return 1;
-    try {
-      const prior = list.slice(1);
-      if (prior.length >= 3) {
-        const pred = calculateCombinedPrediction(prior, 1);
-        if (pred) {
-          const actual = getSize(list[0].number);
-          if (pred.prediction === actual) return 1;
-          const priorPrior = list.slice(2);
-          if (priorPrior.length >= 3) {
-            const pred2 = calculateCombinedPrediction(priorPrior, 1);
-            if (pred2 && pred2.prediction !== getSize(list[1].number)) {
-              return 3;
-            }
-          }
-          return 2;
+  // ── 4. SELF-HEALING SIGNAL LEVEL RESOLVER ─────────────────
+  function getSelfHealingSignalLevel(list) {
+    if (!list || list.length < 4) return Math.min(3, Math.max(1, martingaleStep + 1));
+    const chron = list.slice().reverse();
+    let lvl = 1;
+    let lastP = null;
+    for (let i = 3; i < chron.length; i++) {
+      const sub = chron.slice(0, i).reverse();
+      const res = calculateCombinedPrediction(sub, lvl);
+      if (lastP) {
+        const actual = getSize(chron[i - 1].number);
+        if (lastP === actual) lvl = 1;
+        else {
+          lvl++;
+          if (lvl > 3) lvl = 1;
         }
       }
-    } catch (e) {}
-    return 1;
+      if (res) lastP = res.prediction;
+    }
+    const actualLatest = getSize(chron[chron.length - 1].number);
+    if (lastP) {
+      if (lastP === actualLatest) lvl = 1;
+      else {
+        lvl++;
+        if (lvl > 3) lvl = 1;
+      }
+    }
+    return lvl;
   }
 
   // ── 5. PERSISTENT DRAW HISTORY & SERVER INTERCEPTION ──────
@@ -398,16 +410,6 @@
   let isFetching = false;
   let lastFetchedTime = 0;
 
-  function isDrawMatchingMode(issueNumber, mode) {
-    const s = String(issueNumber || '').trim();
-    if (!s) return false;
-    if (mode === '1M') {
-      return s.includes('10001') || (!s.includes('10005') && !s.includes('10003'));
-    } else {
-      return s.includes('10005') || s.includes('10003');
-    }
-  }
-
   function ingestDrawList(list) {
     if (!Array.isArray(list) || list.length === 0) return;
     list.forEach(item => {
@@ -415,8 +417,6 @@
       const numRaw = item.number != null ? item.number : (item.lotteryResults != null ? item.lotteryResults : item.result);
       const num = parseInt(numRaw, 10);
       if (!/^\d+$/.test(issue) || isNaN(num)) return;
-      if (!isDrawMatchingMode(issue, GAME_MODE)) return; // Strictly isolate 1M vs 30S draws!
-
       DRAW_HISTORY_MAP.set(issue, {
         issueNumber: issue,
         period: issue,
@@ -579,7 +579,7 @@
   setInterval(scrapeDomLottery, 1500);
   fetchDrawHistory();
 
-  // ── 6. DETERMINISTIC MASTER SIGNAL STATE MACHINE ──────────
+  // ── 6. MASTER SIGNAL STATE MACHINE ────────────────────────
   let CURRENT_SIGNAL_PREDICTION = null;
   let LAST_SYNCED_PERIOD = null;
 
@@ -587,12 +587,12 @@
     if (!CURRENT_API_DRAWS || CURRENT_API_DRAWS.length < 3) return;
     const top = CURRENT_API_DRAWS[0];
 
-    const activeLvl = resolveLevel(CURRENT_API_DRAWS);
+    const activeLvl = getSelfHealingSignalLevel(CURRENT_API_DRAWS);
     const result = calculateCombinedPrediction(CURRENT_API_DRAWS, activeLvl);
     if (result) {
       if (LAST_SYNCED_PERIOD !== top.issueNumber) {
         LAST_SYNCED_PERIOD = top.issueNumber;
-        console.log(`%c[👑 JASH VIP] 🎯 Synced Issue #${result.nextPeriod}: ${result.prediction} (${result.patternLabel}) [L${activeLvl}]`, 'background:#00f5a0;color:#000;font-weight:900;padding:4px 8px;border-radius:4px;');
+        console.log(`%c[👑 JASH VIP] 🎯 Synced Next Issue #${result.nextPeriod}: ${result.prediction} (${result.patternLabel}) [Guard Level: L${activeLvl}]`, 'background:#00f5a0;color:#000;font-weight:900;padding:4px 8px;border-radius:4px;');
       }
       CURRENT_SIGNAL_PREDICTION = result;
       CURRENT_SIGNAL_PREDICTION.guardLevel = activeLvl;
