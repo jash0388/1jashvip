@@ -684,7 +684,7 @@
     const hud = document.createElement('div');
     hud.id = 'jash-hud';
     hud.style.cssText = `
-      position:fixed;top:10px;right:10px;z-index:2147483647;
+      position:fixed;top:140px;right:10px;z-index:2147483647;touch-action:none;
       width:275px;background:rgba(6,9,16,0.96);
       border:1.5px solid rgba(0,245,160,0.55);border-radius:14px;
       backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
@@ -761,6 +761,47 @@
     `;
 
     target.appendChild(hud);
+    // Make HUD draggable so it never blocks game tabs or buttons
+    (function makeDraggable() {
+      let isDragging = false, startX, startY, origLeft, origTop;
+      const header = document.getElementById("j-header-row");
+      if (!header) return;
+
+      function onStart(e) {
+        if (e.target && e.target.id === "j-min-btn") return;
+        isDragging = true;
+        const cx = e.touches ? e.touches[0].clientX : e.clientX;
+        const cy = e.touches ? e.touches[0].clientY : e.clientY;
+        startX = cx;
+        startY = cy;
+        const rect = hud.getBoundingClientRect();
+        origLeft = rect.left;
+        origTop = rect.top;
+        hud.style.right = "auto";
+        hud.style.left = origLeft + "px";
+        hud.style.top = origTop + "px";
+      }
+
+      function onMove(e) {
+        if (!isDragging) return;
+        const cx = e.touches ? e.touches[0].clientX : e.clientX;
+        const cy = e.touches ? e.touches[0].clientY : e.clientY;
+        const dx = cx - startX;
+        const dy = cy - startY;
+        hud.style.left = Math.max(2, Math.min(window.innerWidth - 280, origLeft + dx)) + "px";
+        hud.style.top = Math.max(2, Math.min(window.innerHeight - 80, origTop + dy)) + "px";
+      }
+
+      function onEnd() { isDragging = false; }
+
+      header.addEventListener("mousedown", onStart);
+      window.addEventListener("mousemove", onMove);
+      window.addEventListener("mouseup", onEnd);
+      header.addEventListener("touchstart", onStart, { passive: true });
+      window.addEventListener("touchmove", onMove, { passive: true });
+      window.addEventListener("touchend", onEnd);
+    })();
+
 
     // Toggle 1M vs 30S mode
     document.getElementById('j-mode-btn').onclick = () => {
@@ -1011,6 +1052,39 @@
   }
 
   // ── 12. INITIALIZATION ────────────────────────────────────
+  
+  // Auto-detect when user clicks the 30s or 1m tab on the actual website
+  document.addEventListener("click", (e) => {
+    try {
+      const el = e.target;
+      if (!el || el.closest("#jash-hud")) return;
+      const txt = (el.textContent || "").trim().toLowerCase();
+      if (/\b(30s|30 second|30秒)\b/i.test(txt) || txt === "30s" || txt === "win go 30s") {
+        if (GAME_MODE !== "30S") {
+          console.log("[👑 JASH VIP] Auto-detected switch to 30S tab on game site!");
+          GAME_MODE = "30S";
+          persistAll();
+          LOTTERY_HISTORY = [];
+          CURRENT_API_DRAWS = [];
+          pendingBet = null;
+          updateHud();
+          fetchDrawHistory();
+        }
+      } else if (/\b(1m|1min|1 min|1 minute|1分)\b/i.test(txt) || txt === "1min" || txt === "win go 1min") {
+        if (GAME_MODE !== "1M") {
+          console.log("[👑 JASH VIP] Auto-detected switch to 1M tab on game site!");
+          GAME_MODE = "1M";
+          persistAll();
+          LOTTERY_HISTORY = [];
+          CURRENT_API_DRAWS = [];
+          pendingBet = null;
+          updateHud();
+          fetchDrawHistory();
+        }
+      }
+    } catch(err) {}
+  }, true);
+
   function init() {
     createHud();
     setInterval(botCycle, 1000);

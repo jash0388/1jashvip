@@ -159,13 +159,18 @@
       background: transparent;
       border: 1px solid transparent;
       color: var(--muted);
-      padding: 7px 14px;
+      padding: 8px 16px;
       border-radius: 9px;
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 800;
-      cursor: pointer;
+      cursor: pointer !important;
+      position: relative;
+      z-index: 20;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
       box-shadow: none;
-      transition: all 0.25s ease;
+      transition: all 0.2s ease;
       font-family: var(--font-main);
     }
 
@@ -1129,7 +1134,6 @@ function clearLog() {
 
 // ── MODE SWITCHER LOGIC ─────────────────────────────────────
 function setGameMode(mode) {
-  if (currentMode === mode) return;
   currentMode = mode;
   localStorage.setItem('JASH_V1_GAME_MODE', currentMode);
 
@@ -1425,10 +1429,20 @@ function toggle() {
 
 // ── INIT ────────────────────────────────────────────────────
 loadLog();
-if (currentMode === 'WinGo_30S') {
-  setGameMode('WinGo_30S');
-}
+setGameMode(currentMode); // Synchronize DOM immediately with active mode
 toggle(); // Auto-start on load
+
+// Direct click & touch listener binding
+document.addEventListener("DOMContentLoaded", () => {
+  const b1 = document.getElementById("btn-mode-1m");
+  const b30 = document.getElementById("btn-mode-30s");
+  if (b1) {
+    b1.onclick = (e) => { e.preventDefault(); setGameMode("WinGo_1M"); };
+  }
+  if (b30) {
+    b30.onclick = (e) => { e.preventDefault(); setGameMode("WinGo_30S"); };
+  }
+});
 </script>
 </body>
 </html>
