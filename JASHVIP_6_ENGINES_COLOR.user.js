@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         JASH VIP ULTIMATE AI — WinGo 6-Engine RED & GREEN Color Prediction HUD & AutoBet
+// @name         JASH VIP ULTIMATE AI — WinGo 6-Engine RED & GREEN Color Prediction HUD & AutoBet (1M & 30S)
 // @namespace    https://github.com/jash0388/jashvip
-// @version      37.0
-// @description  👑 JASH VIP · 100% Exact jashvip.vercel.app/v1 Ultimate 6-Engine Color Prediction System (Titan, Radhe, Suresh, Markov, Pain-Pro, Nexa Consensus) + Bulletproof Red/Green AutoBet + Zero Early-Loss Settlement + Complete Reset Engine (Strictly 1 Min WinGo).
+// @version      38.0
+// @description  👑 JASH VIP · Dual Mode (1M & 30S) 100% Exact jashvip.vercel.app/v1 Ultimate 6-Engine Color Prediction System (Titan, Radhe, Suresh, Markov, Pain-Pro, Nexa Consensus) + Bulletproof Red/Green AutoBet + Zero Early-Loss Settlement + Complete Reset Engine.
 // @match        *://*.dmfirst7.com/*
 // @match        *://*.dmfirst0.com/*
 // @match        *://*.dmfirst*.com/*
@@ -28,7 +28,7 @@
   window.__JASH_VIP_COLOR_ACTIVE__ = true;
 
   console.log(
-    "%c👑 JASH VIP ULTIMATE AI · 6-ENGINE RED/GREEN COLOR PREDICTION & AUTOBET (v1 ACTIVE)",
+    "%c👑 JASH VIP ULTIMATE AI · 6-ENGINE RED/GREEN COLOR PREDICTION & AUTOBET (1M & 30S DUAL MODE ACTIVE)",
     "background:linear-gradient(135deg,#00f5a0,#ff3366,#00d9ff);color:#000;font-size:15px;font-weight:900;padding:8px 16px;border-radius:8px;box-shadow:0 0 25px rgba(0,245,160,0.6);"
   );
 
@@ -42,9 +42,9 @@
   setInterval(requestWakeLock, 8000);
   requestWakeLock();
 
-  // ── 2. STATE PERSISTENCE (STRICTLY 1 MIN WINGO ONLY) ─────
-  const GAME_MODE = '1M';
-  try { localStorage.removeItem('JASH_MODE'); } catch(e) {}
+  // ── 2. STATE PERSISTENCE (1M & 30S DUAL MODE) ────────────
+  let GAME_MODE = localStorage.getItem('JASH_MODE') || '1M';
+  if (GAME_MODE !== '1M' && GAME_MODE !== '30S') GAME_MODE = '1M';
 
   let BASE_BET = parseInt(localStorage.getItem('JASH_BASE_BET') || '3', 10);
   if (isNaN(BASE_BET) || BASE_BET < 1) BASE_BET = 3;
@@ -83,6 +83,7 @@
 
   function persistAll() {
     try {
+      localStorage.setItem('JASH_MODE', GAME_MODE);
       localStorage.setItem('JASH_BASE_BET', BASE_BET.toString());
       localStorage.setItem('JASH_WINS', wins.toString());
       localStorage.setItem('JASH_LOSSES', losses.toString());
@@ -95,18 +96,9 @@
   }
 
   // ── 3. COLOR CORE HELPERS & MODEL CONVERSION ──────────────
-  // 0: Red + Violet
-  // 2, 4, 6, 8: Pure Red
-  // 5: Green + Violet
-  // 1, 3, 7, 9: Pure Green
   function getColor(num) {
     const n = parseInt(num, 10);
     return (n % 2 === 0) ? 'RED' : 'GREEN';
-  }
-
-  function isViolet(num) {
-    const n = parseInt(num, 10);
-    return n === 0 || n === 5;
   }
 
   function opp(color) {
@@ -272,7 +264,7 @@
     const confidence = Math.min(98, Math.max(76, Math.round((topScore / totalWeight) * 100)));
 
     // Pattern label generator
-    let patternLabel = 'NEXA CONSENSUS';
+    let patternLabel = `NEXA ${GAME_MODE} ENSEMBLE`;
     let streak = 1;
     for (let i = 1; i < colors.length; i++) {
       if (colors[i] === colors[0]) streak++;
@@ -297,7 +289,6 @@
       cleanHistory.slice(0, 15).forEach(h => {
         if (gCounts[h.number] !== undefined) gCounts[h.number]++;
       });
-      // Pick digits with deficit or balance
       topDigits = Object.entries(gCounts).sort((a, b) => a[1] - b[1]).slice(0, 2).map(x => parseInt(x[0], 10));
     } else {
       const rCounts = { 0: 0, 2: 0, 4: 0, 6: 0, 8: 0 };
@@ -329,7 +320,8 @@
     if (isFetchingApi) return;
     isFetchingApi = true;
 
-    const url = 'https://draw.ar-lottery01.com/api/webapi/GetNoaverageEmerdList?typeId=1&pageSize=30';
+    const modeSlug = (GAME_MODE === '30S') ? 'WinGo_30S' : 'WinGo_1M';
+    const url = `https://draw.ar-lottery01.com/WinGo/${modeSlug}/GetHistoryIssuePage.json?_t=${Date.now()}`;
 
     const parseResponse = (json) => {
       try {
@@ -415,8 +407,6 @@
   fetchDrawHistory();
 
   // ── 6. STRICT ZERO-EARLY-LOSS SETTLEMENT ENGINE ───────────
-  // A round will NEVER resolve early or falsely show loss.
-  // It ONLY settles when the authoritative result for that exact period appears!
   function checkAllPendingBets() {
     if (!LOTTERY_HISTORY || LOTTERY_HISTORY.length === 0) return;
     const historyMap = new Map();
@@ -456,7 +446,6 @@
     bet.actualColor = outcomeColor;
     if (actualNum != null) bet.actualNumber = actualNum;
 
-    // Red: 0, 2, 4, 6, 8 | Green: 1, 3, 5, 7, 9
     const won = (bet.prediction === outcomeColor);
     bet.won = won;
 
@@ -508,10 +497,6 @@
   // ── 8. BULLETPROOF RED & GREEN BET EXECUTION ENGINE ───────
   async function executeBet(targetColor, amount) {
     const target = targetColor.trim().toUpperCase(); // "RED" or "GREEN"
-    console.log(
-      `%c[👑 JASH VIP] 🎯 PLACING COLOR BET: ${target} ₹${amount} (Streak: ${LOSS_STREAK}, Step: ${martingaleStep})`,
-      'background:linear-gradient(90deg,#00f5a0,#ff3366);color:#000;font-weight:bold;padding:6px 14px;font-size:13px;border-radius:4px'
-    );
 
     // 0. Clean up any open dialog
     const openPopups = Array.from(document.querySelectorAll('.van-popup, .popup')).filter(e => !e.closest('#jash-hud') && e.offsetHeight > 40);
@@ -542,7 +527,6 @@
       });
     }
 
-    // Fallback: check class names for green or red buttons
     if (!targetBtn) {
       const clsTarget = target === 'GREEN' ? /green/i : /red/i;
       targetBtn = allEls.find(e => {
@@ -600,7 +584,6 @@
 
     await new Promise(r => setTimeout(r, 100));
 
-    // Verify Total Amount matches
     function checkCurrentTotalText() {
       const els = Array.from(popup.querySelectorAll('*'));
       for (const el of els) {
@@ -681,13 +664,15 @@
     return true;
   }
 
-  // ── 9. TIME UTILITIES (STRICT 1M CYCLE) ────────────────────
+  // ── 9. TIME UTILITIES (ADAPTIVE 1M & 30S) ─────────────────
   function getTimerSeconds() {
-    return 60 - (Math.floor(Date.now() / 1000) % 60);
+    const iv = (GAME_MODE === '30S') ? 30 : 60;
+    return iv - (Math.floor(Date.now() / 1000) % iv);
   }
 
   function getCurrentTimeBucket() {
-    return Math.floor(Date.now() / 60000);
+    const ivMs = (GAME_MODE === '30S') ? 30000 : 60000;
+    return Math.floor(Date.now() / ivMs);
   }
 
   // ── 10. CYBER GLASSMORPHIC VIP HUD ────────────────────────
@@ -720,10 +705,10 @@
 
       <div id="j-main-body">
         <div style="display:flex;gap:4px;margin-bottom:8px;">
-          <div style="flex:2;padding:4px 0;background:rgba(0,245,160,0.12);border:1px solid rgba(0,245,160,0.3);border-radius:6px;color:#00f5a0;font-weight:900;font-size:10px;text-align:center;">
-            🎯 1 MIN WINGO (COLOR)
-          </div>
-          <button id="j-reset-btn" title="Complete Reset: streak, steps, stats, storage" style="flex:1;padding:4px 0;background:rgba(239,68,68,0.2);border:1px solid rgba(239,68,68,0.5);border-radius:6px;color:#fca5a5;font-weight:bold;font-size:10px;cursor:pointer;">
+          <button id="j-mode-btn" title="Click to toggle between 1M and 30S" style="flex:2;padding:5px 0;background:rgba(0,245,160,0.12);border:1px solid rgba(0,245,160,0.35);border-radius:6px;color:#00f5a0;font-weight:900;font-size:10px;text-align:center;cursor:pointer;transition:all 0.2s;">
+            <span id="j-mode-text">${GAME_MODE === '30S' ? '🔥 WINGO 30S' : '⚡ WINGO 1M'}</span> <span style="font-size:8px;opacity:0.75">(TOGGLE)</span>
+          </button>
+          <button id="j-reset-btn" title="Complete Reset: streak, steps, stats, storage" style="flex:1;padding:5px 0;background:rgba(239,68,68,0.2);border:1px solid rgba(239,68,68,0.5);border-radius:6px;color:#fca5a5;font-weight:bold;font-size:10px;cursor:pointer;">
             🔄 RESET
           </button>
         </div>
@@ -777,6 +762,33 @@
 
     target.appendChild(hud);
 
+    // Toggle 1M vs 30S mode
+    document.getElementById('j-mode-btn').onclick = () => {
+      GAME_MODE = (GAME_MODE === '1M') ? '30S' : '1M';
+      localStorage.setItem('JASH_MODE', GAME_MODE);
+
+      const modeBtn = document.getElementById('j-mode-btn');
+      const modeTxt = document.getElementById('j-mode-text');
+      if (GAME_MODE === '30S') {
+        modeBtn.style.background = 'rgba(255,51,102,0.18)';
+        modeBtn.style.borderColor = 'rgba(255,51,102,0.45)';
+        modeBtn.style.color = '#ff3366';
+        modeTxt.textContent = '🔥 WINGO 30S';
+      } else {
+        modeBtn.style.background = 'rgba(0,245,160,0.12)';
+        modeBtn.style.borderColor = 'rgba(0,245,160,0.35)';
+        modeBtn.style.color = '#00f5a0';
+        modeTxt.textContent = '⚡ WINGO 1M';
+      }
+
+      LOTTERY_HISTORY = [];
+      CURRENT_API_DRAWS = [];
+      pendingBet = null;
+      fetchDrawHistory();
+      updateHud();
+      console.log(`%c[👑 JASH VIP] Switched Mode to: ${GAME_MODE}`, 'background:#00d9ff;color:#000;font-weight:bold;');
+    };
+
     document.getElementById('j-min-btn').onclick = (e) => {
       e.stopPropagation();
       isMinimized = !isMinimized;
@@ -809,7 +821,6 @@
       updateHud();
     };
 
-    // COMPLETE RESET BUTTON: cleans all streak, step, recorded bets, and localStorage
     document.getElementById('j-reset-btn').onclick = (e) => {
       e.stopPropagation();
       LOSS_STREAK = 0;
@@ -894,11 +905,12 @@
     }
   }
 
-  // ── 11. AUTOBET CYCLE (1 MIN WINGO STRICT) ─────────────────
+  // ── 11. AUTOBET CYCLE (ADAPTIVE 1M & 30S) ─────────────────
   async function botCycle() {
     try {
       const secondsLeft = getTimerSeconds();
       const currentBucket = getCurrentTimeBucket();
+      const interval = (GAME_MODE === '30S') ? 30 : 60;
 
       const tEl = document.getElementById('j-timer');
       if (tEl) tEl.textContent = secondsLeft + 's';
@@ -906,7 +918,11 @@
       checkAllPendingBets();
 
       // Faster poll near boundary
-      if (secondsLeft <= 4 || secondsLeft >= 58) {
+      const isBoundary = (GAME_MODE === '30S')
+        ? (secondsLeft <= 3 || secondsLeft >= 28)
+        : (secondsLeft <= 4 || secondsLeft >= 58);
+
+      if (isBoundary) {
         fetchDrawHistory();
       }
 
@@ -950,7 +966,9 @@
       if (activePeriod && PLACED_PERIODS.has(activePeriod)) return;
       if (pred.noData) return;
 
-      const canBet = (secondsLeft <= 55 && secondsLeft >= 6);
+      const canBet = (GAME_MODE === '30S')
+        ? (secondsLeft <= 26 && secondsLeft >= 4)
+        : (secondsLeft <= 55 && secondsLeft >= 6);
 
       if (canBet && !LOCKED_TIME_BUCKETS.has(currentBucket)) {
         LOCKED_TIME_BUCKETS.add(currentBucket);
@@ -961,7 +979,6 @@
         lastBetPeriod = activePeriod;
         pendingBet = { period: activePeriod, pred: pred.color, stake: currentBet, placedAt: Date.now() };
 
-        // Execute bet on board
         const success = await executeBet(pred.color, currentBet);
 
         if (success && activePeriod) {
@@ -975,7 +992,7 @@
             time: new Date().toLocaleTimeString()
           });
           if (RECORDED_BETS.length > 30) RECORDED_BETS = RECORDED_BETS.slice(0, 30);
-          console.log(`%c[👑 JASH VIP] ✅ Bet #${activePeriod} PLACED (${pred.color} ₹${currentBet})`, 'background:#00f5a0;color:#000;font-weight:900;');
+          console.log(`%c[👑 JASH VIP] ✅ Bet #${activePeriod} PLACED (${pred.color} ₹${currentBet}) [${GAME_MODE}]`, 'background:#00f5a0;color:#000;font-weight:900;');
         } else {
           console.warn(`%c[👑 JASH VIP] ❌ Bet #${activePeriod} NOT placed`, 'background:#ef4444;color:#fff;font-weight:900;');
           pendingBet = null;
@@ -986,7 +1003,7 @@
 
         setTimeout(() => {
           isBettingInProgress = false;
-        }, 3500);
+        }, (GAME_MODE === '30S') ? 2200 : 3500);
       }
     } catch (e) {
       isBettingInProgress = false;

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>JASH VIP · Ultimate 6-Engine Color Prediction (v1)</title>
+  <title>JASH VIP · 6-Engine Color Prediction (1M & 30S)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700;800&family=Orbitron:wght@600;800;900&display=swap" rel="stylesheet">
@@ -115,11 +115,11 @@
       font-weight: 800;
       padding: 2px 7px;
       border-radius: 6px;
-      background: rgba(255, 51, 102, 0.15);
-      border: 1px solid rgba(255, 51, 102, 0.4);
-      color: var(--red);
+      background: rgba(0, 245, 160, 0.15);
+      border: 1px solid rgba(0, 245, 160, 0.4);
+      color: var(--green);
       letter-spacing: 0.5px;
-      -webkit-text-fill-color: var(--red);
+      -webkit-text-fill-color: var(--green);
     }
 
     .sub {
@@ -129,10 +129,10 @@
       font-family: var(--font-mono);
     }
 
-    /* Top Control Bar */
+    /* Top Control Bar with Dual Mode Selector */
     .top {
       display: flex;
-      gap: 10px;
+      gap: 12px;
       align-items: center;
       flex-wrap: wrap;
       margin-bottom: 14px;
@@ -142,30 +142,76 @@
       padding: 10px 14px;
     }
 
-    .game-lock-badge {
+    /* Dual Mode Switcher */
+    .mode-switch-group {
+      display: inline-flex;
+      gap: 4px;
+      background: rgba(6, 10, 18, 0.85);
+      border: 1px solid var(--line);
+      padding: 4px;
+      border-radius: 12px;
+    }
+
+    .mode-btn {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      background: rgba(0, 245, 160, 0.08);
-      border: 1px solid rgba(0, 245, 160, 0.35);
-      border-radius: 10px;
-      padding: 8px 14px;
-      font-size: 13px;
-      font-weight: 800;
-      color: var(--green);
-      box-shadow: 0 0 15px rgba(0, 245, 160, 0.15);
-    }
-
-    .game-lock-badge .game-sub {
+      gap: 7px;
+      background: transparent;
+      border: 1px solid transparent;
       color: var(--muted);
-      font-size: 10px;
-      font-weight: 600;
-      background: rgba(255, 255, 255, 0.05);
-      padding: 2px 6px;
-      border-radius: 5px;
+      padding: 7px 14px;
+      border-radius: 9px;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: none;
+      transition: all 0.25s ease;
+      font-family: var(--font-main);
     }
 
-    button {
+    .mode-btn:hover {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.05);
+      transform: none;
+      box-shadow: none;
+    }
+
+    .mode-btn.active {
+      background: linear-gradient(135deg, rgba(0, 245, 160, 0.18), rgba(0, 217, 255, 0.18));
+      border: 1px solid rgba(0, 245, 160, 0.5);
+      color: #fff;
+      box-shadow: 0 0 16px rgba(0, 245, 160, 0.25);
+    }
+
+    .mode-btn.active.mode-30s {
+      background: linear-gradient(135deg, rgba(255, 51, 102, 0.22), rgba(228, 255, 74, 0.14));
+      border: 1px solid rgba(255, 51, 102, 0.5);
+      color: #fff;
+      box-shadow: 0 0 16px rgba(255, 51, 102, 0.3);
+    }
+
+    .mode-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .mode-tag {
+      font-size: 9px;
+      font-family: var(--font-mono);
+      padding: 1px 5px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--muted);
+    }
+
+    .mode-btn.active .mode-tag {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.16);
+    }
+
+    button#btn {
       background: linear-gradient(135deg, var(--green), #00c982);
       border: none;
       color: #040810;
@@ -179,7 +225,7 @@
       font-family: var(--font-main);
     }
 
-    button:hover {
+    button#btn:hover {
       transform: translateY(-1px);
       box-shadow: 0 0 24px rgba(0, 245, 160, 0.55);
     }
@@ -300,6 +346,11 @@
       text-align: center;
       margin-bottom: 12px;
       box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.6);
+      transition: border-color 0.3s;
+    }
+
+    .timer-box.is-30s {
+      border-color: rgba(255, 51, 102, 0.35);
     }
 
     .timer {
@@ -605,19 +656,28 @@
     <div class="brand-group">
       <div class="brand-crown">👑</div>
       <div class="brand-text">
-        <h1>JASH VIP · 6-Engine Color Prediction <span class="badge-v1">1 MIN ONLY</span></h1>
+        <h1>JASH VIP · 6-Engine Color Prediction <span class="badge-v1" id="active-mode-badge">1M & 30S ACTIVE</span></h1>
         <div class="sub">Titan · Radhe · Suresh · Markov · Pain-Pro · Nexa Dynamic Consensus</div>
       </div>
     </div>
   </div>
 
-  <!-- Top Control Bar (Strictly 1 Min WinGo Only) -->
+  <!-- Top Control Bar with Dual Mode Selector -->
   <div class="top">
-    <div class="game-lock-badge">
-      <span class="dot live"></span>
-      <span>WinGo 1M</span>
-      <span class="game-sub">Official 1-Min Wingo · 30s Disabled</span>
+    <!-- Mode Switcher: 1M vs 30S -->
+    <div class="mode-switch-group">
+      <button class="mode-btn active" id="btn-mode-1m" onclick="setGameMode('WinGo_1M')">
+        <span class="mode-dot"></span>
+        <span>WinGo 1M</span>
+        <span class="mode-tag">60s</span>
+      </button>
+      <button class="mode-btn" id="btn-mode-30s" onclick="setGameMode('WinGo_30S')">
+        <span class="mode-dot"></span>
+        <span>WinGo 30S</span>
+        <span class="mode-tag">30s</span>
+      </button>
     </div>
+
     <button id="btn" onclick="toggle()">▶ Start Live</button>
     <div class="status-container">
       <span class="dot" id="dot"></span>
@@ -638,9 +698,9 @@
       <div class="card">
         <h2>
           <span>Live Round</span>
-          <span style="color:var(--green);font-size:10px;">1M ONLINE FEED</span>
+          <span style="color:var(--green);font-size:10px;" id="feed-badge">1M ONLINE FEED</span>
         </h2>
-        <div class="timer-box">
+        <div class="timer-box" id="timer-box">
           <div class="timer" id="timer">--</div>
           <div class="period" id="period">waiting for API…</div>
         </div>
@@ -723,7 +783,7 @@
     <div class="card" style="margin-bottom:14px;">
       <h2>
         <span>Color Prediction Records</span>
-        <span style="color:var(--blue);font-size:10px;">SESSION TELEMETRY</span>
+        <span style="color:var(--blue);font-size:10px;" id="hist-mode-badge">1M SESSION TELEMETRY</span>
       </h2>
 
       <div class="stat-row">
@@ -752,7 +812,7 @@
       <div style="font-size:11px;color:var(--muted);margin-bottom:12px;" id="h-baseline"></div>
 
       <div style="display:flex;gap:8px;align-items:center;">
-        <button class="btn-clear" onclick="clearLog()">🔄 Clear History & Re-Sync</button>
+        <button class="btn-clear" onclick="clearLog()">🔄 Clear Mode History & Re-Sync</button>
       </div>
     </div>
 
@@ -777,17 +837,25 @@
   </div>
 
   <div style="text-align:center;color:var(--dim);font-size:10px;font-family:var(--font-mono);margin-top:16px;">
-    Live data: draw.ar-lottery01.com (WinGo 1M) · JASH VIP Ultimate 6-Engine Dynamic Ensemble
+    Live data: draw.ar-lottery01.com (WinGo 1M & 30S) · JASH VIP Ultimate 6-Engine Dynamic Ensemble
   </div>
 </div>
 
 <script>
 'use strict';
 
-// ── FIXED 1-MIN WINGO ONLY (NO 30S) ────────────────────────
-const API = () => `https://draw.ar-lottery01.com/WinGo/WinGo_1M/GetHistoryIssuePage.json?_t=${Date.now()}`;
-const KEY = 'wingo_1m_color_history_v2';
-const DRAW_CACHE_KEY = 'wingo_1m_draw_cache_v2';
+// ── DUAL GAME MODE SUPPORT: 1M & 30S ────────────────────────
+let currentMode = localStorage.getItem('JASH_V1_GAME_MODE') || 'WinGo_1M';
+
+const API = () => `https://draw.ar-lottery01.com/WinGo/${currentMode}/GetHistoryIssuePage.json?_t=${Date.now()}`;
+
+function getStorageKeys() {
+  const suffix = (currentMode === 'WinGo_30S') ? '30s' : '1m';
+  return {
+    key: `wingo_${suffix}_color_history_v2`,
+    cache: `wingo_${suffix}_draw_cache_v2`
+  };
+}
 
 let live = false, hist = [], tId = null, fId = null;
 let log = [], pending = null, loggedSet = new Set();
@@ -984,7 +1052,8 @@ function predict(h) {
     else break;
   }
 
-  let regimeName = 'NEXA DYNAMIC ENSEMBLE';
+  const speedTag = (currentMode === 'WinGo_30S') ? '30S' : '1M';
+  let regimeName = `${speedTag} NEXA ENSEMBLE`;
   if (streak >= 3) regimeName = `⚡ ${streak}X ${colors[0]} DRAGON CONTINUUM`;
   else if (alt >= 3) regimeName = `⚡ ${alt}X ZIGZAG HARMONIC CHOP`;
   else if (colors.length >= 4 && colors[0] === colors[1] && colors[2] === colors[3]) regimeName = `🛡️ 2-2 DOUBLET TRAJECTORY`;
@@ -1017,7 +1086,6 @@ function audit(h) {
       res[k].tested++;
       if (m[k] === actual) res[k].correct++;
     }
-    // Nexa consensus
     const n = (m.titan === 'GREEN' ? 1.35 : 0) + (m.radhe === 'GREEN' ? 1.45 : 0) + (m.markov === 'GREEN' ? 1.5 : 0);
     const nVote = n >= 2.1 ? 'GREEN' : 'RED';
     res.nexa.tested++;
@@ -1033,30 +1101,73 @@ function incIssue(s) {
 }
 
 function loadLog() {
+  const { key, cache } = getStorageKeys();
   try {
-    const raw = JSON.parse(localStorage.getItem(KEY)) || [];
-    // Filter out any 30s issues that may have slipped in previously
-    log = raw.filter(x => !String(x.issue).includes('10005'));
+    log = JSON.parse(localStorage.getItem(key)) || [];
   } catch (e) { log = []; }
   loggedSet = new Set(log.map(x => String(x.issue)));
 
-  // Load cached rolling draws if present
   try {
-    const cached = JSON.parse(localStorage.getItem(DRAW_CACHE_KEY)) || [];
-    if (cached.length) hist = cached;
-  } catch (e) {}
+    const cached = JSON.parse(localStorage.getItem(cache)) || [];
+    hist = cached;
+  } catch (e) { hist = []; }
 }
 
 function saveLog() {
-  try { localStorage.setItem(KEY, JSON.stringify(log.slice(0, 500))); } catch (e) {}
+  const { key } = getStorageKeys();
+  try { localStorage.setItem(key, JSON.stringify(log.slice(0, 500))); } catch (e) {}
 }
 
 function clearLog() {
+  const { key } = getStorageKeys();
   log = [];
   loggedSet.clear();
   pending = null;
-  try { localStorage.removeItem(KEY); } catch (e) {}
+  try { localStorage.removeItem(key); } catch (e) {}
   renderHistory();
+}
+
+// ── MODE SWITCHER LOGIC ─────────────────────────────────────
+function setGameMode(mode) {
+  if (currentMode === mode) return;
+  currentMode = mode;
+  localStorage.setItem('JASH_V1_GAME_MODE', currentMode);
+
+  // Update button active state
+  const btn1m = document.getElementById('btn-mode-1m');
+  const btn30s = document.getElementById('btn-mode-30s');
+  const timerBox = document.getElementById('timer-box');
+  const feedBadge = document.getElementById('feed-badge');
+  const histBadge = document.getElementById('hist-mode-badge');
+  const activeBadge = document.getElementById('active-mode-badge');
+
+  if (mode === 'WinGo_30S') {
+    btn1m.classList.remove('active');
+    btn30s.classList.add('active', 'mode-30s');
+    timerBox.classList.add('is-30s');
+    feedBadge.textContent = '30S ONLINE FEED';
+    feedBadge.style.color = 'var(--red)';
+    histBadge.textContent = '30S SESSION TELEMETRY';
+    activeBadge.textContent = '30S FAST MODE';
+    activeBadge.style.borderColor = 'rgba(255, 51, 102, 0.4)';
+    activeBadge.style.color = 'var(--red)';
+  } else {
+    btn30s.classList.remove('active', 'mode-30s');
+    btn1m.classList.add('active');
+    timerBox.classList.remove('is-30s');
+    feedBadge.textContent = '1M ONLINE FEED';
+    feedBadge.style.color = 'var(--green)';
+    histBadge.textContent = '1M SESSION TELEMETRY';
+    activeBadge.textContent = '1M OFFICIAL MODE';
+    activeBadge.style.borderColor = 'rgba(0, 245, 160, 0.4)';
+    activeBadge.style.color = 'var(--green)';
+  }
+
+  pending = null;
+  loadLog();
+  tick();
+  renderHistory();
+  fetchHist();
 }
 
 // ── MULTI-DRAW ACCUMULATOR & API SYNC ───────────────────────
@@ -1067,7 +1178,7 @@ async function fetchHist() {
     const list = j?.data?.list || [];
     if (!list.length) return;
 
-    // Merge with existing rolling history to keep 50 draws in memory
+    const { cache } = getStorageKeys();
     const map = new Map();
     hist.forEach(item => map.set(String(item.issue), item));
     list.forEach(x => {
@@ -1086,7 +1197,7 @@ async function fetchHist() {
       catch (e) { return Number(b.issue) - Number(a.issue); }
     }).slice(0, 50);
 
-    try { localStorage.setItem(DRAW_CACHE_KEY, JSON.stringify(hist)); } catch (e) {}
+    try { localStorage.setItem(cache, JSON.stringify(hist)); } catch (e) {}
 
     resolvePending();
     makePending();
@@ -1130,13 +1241,15 @@ function makePending() {
   pending = { issue: next, pred: r.pred, digits: r.topDigits, time: new Date().toLocaleTimeString() };
 }
 
-// ── 1-MINUTE TIMER & RENDERING ──────────────────────────────
+// ── ADAPTIVE TIMER & RENDERING ──────────────────────────────
 function tick() {
-  const left = 60 - (Math.floor(Date.now() / 1000) % 60);
+  const interval = (currentMode === 'WinGo_30S') ? 30 : 60;
+  const left = interval - (Math.floor(Date.now() / 1000) % interval);
   const el = document.getElementById('timer');
   el.textContent = left + 's';
-  el.className = 'timer' + (left <= 5 ? ' low' : '');
-  if (left <= 1 || left === 58) fetchHist();
+  const threshold = (interval === 30) ? 4 : 5;
+  el.className = 'timer' + (left <= threshold ? ' low' : '');
+  if (left <= 1 || left === (interval - 2)) fetchHist();
 }
 
 function render() {
@@ -1215,7 +1328,7 @@ function render() {
   }
   document.getElementById('audit').innerHTML = rows || '<tr><td colspan="5" style="text-align:center;color:var(--muted)">calculating matrix telemetry…</td></tr>';
   document.getElementById('verdict').textContent = any
-    ? `${beats} of ${any} engines currently beating the 50% chance baseline. Nexa dynamically suppresses underperforming models.`
+    ? `${beats} of ${any} engines currently beating the 50% baseline on ${currentMode === 'WinGo_30S' ? '30S' : '1M'}. Nexa Bayesian weights suppress lagging models.`
     : '';
 }
 
@@ -1239,9 +1352,10 @@ function renderHistory() {
   document.getElementById('h-streak').textContent = log.length ? cur : '0';
   document.getElementById('h-streak').className = cur > 0 ? 'g' : 'r';
 
+  const modeTag = currentMode === 'WinGo_30S' ? 'WinGo 30S' : 'WinGo 1M';
   document.getElementById('h-baseline').textContent = log.length
-    ? `${wins}W / ${losses}L · ${(rate - 50 >= 0 ? '+' : '')}${(rate - 50).toFixed(1)} pts vs 50% baseline on 1M RED/GREEN.`
-    : 'No 1M rounds logged yet.';
+    ? `${wins}W / ${losses}L · ${(rate - 50 >= 0 ? '+' : '')}${(rate - 50).toFixed(1)} pts vs 50% baseline on ${modeTag}.`
+    : `No ${modeTag} rounds logged yet.`;
 
   const body = document.getElementById('hist-body');
   if (!log.length && !pending) {
@@ -1298,7 +1412,7 @@ function toggle() {
     btn.style.background = 'linear-gradient(135deg, var(--red), #c02020)';
     fetchHist();
     tId = setInterval(tick, 250);
-    fId = setInterval(fetchHist, 3500);
+    fId = setInterval(fetchHist, currentMode === 'WinGo_30S' ? 2000 : 3500);
   } else {
     dot.classList.remove('live');
     btn.textContent = '▶ Start Live';
@@ -1311,6 +1425,9 @@ function toggle() {
 
 // ── INIT ────────────────────────────────────────────────────
 loadLog();
+if (currentMode === 'WinGo_30S') {
+  setGameMode('WinGo_30S');
+}
 toggle(); // Auto-start on load
 </script>
 </body>
