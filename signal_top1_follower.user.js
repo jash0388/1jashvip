@@ -786,7 +786,8 @@
 
     if (plusBtn) {
       let attempts = 0;
-      while (attempts < 120) {
+      const maxAttempts = Math.max(300, targetAmount + 25);
+      while (attempts < maxAttempts) {
         curTotal = getDisplayedTotalAmount(popup);
         if (curTotal !== null) {
           if (curTotal === targetAmount) break;
@@ -806,7 +807,7 @@
           }
         }
         attempts++;
-        await new Promise(r => setTimeout(r, 20));
+        await new Promise(r => setTimeout(r, 15));
       }
     }
 
