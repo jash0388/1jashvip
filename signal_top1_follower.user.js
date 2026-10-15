@@ -367,34 +367,28 @@
     };
   }
 
-  // ── 4. SELF-HEALING SIGNAL LEVEL RESOLVER ─────────────────
-  function getSelfHealingSignalLevel(list) {
-    if (!list || list.length < 4) return Math.min(3, Math.max(1, martingaleStep + 1));
-    const chron = list.slice().reverse();
-    let lvl = 1;
-    let lastP = null;
-    for (let i = 3; i < chron.length; i++) {
-      const sub = chron.slice(0, i).reverse();
-      const res = calculateCombinedPrediction(sub, lvl);
-      if (lastP) {
-        const actual = getSize(chron[i - 1].number);
-        if (lastP === actual) lvl = 1;
-        else {
-          lvl++;
-          if (lvl > 3) lvl = 1;
+  // ── 4. DETERMINISTIC SIGNAL LEVEL RESOLVER ───────────────
+  function resolveLevel(list) {
+    if (!list || list.length < 3) return 1;
+    try {
+      const prior = list.slice(1);
+      if (prior.length >= 3) {
+        const pred = calculateCombinedPrediction(prior, 1);
+        if (pred) {
+          const actual = getSize(list[0].number);
+          if (pred.prediction === actual) return 1;
+          const priorPrior = list.slice(2);
+          if (priorPrior.length >= 3) {
+            const pred2 = calculateCombinedPrediction(priorPrior, 1);
+            if (pred2 && pred2.prediction !== getSize(list[1].number)) {
+              return 3;
+            }
+          }
+          return 2;
         }
       }
-      if (res) lastP = res.prediction;
-    }
-    const actualLatest = getSize(chron[chron.length - 1].number);
-    if (lastP) {
-      if (lastP === actualLatest) lvl = 1;
-      else {
-        lvl++;
-        if (lvl > 3) lvl = 1;
-      }
-    }
-    return lvl;
+    } catch (e) {}
+    return 1;
   }
 
   // ── 5. PERSISTENT DRAW HISTORY & SERVER INTERCEPTION ──────
@@ -404,6 +398,16 @@
   let isFetching = false;
   let lastFetchedTime = 0;
 
+  function isDrawMatchingMode(issueNumber, mode) {
+    const s = String(issueNumber || '').trim();
+    if (!s) return false;
+    if (mode === '1M') {
+      return s.includes('10001') || (!s.includes('10005') && !s.includes('10003'));
+    } else {
+      return s.includes('10005') || s.includes('10003');
+    }
+  }
+
   function ingestDrawList(list) {
     if (!Array.isArray(list) || list.length === 0) return;
     list.forEach(item => {
@@ -411,6 +415,8 @@
       const numRaw = item.number != null ? item.number : (item.lotteryResults != null ? item.lotteryResults : item.result);
       const num = parseInt(numRaw, 10);
       if (!/^\d+$/.test(issue) || isNaN(num)) return;
+      if (!isDrawMatchingMode(issue, GAME_MODE)) return; // Strictly isolate 1M vs 30S draws!
+
       DRAW_HISTORY_MAP.set(issue, {
         issueNumber: issue,
         period: issue,
@@ -442,6 +448,7 @@
 
     checkAllPendingBets();
     updateMasterSignal();
+    syncLiveServerPrediction();
     updateHud();
   }
 
@@ -573,25 +580,89 @@
   setInterval(scrapeDomLottery, 1500);
   fetchDrawHistory();
 
-  // ── 6. MASTER SIGNAL STATE MACHINE ────────────────────────
+  // ── 6. LIVE VERCEL SERVER SYNC & LOCAL DETERMINISTIC FALLBACK ──
   let CURRENT_SIGNAL_PREDICTION = null;
   let LAST_SYNCED_PERIOD = null;
+  let isSyncingServer = false;
+
+  async function syncLiveServerPrediction() {
+    if (isSyncingServer) return;
+    isSyncingServer = true;
+    try {
+      const modeParam = (GAME_MODE === '30S') ? '30S' : '1M';
+      const url = `https://jashvip.vercel.app/api/prediction?mode=${modeParam}&_t=${Date.now()}`;
+
+      const handleServerResponse = (j) => {
+        isSyncingServer = false;
+        if (j && j.success && j.prediction && j.nextPeriod) {
+          CURRENT_SIGNAL_PREDICTION = {
+            prediction: j.prediction,
+            patternType: j.patternType || 'consensus',
+            patternLabel: j.patternLabel || `${j.prediction} SIGNAL`,
+            confidence: j.confidence || 82,
+            guardLevel: j.activeLevel || 1,
+            models: j.models,
+            latestIssue: j.latestIssue,
+            nextPeriod: j.nextPeriod
+          };
+          updateHud();
+        } else {
+          updateMasterSignal();
+        }
+      };
+
+      if (typeof GM_xmlhttpRequest !== 'undefined') {
+        GM_xmlhttpRequest({
+          method: 'GET',
+          url,
+          timeout: 2800,
+          onload: (res) => {
+            try {
+              handleServerResponse(JSON.parse(res.responseText));
+            } catch (e) {
+              isSyncingServer = false;
+              updateMasterSignal();
+            }
+          },
+          onerror: () => {
+            isSyncingServer = false;
+            updateMasterSignal();
+          },
+          ontimeout: () => {
+            isSyncingServer = false;
+            updateMasterSignal();
+          }
+        });
+        return;
+      }
+
+      const r = await fetch(url);
+      const j = await r.json();
+      handleServerResponse(j);
+    } catch (e) {
+      isSyncingServer = false;
+      updateMasterSignal();
+    }
+  }
 
   function updateMasterSignal() {
     if (!CURRENT_API_DRAWS || CURRENT_API_DRAWS.length < 3) return;
     const top = CURRENT_API_DRAWS[0];
 
-    const activeLvl = getSelfHealingSignalLevel(CURRENT_API_DRAWS);
+    const activeLvl = resolveLevel(CURRENT_API_DRAWS);
     const result = calculateCombinedPrediction(CURRENT_API_DRAWS, activeLvl);
     if (result) {
       if (LAST_SYNCED_PERIOD !== top.issueNumber) {
         LAST_SYNCED_PERIOD = top.issueNumber;
-        console.log(`%c[👑 JASH VIP] 🎯 Synced Next Issue #${result.nextPeriod}: ${result.prediction} (${result.patternLabel}) [Guard Level: L${activeLvl}]`, 'background:#00f5a0;color:#000;font-weight:900;padding:4px 8px;border-radius:4px;');
+        console.log(`%c[👑 JASH VIP] 🎯 Synced Issue #${result.nextPeriod}: ${result.prediction} (${result.patternLabel}) [L${activeLvl}]`, 'background:#00f5a0;color:#000;font-weight:900;padding:4px 8px;border-radius:4px;');
       }
       CURRENT_SIGNAL_PREDICTION = result;
       CURRENT_SIGNAL_PREDICTION.guardLevel = activeLvl;
     }
   }
+
+  setInterval(syncLiveServerPrediction, 2000);
+  syncLiveServerPrediction();
 
   function computePrediction() {
     if (!CURRENT_SIGNAL_PREDICTION) {
