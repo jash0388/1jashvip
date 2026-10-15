@@ -448,7 +448,6 @@
 
     checkAllPendingBets();
     updateMasterSignal();
-    syncLiveServerPrediction();
     updateHud();
   }
 
@@ -580,70 +579,9 @@
   setInterval(scrapeDomLottery, 1500);
   fetchDrawHistory();
 
-  // ── 6. LIVE VERCEL SERVER SYNC & LOCAL DETERMINISTIC FALLBACK ──
+  // ── 6. DETERMINISTIC MASTER SIGNAL STATE MACHINE ──────────
   let CURRENT_SIGNAL_PREDICTION = null;
   let LAST_SYNCED_PERIOD = null;
-  let isSyncingServer = false;
-
-  async function syncLiveServerPrediction() {
-    if (isSyncingServer) return;
-    isSyncingServer = true;
-    try {
-      const modeParam = (GAME_MODE === '30S') ? '30S' : '1M';
-      const url = `https://jashvip.vercel.app/api/prediction?mode=${modeParam}&_t=${Date.now()}`;
-
-      const handleServerResponse = (j) => {
-        isSyncingServer = false;
-        if (j && j.success && j.prediction && j.nextPeriod) {
-          CURRENT_SIGNAL_PREDICTION = {
-            prediction: j.prediction,
-            patternType: j.patternType || 'consensus',
-            patternLabel: j.patternLabel || `${j.prediction} SIGNAL`,
-            confidence: j.confidence || 82,
-            guardLevel: j.activeLevel || 1,
-            models: j.models,
-            latestIssue: j.latestIssue,
-            nextPeriod: j.nextPeriod
-          };
-          updateHud();
-        } else {
-          updateMasterSignal();
-        }
-      };
-
-      if (typeof GM_xmlhttpRequest !== 'undefined') {
-        GM_xmlhttpRequest({
-          method: 'GET',
-          url,
-          timeout: 2800,
-          onload: (res) => {
-            try {
-              handleServerResponse(JSON.parse(res.responseText));
-            } catch (e) {
-              isSyncingServer = false;
-              updateMasterSignal();
-            }
-          },
-          onerror: () => {
-            isSyncingServer = false;
-            updateMasterSignal();
-          },
-          ontimeout: () => {
-            isSyncingServer = false;
-            updateMasterSignal();
-          }
-        });
-        return;
-      }
-
-      const r = await fetch(url);
-      const j = await r.json();
-      handleServerResponse(j);
-    } catch (e) {
-      isSyncingServer = false;
-      updateMasterSignal();
-    }
-  }
 
   function updateMasterSignal() {
     if (!CURRENT_API_DRAWS || CURRENT_API_DRAWS.length < 3) return;
@@ -660,9 +598,6 @@
       CURRENT_SIGNAL_PREDICTION.guardLevel = activeLvl;
     }
   }
-
-  setInterval(syncLiveServerPrediction, 2000);
-  syncLiveServerPrediction();
 
   function computePrediction() {
     if (!CURRENT_SIGNAL_PREDICTION) {
