@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         JASH VIP ULTIMATE AI — WinGo 12-Engine BIG & SMALL Prediction HUD & AutoBet (1M & 30S)
+// @name         JASH VIP ULTIMATE 1 — WinGo 12-Engine BIG & SMALL Prediction HUD & AutoBet (1M & 30S)
 // @namespace    https://github.com/jash0388/jashvip
-// @version      40.0
+// @version      41.0
 // @description  👑 JASH VIP · 100% Exact jashvip.vercel.app Ultimate 12-Engine Consensus (Titan, Radhe, Suresh, Markov, TGX L1-L6, Pain-Pro, Nexa Reversion) + Bulletproof BIG/SMALL AutoBet + Self-Healing Martingale (₹3 -> ₹7 -> ₹14 -> ₹28 -> ₹56) + Real Total Verifier + Zero Early-Loss Settlement + Complete Reset Engine.
 // @match        *://*.dmfirst7.com/*
 // @match        *://*.dmfirst0.com/*
@@ -28,7 +28,7 @@
   window.__JASH_VIP_ULTIMATE_ACTIVE__ = true;
 
   console.log(
-    "%c👑 JASH VIP ULTIMATE AI · 12-ENGINE BIG/SMALL CONSENSUS & BULLETPROOF MARTINGALE ACTIVE",
+    "%c👑 JASH VIP ULTIMATE 1 · 12-ENGINE BIG/SMALL CONSENSUS & BULLETPROOF MARTINGALE ACTIVE",
     "background:linear-gradient(135deg,#00f5a0,#00d9ff,#ff3366);color:#000;font-size:15px;font-weight:900;padding:8px 16px;border-radius:8px;box-shadow:0 0 25px rgba(0,245,160,0.6);"
   );
 
@@ -984,7 +984,7 @@
 
     hud.innerHTML = `
       <div id="j-header-row" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;border-bottom:1px solid rgba(255,255,255,0.08);padding-bottom:6px;cursor:move;">
-        <span style="font-weight:900;font-size:13px;background:linear-gradient(135deg,#00f5a0,#00d9ff,#ff3366);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">👑 JASH VIP · 12-ENG</span>
+        <span style="font-weight:900;font-size:13px;background:linear-gradient(135deg,#00f5a0,#00d9ff,#ff3366);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">👑 JASH VIP ULTIMATE 1</span>
         <div style="display:flex;align-items:center;gap:6px;">
           <span id="j-timer" style="font-weight:900;color:#00f5a0;font-size:13px;font-family:monospace;">--s</span>
           <button id="j-min-btn" style="background:rgba(255,255,255,0.1);border:none;color:#fff;border-radius:4px;font-size:10px;cursor:pointer;padding:2px 6px;">−</button>
