@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         JASH VIP ULTIMATE 1 — WinGo 12-Engine BIG & SMALL Prediction HUD & AutoBet (1M & 30S)
 // @namespace    https://github.com/jash0388/jashvip
-// @version      41.0
+// @version      42.0
 // @description  👑 JASH VIP · 100% Exact jashvip.vercel.app Ultimate 12-Engine Consensus (Titan, Radhe, Suresh, Markov, TGX L1-L6, Pain-Pro, Nexa Reversion) + Bulletproof BIG/SMALL AutoBet + Self-Healing Martingale (₹3 -> ₹7 -> ₹14 -> ₹28 -> ₹56) + Real Total Verifier + Zero Early-Loss Settlement + Complete Reset Engine.
 // @match        *://*.dmfirst7.com/*
 // @match        *://*.dmfirst0.com/*
@@ -57,6 +57,7 @@
     return ((b * 2) + 1) * Math.pow(2, s - 1); // 14, 28, 56, 112, 224, 448...
   }
 
+  let currentEngineLevel = 1;
   let wins            = parseInt(localStorage.getItem('JASH_WINS') || '0', 10);
   let losses          = parseInt(localStorage.getItem('JASH_LOSSES') || '0', 10);
   let martingaleStep  = parseInt(localStorage.getItem('JASH_STEP') || '0', 10);
@@ -119,13 +120,14 @@
     return runs;
   }
 
-  // 1. APEX TITAN CADENCE ENGINE
+  // 1. APEX TITAN CADENCE ENGINE (100% IDENTICAL TO JASHVIP.VERCEL.APP)
   function apexTitanEngine(sizes, lossStreak) {
     const runs = getRuns(sizes);
     const cRun = runs[runs.length - 1];
     const cSide = cRun ? cRun.size : sizes[0];
     const cLen = cRun ? cRun.len : 1;
-    const lastS = sizes[0]; // Most recent element for alternation flip
+    const pRun = runs.length >= 2 ? runs[runs.length - 2] : { size: opp(cSide), len: 0 };
+    const lastS = sizes[sizes.length - 1];
 
     let alt = 0;
     for (let i = runs.length - 1; i >= 0; i--) {
@@ -257,7 +259,7 @@
     return sizes[0] === sizes[1] ? (sizes[0] === 'BIG' ? 'SMALL' : 'BIG') : sizes[0];
   }
 
-  // 6. MASTER COMBINED PREDICTION (IDENTICAL TO JASHVIP.VERCEL.APP)
+  // 6. MASTER COMBINED PREDICTION (100% IDENTICAL TO JASHVIP.VERCEL.APP)
   function calculateCombinedPrediction(list, activeLevel = 1) {
     if (!list || list.length < 3) return null;
 
@@ -279,7 +281,7 @@
 
     const votes = { BIG: 0, SMALL: 0 };
 
-    // Layer 1: Apex Titan Cadence Engine
+    // Layer 1: Apex Titan Cadence Engine (Jash Autobet)
     const titan = apexTitanEngine(sizes, Math.max(0, activeLevel - 1));
     votes[titan.vote] += 3.2;
 
@@ -320,7 +322,7 @@
       }
     }
 
-    // Circuit Breakers & Level Protection
+    // Circuit Breakers & Strict Level Protection
     const isChopZone = (alt >= 3 && activeLevel >= 3);
     let patternType = 'consensus';
     let patternLabel = titan.reg;
@@ -336,13 +338,7 @@
     } else if (isChopZone) {
       patternType = 'zigzag';
       patternLabel = '🛑 CAPITAL SHIELD: CHOP ZONE (FLAT 1X)';
-    } else if (alt >= 4) {
-      // Strong alternation override: flip the most recent side
-      const zigzagPred = opp(sizes[0]);
-      votes[zigzagPred] += 3.5;
-      patternType = 'zigzag';
-      patternLabel = `⚡ ZIGZAG SWITCH (${alt}X)`;
-    } else if (alt === 3) {
+    } else if (alt >= 3) {
       patternType = 'zigzag';
       patternLabel = `⚡ ZIGZAG SWITCH (${alt}X)`;
     } else {
@@ -368,39 +364,9 @@
         suresh,
         markov,
         painPro,
-        nexaVote: nexaVote === 'REV-B' ? 'BIG' : (nexaVote === 'REV-S' ? 'SMALL' : 'BALANCED')
+        nexaVote
       }
     };
-  }
-
-  // ── 4. SELF-HEALING SIGNAL LEVEL RESOLVER ─────────────────
-  function getSelfHealingSignalLevel(list) {
-    if (!list || list.length < 4) return Math.min(3, Math.max(1, martingaleStep + 1));
-    const chron = list.slice().reverse();
-    let lvl = 1;
-    let lastP = null;
-    for (let i = 3; i < chron.length; i++) {
-      const sub = chron.slice(0, i).reverse();
-      const res = calculateCombinedPrediction(sub, lvl);
-      if (lastP) {
-        const actual = getSize(chron[i - 1].number);
-        if (lastP === actual) lvl = 1;
-        else {
-          lvl++;
-          if (lvl > 3) lvl = 1;
-        }
-      }
-      if (res) lastP = res.prediction;
-    }
-    const actualLatest = getSize(chron[chron.length - 1].number);
-    if (lastP) {
-      if (lastP === actualLatest) lvl = 1;
-      else {
-        lvl++;
-        if (lvl > 3) lvl = 1;
-      }
-    }
-    return lvl;
   }
 
   // ── 5. PERSISTENT DRAW HISTORY & SERVER INTERCEPTION ──────
@@ -587,15 +553,14 @@
     if (!CURRENT_API_DRAWS || CURRENT_API_DRAWS.length < 3) return;
     const top = CURRENT_API_DRAWS[0];
 
-    const activeLvl = getSelfHealingSignalLevel(CURRENT_API_DRAWS);
-    const result = calculateCombinedPrediction(CURRENT_API_DRAWS, activeLvl);
+    const result = calculateCombinedPrediction(CURRENT_API_DRAWS, currentEngineLevel);
     if (result) {
       if (LAST_SYNCED_PERIOD !== top.issueNumber) {
         LAST_SYNCED_PERIOD = top.issueNumber;
         console.log(`%c[👑 JASH VIP] 🎯 Synced Next Issue #${result.nextPeriod}: ${result.prediction} (${result.patternLabel}) [Guard Level: L${activeLvl}]`, 'background:#00f5a0;color:#000;font-weight:900;padding:4px 8px;border-radius:4px;');
       }
       CURRENT_SIGNAL_PREDICTION = result;
-      CURRENT_SIGNAL_PREDICTION.guardLevel = activeLvl;
+      CURRENT_SIGNAL_PREDICTION.guardLevel = currentEngineLevel;
     }
   }
 
@@ -700,12 +665,16 @@
       wins++;
       LOSS_STREAK = 0;
       martingaleStep = 0;
+      currentEngineLevel = 1;
+      currentEngineLevel = 1;
       currentBet = getStakeForStep(BASE_BET, 0);
       console.log(`%c🏆 JASH VIP WIN on #${period}! Result=${actualNum} (${outcomeSize}). Reset to Base (₹${BASE_BET})`, 'background:#10b981;color:#fff;font-weight:900;padding:6px;border-radius:4px');
     } else {
       losses++;
       LOSS_STREAK++;
       martingaleStep++;
+      currentEngineLevel++;
+      if (currentEngineLevel > 3) currentEngineLevel = 1;
       currentBet = getStakeForStep(BASE_BET, martingaleStep);
       console.log(`%c💀 JASH VIP LOSS on #${period}! Result=${actualNum} (${outcomeSize}). Streak=${LOSS_STREAK} Next=₹${currentBet}`, 'background:#ef4444;color:#fff;font-weight:900;padding:6px;border-radius:4px');
     }
@@ -756,7 +725,7 @@
     } catch (e) {}
   }
 
-  // ── 9. REAL TOTAL VERIFIER & STEPPER QUANTITY ENGINE ──────
+  // ── 9. REAL TOTAL VERIFIER & FAST STEPPER QUANTITY ENGINE ──────
   function getDisplayedTotalAmount(popup) {
     const text = popup.innerText || popup.textContent || '';
     const m = text.match(/Total\s*amount\s*[^\d]*(\d+(\.\d+)?)/i);
@@ -769,19 +738,27 @@
     const minusBtn = popup.querySelector('.van-stepper__minus, button.minus, .minus, [class*="minus"]');
     const inp = popup.querySelector('.van-stepper__input, input[type="tel"], input[type="number"], input');
 
-    // Method A: Native text insertion via execCommand if input exists
+    // Method A: Native property setter + events for Vue/Vant reactive v-model
     if (inp) {
       try {
         inp.focus();
-        inp.select();
+        const proto = window.HTMLInputElement.prototype;
+        const nativeSetter = Object.getOwnPropertyDescriptor(proto, 'value')?.set;
+        if (nativeSetter) {
+          nativeSetter.call(inp, String(targetAmount));
+        } else {
+          inp.value = String(targetAmount);
+        }
+        inp.dispatchEvent(new Event('input', { bubbles: true }));
+        inp.dispatchEvent(new Event('change', { bubbles: true }));
+
         document.execCommand('selectAll', false, null);
         document.execCommand('insertText', false, String(targetAmount));
         inp.dispatchEvent(new Event('input', { bubbles: true }));
         inp.dispatchEvent(new Event('change', { bubbles: true }));
-        inp.dispatchEvent(new Event('blur', { bubbles: true }));
         inp.blur();
       } catch (e) {}
-      await new Promise(r => setTimeout(r, 60));
+      await new Promise(r => setTimeout(r, (GAME_MODE === '30S') ? 35 : 60));
     }
 
     // Method B: Physical stepper verification against rendered "Total amount"
@@ -793,6 +770,7 @@
     if (plusBtn) {
       let attempts = 0;
       const maxAttempts = Math.max(300, targetAmount + 25);
+      const stepDelay = (GAME_MODE === '30S') ? 8 : 12;
       while (attempts < maxAttempts) {
         curTotal = getDisplayedTotalAmount(popup);
         if (curTotal !== null) {
@@ -803,7 +781,6 @@
             triggerFullClick(minusBtn);
           }
         } else {
-          // If total text cannot be parsed, step input.value directly
           let curVal = parseInt(inp ? inp.value : '1', 10) || 1;
           if (curVal === targetAmount) break;
           if (curVal < targetAmount) {
@@ -813,61 +790,56 @@
           }
         }
         attempts++;
-        await new Promise(r => setTimeout(r, 15));
+        await new Promise(r => setTimeout(r, stepDelay));
       }
     }
 
-    await new Promise(r => setTimeout(r, 50));
+    await new Promise(r => setTimeout(r, (GAME_MODE === '30S') ? 25 : 50));
     return true;
   }
 
   // ── 10. BULLETPROOF BIG / SMALL BET PLACEMENT ENGINE ───────
   async function executeBet(size, amount) {
     const target = size.trim().toUpperCase(); // "BIG" or "SMALL"
-    console.log(`%c[👑 JASH VIP] 🎯 PLACING BET: ${target} ₹${amount} (Streak: ${LOSS_STREAK}, Step: ${martingaleStep})`, 'background:linear-gradient(90deg,#00f5a0,#00d9ff);color:#000;font-weight:bold;padding:6px 14px;font-size:13px;border-radius:4px');
+    console.log(`%c[👑 JASH VIP] 🎯 PLACING BET: ${target} ₹${amount} (Streak: ${LOSS_STREAK}, Step: ${martingaleStep}) [${GAME_MODE}]`, 'background:linear-gradient(90deg,#00f5a0,#00d9ff);color:#000;font-weight:bold;padding:6px 14px;font-size:13px;border-radius:4px');
 
-    // 0. Clean up any open popup
-    const openPopups = Array.from(document.querySelectorAll('.van-popup, .popup')).filter(e => !e.closest('#jash-hud') && e.offsetHeight > 40);
+    // 0. Clean up any open popup or overlay
+    const openPopups = Array.from(document.querySelectorAll('.van-popup, .popup, [class*="popup"], [class*="dialog"]')).filter(e => !e.closest('#jash-hud') && e.offsetHeight > 40);
     for (const pop of openPopups) {
       const cancelBtn = Array.from(pop.querySelectorAll('button, div, span, p')).find(e => (e.textContent || '').trim().toLowerCase() === 'cancel');
       if (cancelBtn) {
         triggerFullClick(cancelBtn);
-        await new Promise(r => setTimeout(r, 120));
+        await new Promise(r => setTimeout(r, 80));
       }
     }
 
-    // 1. Locate Big or Small button on main WinGo board
-    const allEls = Array.from(document.querySelectorAll('div, button, span, uni-view, p')).filter(e => {
+    // 1. Locate Big or Small button on main WinGo board (NEVER exclude .tab-content or .list!)
+    const allEls = Array.from(document.querySelectorAll('div, button, span, uni-view, uni-button, p')).filter(e => {
       if (e.closest('#jash-hud')) return false;
-      if (e.closest('.history, [class*="history"], [class*="record"], table, .list, [class*="list"], .record-list, .tab-content, .my-history')) return false;
-      return true;
+      if (e.closest('.van-popup, .popup')) return false;
+      if (e.closest('.history, [class*="history"], [class*="record"], table, .record-list, .my-history, [class*="GameRecord"]')) return false;
+      return e.offsetWidth > 25 && e.offsetHeight > 18;
     });
+
+    const regexExact = target === 'BIG' ? /^(big|大)(\s*[12]\.?\d*x?)?$/i : /^(small|小)(\s*[12]\.?\d*x?)?$/i;
 
     let targetBtn = allEls.find(e => {
-      const txt = (e.textContent || '').trim().toUpperCase();
-      return (txt === target || txt === `${target} 2X` || txt === `${target}2X` || txt === `${target} 1.96X` || txt === `${target} 1.98X`) && e.children.length <= 1;
+      const txt = (e.innerText || e.textContent || '').trim().replace(/\s+/g, ' ');
+      return regexExact.test(txt);
     });
 
     if (!targetBtn) {
-      targetBtn = allEls.find(e => {
-        const txt = (e.textContent || '').trim().toUpperCase();
-        return txt === target;
-      });
-    }
-
-    if (!targetBtn) {
-      const regex = target === 'BIG' ? /^(big|大)(\s*[12]\.?\d*x)?$/i : /^(small|小)(\s*[12]\.?\d*x)?$/i;
-      targetBtn = allEls.find(e => {
-        const txt = (e.textContent || '').trim();
-        return regex.test(txt) && e.offsetHeight > 20 && e.offsetWidth > 30;
-      });
-    }
-
-    if (!targetBtn) {
-      const clsTarget = target === 'BIG' ? /big/i : /small/i;
+      const clsRegex = target === 'BIG' ? /\b(big|btn-big|bet-big|bet_big)\b/i : /\b(small|btn-small|bet-small|bet_small)\b/i;
       targetBtn = allEls.find(e => {
         const c = e.className || '';
-        return typeof c === 'string' && clsTarget.test(c) && e.offsetHeight > 20 && e.offsetWidth > 30;
+        return typeof c === 'string' && clsRegex.test(c);
+      });
+    }
+
+    if (!targetBtn) {
+      targetBtn = allEls.find(e => {
+        const txt = (e.innerText || e.textContent || '').trim();
+        return (target === 'BIG' ? /^big\b/i.test(txt) : /^small\b/i.test(txt)) && txt.length <= 15;
       });
     }
 
@@ -876,15 +848,21 @@
       return false;
     }
 
+    try { targetBtn.scrollIntoView({ block: 'nearest', inline: 'nearest' }); } catch (e) {}
+
     triggerFullClick(targetBtn);
-    await new Promise(r => setTimeout(r, 350));
+    const parentClickable = targetBtn.closest('button, [role="button"], uni-button, .van-button');
+    if (parentClickable && parentClickable !== targetBtn) {
+      triggerFullClick(parentClickable);
+    }
+    await new Promise(r => setTimeout(r, (GAME_MODE === '30S') ? 120 : 250));
 
     // Wait for the popup modal to open
     let popup = null;
-    for (let wait = 0; wait < 10; wait++) {
-      popup = Array.from(document.querySelectorAll('.van-popup, .popup')).find(p => p.offsetHeight > 50 && !p.closest('#jash-hud'));
+    for (let wait = 0; wait < 14; wait++) {
+      popup = Array.from(document.querySelectorAll('.van-popup, .popup, [class*="popup"], [class*="dialog"]')).find(p => p.offsetHeight > 50 && !p.closest('#jash-hud'));
       if (popup) break;
-      await new Promise(r => setTimeout(r, 100));
+      await new Promise(r => setTimeout(r, 60));
     }
     if (!popup) {
       console.warn('[JASH VIP] ❌ Bet popup did not open!');
@@ -892,14 +870,14 @@
     }
 
     // 2. Ensure Balance chip "1" is active (multiplier = 1x base)
-    const balanceChips = Array.from(popup.querySelectorAll('div, span, button')).filter(e => {
+    const balanceChips = Array.from(popup.querySelectorAll('div, span, button, uni-view')).filter(e => {
       const t = (e.textContent || '').trim();
       return ['1', '10', '100', '1000'].includes(t) && e.children.length === 0;
     });
     const chip1 = balanceChips.find(e => (e.textContent || '').trim() === '1');
     if (chip1) {
       triggerFullClick(chip1);
-      await new Promise(r => setTimeout(r, 60));
+      await new Promise(r => setTimeout(r, (GAME_MODE === '30S') ? 30 : 60));
     }
 
     // 3. Set Quantity with Real Total Verification
@@ -911,27 +889,28 @@
       const isChecked = agreeBox.classList.contains('van-checkbox--checked') || agreeBox.getAttribute('aria-checked') === 'true';
       if (!isChecked) {
         triggerFullClick(agreeBox);
-        await new Promise(r => setTimeout(r, 60));
+        await new Promise(r => setTimeout(r, (GAME_MODE === '30S') ? 30 : 60));
       }
     }
 
     // 5. Submit Bet (Confirm Button)
-    const allPopupEls = Array.from(popup.querySelectorAll('*')).filter(e => !e.closest('#jash-hud'));
-    const totalEls = allPopupEls.filter(e => {
-      const t = (e.textContent || '').trim();
-      return /Total\s*amount/i.test(t) && !/Cancel/i.test(t) && t.length <= 40;
-    });
-
-    let confirmBtn = null;
-    confirmBtn = totalEls.find(e => e.tagName === 'BUTTON' || e.classList.contains('van-button') || e.getAttribute('role') === 'button');
-    if (!confirmBtn && totalEls.length > 0) {
-      confirmBtn = totalEls[totalEls.length - 1];
-    }
+    let confirmBtn = popup.querySelector('button[class*="submit"], button[class*="confirm"], .van-button--danger, .van-button--primary, [class*="btn-confirm"], [class*="btn-submit"]');
     if (!confirmBtn) {
-      confirmBtn = allPopupEls.find(e => {
+      const allPopupEls = Array.from(popup.querySelectorAll('*')).filter(e => !e.closest('#jash-hud'));
+      const totalEls = allPopupEls.filter(e => {
         const t = (e.textContent || '').trim();
-        return /^(Confirm|Submit|Order|Buy|Bet|Presale|Pre-sale|立即投注)$/i.test(t) && !/Cancel/i.test(t);
+        return /Total\s*amount/i.test(t) && !/Cancel/i.test(t) && t.length <= 40;
       });
+      confirmBtn = totalEls.find(e => e.tagName === 'BUTTON' || e.classList.contains('van-button') || e.getAttribute('role') === 'button');
+      if (!confirmBtn && totalEls.length > 0) {
+        confirmBtn = totalEls[totalEls.length - 1];
+      }
+      if (!confirmBtn) {
+        confirmBtn = allPopupEls.find(e => {
+          const t = (e.textContent || '').trim();
+          return /^(Confirm|Submit|Order|Buy|Bet|Presale|Pre-sale|立即投注)$/i.test(t) && !/Cancel/i.test(t);
+        });
+      }
     }
 
     if (!confirmBtn) {
@@ -948,12 +927,27 @@
     }
     try { confirmBtn.click(); } catch (e) {}
 
-    await new Promise(r => setTimeout(r, 300));
+    await new Promise(r => setTimeout(r, (GAME_MODE === '30S') ? 150 : 300));
     return true;
   }
 
   // ── 11. TIME UTILITIES (ADAPTIVE 1M & 30S) ─────────────────
   function getTimerSeconds() {
+    // 1. Scrape actual countdown from DOM if present (100% real-time sync with site)
+    try {
+      const cdEls = document.querySelectorAll('.van-count-down, [class*="countdown"], [class*="count-down"], [class*="time_box"], [class*="timeBox"], [class*="clock"], [class*="time"]');
+      for (const el of cdEls) {
+        if (el.closest('#jash-hud')) continue;
+        const text = (el.textContent || '').replace(/\s+/g, '');
+        const m = text.match(/(\d{1,2}):(\d{2})/);
+        if (m) {
+          const sec = parseInt(m[1], 10) * 60 + parseInt(m[2], 10);
+          if (!isNaN(sec) && sec >= 0 && sec <= 300) return sec;
+        }
+      }
+    } catch (e) {}
+
+    // Fallback: Clock-based modulo
     const iv = (GAME_MODE === '30S') ? 30 : 60;
     return iv - (Math.floor(Date.now() / 1000) % iv);
   }
@@ -992,11 +986,11 @@
       </div>
 
       <div id="j-main-body">
-        <div style="display:flex;gap:4px;margin-bottom:8px;">
-          <button id="j-mode-btn" title="Click to toggle between 1M and 30S" style="flex:2;padding:5px 0;background:rgba(0,245,160,0.12);border:1px solid rgba(0,245,160,0.35);border-radius:6px;color:#00f5a0;font-weight:900;font-size:10px;text-align:center;cursor:pointer;transition:all 0.2s;">
+        <div style="display:flex;gap:5px;margin-bottom:8px;">
+          <button id="j-mode-btn" title="Click to toggle between 1M and 30S" style="flex:1.6;padding:6px 0;background:rgba(0,245,160,0.12);border:1px solid rgba(0,245,160,0.35);border-radius:6px;color:#00f5a0;font-weight:900;font-size:10px;text-align:center;cursor:pointer;transition:all 0.2s;">
             <span id="j-mode-text">${GAME_MODE === '30S' ? '🔥 WINGO 30S' : '⚡ WINGO 1M'}</span> <span style="font-size:8px;opacity:0.75">(TOGGLE)</span>
           </button>
-          <button id="j-reset-btn" title="Complete Reset: streak, steps, stats, storage" style="flex:1;padding:5px 0;background:rgba(239,68,68,0.2);border:1px solid rgba(239,68,68,0.5);border-radius:6px;color:#fca5a5;font-weight:bold;font-size:10px;cursor:pointer;">
+          <button id="j-reset-top-btn" title="Complete Reset: streak, steps, stats, storage" style="flex:1;padding:6px 0;background:rgba(239,68,68,0.22);border:1.5px solid rgba(239,68,68,0.6);border-radius:6px;color:#fca5a5;font-weight:900;font-size:10px;cursor:pointer;box-shadow:0 0 10px rgba(239,68,68,0.2);">
             🔄 RESET
           </button>
         </div>
@@ -1060,11 +1054,21 @@
           <span>Score: <b id="j-score-lbl" style="color:#00f5a0;">${wins}W</b> / <b style="color:#ff3366;">${losses}L</b></span>
         </div>
 
-        <button id="j-toggle-btn" style="width:100%;padding:8px 0;background:linear-gradient(135deg,#00f5a0,#00d9ff);border:none;border-radius:8px;color:#000;font-weight:900;font-size:11px;cursor:pointer;box-shadow:0 0 15px rgba(0,245,160,0.4);transition:all 0.2s;">
-          ▶ START AUTOBET
-        </button>
+        <!-- Action Bar with prominent START AUTOBET and RESET buttons -->
+        <div style="display:flex;gap:6px;margin-bottom:8px;">
+          <button id="j-toggle-btn" style="flex:1.8;padding:9px 0;background:linear-gradient(135deg,#00f5a0,#00d9ff);border:none;border-radius:8px;color:#000;font-weight:900;font-size:11px;cursor:pointer;box-shadow:0 0 15px rgba(0,245,160,0.4);transition:all 0.2s;">
+            ▶ START AUTOBET
+          </button>
+          <button id="j-reset-btn" title="Complete Reset: streak, steps, stats, storage" style="flex:1.2;padding:9px 0;background:rgba(239,68,68,0.28);border:1.5px solid rgba(239,68,68,0.7);border-radius:8px;color:#fca5a5;font-weight:900;font-size:11px;cursor:pointer;box-shadow:0 0 12px rgba(239,68,68,0.3);transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:3px;">
+            🔄 RESET
+          </button>
+        </div>
 
-        <div id="j-feed-box" style="margin-top:8px;max-height:85px;overflow-y:auto;font-size:9px;font-family:monospace;border-top:1px solid rgba(255,255,255,0.08);padding-top:4px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;border-top:1px solid rgba(255,255,255,0.08);padding-top:4px;">
+          <span style="font-size:9px;color:#94a3b8;font-weight:bold;">ACTIVITY LOG</span>
+          <button id="j-clear-btn" style="background:none;border:none;color:#fca5a5;font-size:9px;cursor:pointer;padding:1px 4px;border-radius:3px;text-decoration:underline;">Clear Log</button>
+        </div>
+        <div id="j-feed-box" style="margin-top:4px;max-height:85px;overflow-y:auto;font-size:9px;font-family:monospace;">
           <div style="color:#64748b;text-align:center;">Feed will appear here</div>
         </div>
       </div>
@@ -1177,11 +1181,12 @@
       updateHud();
     };
 
-    // Complete Reset Button
-    document.getElementById('j-reset-btn').onclick = (e) => {
-      e.stopPropagation();
+    // Complete Reset Triggers (Both Header and Action Bar Buttons)
+    const triggerFullReset = (e) => {
+      if (e) e.stopPropagation();
       LOSS_STREAK = 0;
       martingaleStep = 0;
+      currentEngineLevel = 1;
       currentBet = getStakeForStep(BASE_BET, 0);
       wins = 0;
       losses = 0;
@@ -1203,6 +1208,22 @@
       updateHud();
       console.log(`%c[👑 JASH VIP] 🔄 FULL RESET: Cleared history, streaks, scores, and reset stake to base ₹${BASE_BET}!`, 'background:#ef4444;color:#fff;font-weight:900;padding:6px;border-radius:4px;');
     };
+
+    const rBtn1 = document.getElementById('j-reset-btn');
+    if (rBtn1) rBtn1.onclick = triggerFullReset;
+    const rBtn2 = document.getElementById('j-reset-top-btn');
+    if (rBtn2) rBtn2.onclick = triggerFullReset;
+
+    const clearFeedBtn = document.getElementById('j-clear-btn');
+    if (clearFeedBtn) {
+      clearFeedBtn.onclick = (e) => {
+        if (e) e.stopPropagation();
+        RECORDED_BETS = [];
+        try { localStorage.removeItem('JASH_BETS'); } catch (err) {}
+        persistAll();
+        updateHud();
+      };
+    }
   }
 
   function updateHud() {
@@ -1348,8 +1369,38 @@
       if (activePeriod && PLACED_PERIODS.has(activePeriod)) return;
       if (pred.noData) return;
 
+      // Auto-detect mode from URL and active tabs
+      try {
+        const href = window.location.href || '';
+        if (/WinGo_30S|gameCode=WinGo_30S/i.test(href)) {
+          if (GAME_MODE !== '30S') {
+            GAME_MODE = '30S';
+            persistAll();
+            DRAW_HISTORY_MAP.clear();
+            LOTTERY_HISTORY = [];
+            CURRENT_API_DRAWS = [];
+            CURRENT_SIGNAL_PREDICTION = null;
+            pendingBet = null;
+            updateHud();
+            fetchDrawHistory();
+          }
+        } else if (/WinGo_1M|gameCode=WinGo_1M/i.test(href)) {
+          if (GAME_MODE !== '1M') {
+            GAME_MODE = '1M';
+            persistAll();
+            DRAW_HISTORY_MAP.clear();
+            LOTTERY_HISTORY = [];
+            CURRENT_API_DRAWS = [];
+            CURRENT_SIGNAL_PREDICTION = null;
+            pendingBet = null;
+            updateHud();
+            fetchDrawHistory();
+          }
+        }
+      } catch (e) {}
+
       const canBet = (GAME_MODE === '30S')
-        ? (secondsLeft <= 26 && secondsLeft >= 4)
+        ? (secondsLeft <= 27 && secondsLeft >= 6)
         : (secondsLeft <= 55 && secondsLeft >= 6);
 
       if (canBet && !LOCKED_TIME_BUCKETS.has(currentBucket)) {
@@ -1398,7 +1449,7 @@
       const el = e.target;
       if (!el || el.closest("#jash-hud")) return;
       const txt = (el.textContent || "").trim().toLowerCase();
-      if (/\b(30s|30 second|30秒)\b/i.test(txt) || txt === "30s" || txt === "win go 30s") {
+      if (/(30s|30sec|30\s*sec|30\s*second|30秒|wingo\s*30)/i.test(txt)) {
         if (GAME_MODE !== "30S") {
           console.log("[👑 JASH VIP] Auto-detected switch to 30S tab on game site!");
           GAME_MODE = "30S";
@@ -1411,7 +1462,7 @@
           updateHud();
           fetchDrawHistory();
         }
-      } else if (/\b(1m|1min|1 min|1 minute|1分)\b/i.test(txt) || txt === "1min" || txt === "win go 1min") {
+      } else if (/(1m|1min|1\s*min|1\s*minute|60s|1分|wingo\s*1)/i.test(txt)) {
         if (GAME_MODE !== "1M") {
           console.log("[👑 JASH VIP] Auto-detected switch to 1M tab on game site!");
           GAME_MODE = "1M";
