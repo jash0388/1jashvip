@@ -10,8 +10,8 @@
   <style>
     :root {
       --bg-dark: #05070c;
-      --bg-card: rgba(13, 18, 30, 0.82);
-      --bg-card-hover: rgba(18, 26, 44, 0.92);
+      --bg-card: rgba(13, 18, 30, 0.78);
+      --bg-card-hover: rgba(18, 26, 44, 0.88);
       --line: rgba(255, 255, 255, 0.08);
       --line-bright: rgba(0, 245, 160, 0.35);
       --green: #00f5a0;
@@ -22,7 +22,6 @@
       --yellow-glow: rgba(228, 255, 74, 0.35);
       --red: #ff3366;
       --red-glow: rgba(255, 51, 102, 0.35);
-      --purple: #a855f7;
       --muted: #8393a8;
       --dim: #445166;
       --text: #f0f4fa;
@@ -53,14 +52,15 @@
       background-attachment: fixed;
     }
 
+    /* Ambient cyber grid background */
     .bg-grid {
       position: fixed;
       inset: 0;
       pointer-events: none;
       background-image:
-        linear-gradient(to right, rgba(255, 255, 255, 0.015) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
-      background-size: 28px 28px;
+        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      background-size: 36px 36px;
       z-index: 0;
     }
 
@@ -76,9 +76,26 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      padding: 14px 18px;
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
       margin-bottom: 14px;
-      padding-bottom: 12px;
-      border-bottom: 1px solid var(--line);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .header-bar::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--green), var(--blue), var(--yellow), transparent);
     }
 
     .brand-group {
@@ -88,14 +105,13 @@
     }
 
     .brand-crown {
-      width: 42px;
-      height: 42px;
+      width: 44px;
+      height: 44px;
       border-radius: 12px;
       background: linear-gradient(135deg, rgba(0, 245, 160, 0.2), rgba(0, 217, 255, 0.2));
       border: 1px solid var(--line-bright);
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: grid;
+      place-items: center;
       font-size: 22px;
       box-shadow: 0 0 20px rgba(0, 245, 160, 0.25);
     }
@@ -140,8 +156,10 @@
       flex-wrap: wrap;
       margin-bottom: 14px;
       background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
       border: 1px solid var(--line);
-      border-radius: 14px;
+      border-radius: 16px;
       padding: 10px 14px;
     }
 
@@ -395,19 +413,6 @@
       letter-spacing: 0.05em;
     }
 
-    .pred-digits {
-      display: inline-flex;
-      gap: 6px;
-      margin-top: 8px;
-      padding: 4px 10px;
-      border-radius: 20px;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid var(--line);
-      font-size: 11px;
-      font-family: var(--font-mono);
-      color: var(--green);
-    }
-
     /* Data Key-Value Rows */
     .row {
       display: flex;
@@ -541,29 +546,22 @@
       letter-spacing: 0.04em;
     }
 
-    .badge.WIN, .badge.HOT {
+    .badge.WIN {
       background: rgba(0, 245, 160, 0.15);
       color: var(--green);
       border: 1px solid rgba(0, 245, 160, 0.4);
     }
 
-    .badge.LOSS, .badge.DAMP {
+    .badge.LOSS {
       background: rgba(255, 51, 102, 0.15);
       color: var(--red);
       border: 1px solid rgba(255, 51, 102, 0.4);
     }
 
-    .badge.PEND, .badge.NEUT {
+    .badge.PEND {
       background: rgba(228, 255, 74, 0.15);
       color: var(--yellow);
       border: 1px solid rgba(228, 255, 74, 0.4);
-    }
-
-    .badge.BOOST {
-      background: linear-gradient(135deg, rgba(0, 245, 160, 0.2), rgba(0, 217, 255, 0.2));
-      color: #fff;
-      border: 1px solid rgba(0, 245, 160, 0.6);
-      box-shadow: 0 0 10px rgba(0, 245, 160, 0.3);
     }
 
     .g { color: var(--green) !important; font-weight: 700; }
@@ -636,23 +634,22 @@
     }
 
     .empty {
-      padding: 32px 16px;
       text-align: center;
       color: var(--muted);
-      font-size: 12px;
-      font-family: var(--font-mono);
+      font-size: 13px;
+      padding: 36px 16px;
+      line-height: 1.6;
     }
 
-    .info-card {
-      background: rgba(0, 217, 255, 0.05);
-      border: 1px solid rgba(0, 217, 255, 0.2);
+    .warn {
+      background: rgba(255, 51, 102, 0.08);
+      border: 1px solid rgba(255, 51, 102, 0.3);
       border-radius: 12px;
       padding: 14px;
       font-size: 11px;
-      color: #b5e8fc;
+      color: #ffb3c8;
       margin-top: 14px;
       line-height: 1.6;
-      font-family: var(--font-mono);
     }
 
     .foot {
@@ -679,8 +676,8 @@
     <div class="brand-group">
       <div class="brand-crown">👑</div>
       <div class="brand-text">
-        <h1>JASH VIP · WinGo Max Analyser <span class="badge-v1">v1.0 QUANT</span></h1>
-        <div class="sub">Walk-forward adaptive weighting · harmonic lag cycles · live statistical audit</div>
+        <h1>JASH VIP · WinGo Max Analyser <span class="badge-v1">v1.0</span></h1>
+        <div class="sub">Full heuristic ensemble · live RNG baseline audit · prediction history</div>
       </div>
     </div>
   </div>
@@ -702,8 +699,8 @@
 
   <!-- Tabs -->
   <div class="tabs">
-    <div class="tab active" id="tab-live" onclick="showTab('live')">📊 Live Quant Engine</div>
-    <div class="tab" id="tab-history" onclick="showTab('history')">📜 Telemetry & History</div>
+    <div class="tab active" id="tab-live" onclick="showTab('live')">📊 Live Engine</div>
+    <div class="tab" id="tab-history" onclick="showTab('history')">📜 Prediction History</div>
   </div>
 
   <!-- View: Live Engine -->
@@ -724,15 +721,7 @@
           <b id="last">--</b>
         </div>
         <div class="row">
-          <span>Active Streak</span>
-          <b id="streak">--</b>
-        </div>
-        <div class="row">
-          <span>Alternating Run</span>
-          <b id="alt">--</b>
-        </div>
-        <div class="row">
-          <span>BIG / SMALL Split (24D)</span>
+          <span>BIG / SMALL Split</span>
           <b id="split">--</b>
         </div>
         <div class="chips-section">
@@ -741,62 +730,52 @@
         </div>
       </div>
 
-      <!-- Quant Consensus Prediction Card -->
+      <!-- Ensemble Prediction Card -->
       <div class="card">
         <h2>
-          <span>Adaptive Quant Consensus</span>
-          <span style="color:var(--yellow);font-size:10px;">WALK-FORWARD BOOSTED</span>
+          <span>Ensemble Prediction</span>
+          <span style="color:var(--yellow);font-size:10px;">CONSENSUS VOTE</span>
         </h2>
         <div class="pred">
           <div class="pred-size" id="psize">--</div>
           <div class="pred-lbl" id="plbl">no data yet</div>
-          <div class="pred-digits" id="pdigits">🎯 Target Digits: --</div>
         </div>
         <div class="row">
-          <span>Consensus Confidence</span>
+          <span>Trend Streak</span>
+          <b id="streak">--</b>
+        </div>
+        <div class="row">
+          <span>Alternating Run</span>
+          <b id="alt">--</b>
+        </div>
+        <div class="row">
+          <span>Vote Confidence</span>
           <b id="conf">--</b>
-        </div>
-        <div class="row">
-          <span>Harmonic Cycle (Itachi)</span>
-          <b id="cycle-info" style="color:var(--blue)">--</b>
-        </div>
-        <div class="row">
-          <span>Binomial Z-Score (Itachi)</span>
-          <b id="zscore-info" style="color:var(--green)">--</b>
-        </div>
-        <div class="row">
-          <span>Top Dynamic Engine</span>
-          <b id="top-engine" style="color:var(--yellow)">--</b>
         </div>
       </div>
     </div>
 
-    <!-- Per-Model Accuracy & Dynamic Weighting Audit Table -->
+    <!-- Per-Model Accuracy Audit Table -->
     <div class="card" style="margin-top:14px">
       <h2>
-        <span>Live Quant Audit & Dynamic Adaptive Weights</span>
-        <span style="color:var(--muted);font-size:10px;">WALK-FORWARD BACKTEST (LAST 25)</span>
+        <span>Per-Model Accuracy Audit</span>
+        <span style="color:var(--muted);font-size:10px;">BENCHMARK VS 50% BASELINE</span>
       </h2>
       <div class="table-container">
         <table>
           <thead>
             <tr>
-              <th>Engine / Strategy</th>
-              <th>Sample</th>
-              <th>Live Hit %</th>
-              <th>Dynamic Boost</th>
-              <th>Current Signal</th>
-              <th>Status</th>
+              <th>Engine</th>
+              <th>Tested</th>
+              <th>Hit %</th>
+              <th>vs 50%</th>
+              <th>Verdict</th>
             </tr>
           </thead>
           <tbody id="audit"></tbody>
         </table>
       </div>
       <div id="verdict" class="verdict-box"></div>
-    </div>
-
-    <div class="info-card">
-      💡 <b>How Walk-Forward Weighting Works:</b> Over every draw, the system backtests all 10 independent algorithms over recent rounds. Engines with high hit rates get dynamically boosted up to <b>3.2×</b>, while underperforming engines are suppressed to <b>0.20×</b>. This completely prevents catastrophic loss streaks during market regime flips (e.g. dragon trends vs alternating chop).
     </div>
   </div>
 
@@ -829,7 +808,6 @@
               <th>#</th>
               <th>Period</th>
               <th>Predicted</th>
-              <th>Target Digits</th>
               <th>Actual</th>
               <th>Result</th>
               <th>Time</th>
@@ -840,310 +818,229 @@
         <div class="empty" id="hist-empty">No predictions logged yet. Start Live and let it run — each round will be recorded here automatically.</div>
       </div>
     </div>
+
+    <div class="warn">
+      ⚠️ Over enough rounds your win rate will drift toward ~50%. That is the certified-RNG signature (NIST SP 800-22 / UKGC RTS 7).
+      A short hot streak is variance, not skill. This page is here so you can see that for yourself instead of trusting a feeling.
+    </div>
   </div>
 
   <div class="foot">
-    Live telemetry: draw.ar-lottery01.com · Client-side quant execution · JASH VIP Control Engine
+    Live data: draw.ar-lottery01.com · Saved in your browser only · JASH VIP Control Engine
   </div>
 </div>
 
 <script>
 'use strict';
 const API = g => `https://draw.ar-lottery01.com/WinGo/${g}/GetHistoryIssuePage.json?_t=${Date.now()}`;
-const sizeOf = n => n >= 5 ? 'BIG' : 'SMALL';
-const oppOf  = s => s === 'BIG' ? 'SMALL' : 'BIG';
-const KEY   = 'wingo_history_v1_quant';
+const size = n => n >= 5 ? 'BIG' : 'SMALL';
+const opp  = s => s === 'BIG' ? 'SMALL' : 'BIG';
+const KEY  = 'wingo_history_v2';
 
 let live = false, hist = [], tId = null, fId = null;
 let log = [], pending = null, loggedSet = new Set();
 
-// ── 10 SPECIALIZED QUANT & HEURISTIC ENGINES ─────────────────
-const ENGINES = {
-  // 1. Fibonacci Harmonic Lag Cycles (from ITACHI PRO s2Cycle)
-  cycleHarmonic: {
-    name: 'Harmonic Lag Cycle (Itachi)',
-    base: 2.2,
-    fn: (sizes, nums) => {
-      if (sizes.length < 8) return { pred: sizes[0] || 'BIG', conf: 50, note: 'Warmup' };
-      const lags = [1, 2, 3, 5, 8];
-      let bestLag = 0, bestRate = 0;
-      for (const lag of lags) {
-        if (sizes.length <= lag + 2) continue;
-        let match = 0, total = 0;
-        const lim = Math.min(26, sizes.length);
-        for (let i = lag; i < lim; i++) {
-          total++;
-          if (sizes[i] === sizes[i - lag]) match++;
-        }
-        if (total >= 5) {
-          const rate = match / total;
-          if (rate > bestRate) { bestRate = rate; bestLag = lag; }
-        }
+// ── ADVANCED ENSEMBLE SUITE WITH NEW HIGH-WIN STRATEGIES ─────
+const E = {
+  // Harmonic Lag Cycle (from ITACHI PRO s2Cycle - detects chops & 2-2 doublets)
+  cycle: (s, h) => {
+    if (s.length < 8) return s[0] || 'BIG';
+    const lags = [1, 2, 3, 5, 8];
+    let bestLag = 0, bestRate = 0;
+    for (const lag of lags) {
+      if (s.length <= lag + 2) continue;
+      let match = 0, tot = 0;
+      const lim = Math.min(26, s.length);
+      for (let i = lag; i < lim; i++) {
+        tot++;
+        if (s[i] === s[i - lag]) match++;
       }
-      if (bestRate >= 0.58 && bestLag > 0) {
-        const nextSide = sizes[bestLag - 1];
-        return { pred: nextSide, conf: Math.round(50 + (bestRate - 0.5) * 80), note: `Lag-${bestLag} (${Math.round(bestRate * 100)}%)` };
+      if (tot >= 5) {
+        const rate = match / tot;
+        if (rate > bestRate) { bestRate = rate; bestLag = lag; }
       }
-      return { pred: sizes[0], conf: 50, note: 'Neutral' };
     }
+    return (bestRate >= 0.58 && bestLag > 0) ? s[bestLag - 1] : s[0];
   },
 
-  // 2. Statistical Binomial Z-Score (from ITACHI PRO s3ZScore)
-  zScoreBinomial: {
-    name: 'Binomial Z-Score (Itachi)',
-    base: 1.9,
-    fn: (sizes, nums) => {
-      const N = Math.min(26, sizes.length);
-      if (N < 10) return { pred: sizes[0] || 'BIG', conf: 50, note: 'Warmup' };
-      let big = 0;
-      for (let i = 0; i < N; i++) if (sizes[i] === 'BIG') big++;
-      const pB = big / N;
-      const z = (pB - 0.5) / Math.sqrt(0.25 / N);
-      if (Math.abs(z) >= 1.0) {
-        const pred = Math.abs(z) >= 2.0 ? (z > 0 ? 'SMALL' : 'BIG') : (z > 0 ? 'BIG' : 'SMALL');
-        return { pred, conf: Math.round(50 + Math.min(40, Math.abs(z) * 18)), note: `Z=${z.toFixed(2)}` };
-      }
-      return { pred: pB >= 0.5 ? 'BIG' : 'SMALL', conf: 52, note: `Z=${z.toFixed(2)}` };
-    }
+  // Statistical Binomial Z-Score (from ITACHI PRO s3ZScore)
+  zscore: s => {
+    const N = Math.min(26, s.length);
+    if (N < 10) return s[0] || 'BIG';
+    let big = 0;
+    for (let i = 0; i < N; i++) if (s[i] === 'BIG') big++;
+    const pB = big / N;
+    const z = (pB - 0.5) / Math.sqrt(0.25 / N);
+    if (Math.abs(z) >= 2.0) return z > 0 ? 'SMALL' : 'BIG';
+    return pB >= 0.5 ? 'BIG' : 'SMALL';
   },
 
-  // 3. Exact 3-Digit Historical Triplet Replay (from KUNAL VIP clanStrategy)
-  tripletReplay: {
-    name: 'Triplet Replay (Kunal)',
-    base: 1.7,
-    fn: (sizes, nums) => {
-      if (nums.length < 8) return { pred: sizes[0] || 'BIG', conf: 50, note: 'Warmup' };
-      const key = nums[0] + ',' + nums[1] + ',' + nums[2];
-      let hitNext = null;
-      for (let i = 3; i < nums.length - 2; i++) {
-        if (nums[i] + ',' + nums[i + 1] + ',' + nums[i + 2] === key) {
-          hitNext = nums[i - 1];
-          break;
-        }
+  // 3-Digit Triplet Sequence Memory (from KUNAL VIP clanStrategy)
+  triplet: (s, h) => {
+    if (h.length < 8) return s[0];
+    const key = h[0].num + ',' + h[1].num + ',' + h[2].num;
+    for (let i = 3; i < h.length - 2; i++) {
+      if (h[i].num + ',' + h[i + 1].num + ',' + h[i + 2].num === key) {
+        return h[i - 1].size;
       }
-      if (hitNext !== null) {
-        const pred = sizeOf(hitNext);
-        return { pred, conf: 76, note: `Match [${key}]➔${hitNext}` };
-      }
-      return { pred: sizes[0], conf: 50, note: 'No triplet' };
     }
+    return s[0];
   },
 
-  // 4. Recency EMA Momentum Drift (from REAL_UNDER_BRUTAL_GLASS mDrift)
-  emaDrift: {
-    name: 'Momentum Drift EMA (Brutal)',
-    base: 1.5,
-    fn: (sizes, nums) => {
-      const n = Math.min(22, sizes.length);
-      if (n < 6) return { pred: sizes[0] || 'BIG', conf: 50, note: 'Warmup' };
-      const rev = sizes.slice(0, n).reverse();
-      let a = 0.35, e = 0.5;
-      for (let i = 0; i < rev.length; i++) {
-        e = a * (rev[i] === 'BIG' ? 1 : 0) + (1 - a) * e;
-      }
-      const pred = e >= 0.5 ? 'BIG' : 'SMALL';
-      const conf = Math.round(50 + Math.min(Math.abs(e - 0.5) * 100, 38));
-      return { pred, conf, note: `EMA=${e.toFixed(3)}` };
+  // Recency EMA Momentum Drift (from REAL_UNDER_BRUTAL_GLASS mDrift)
+  drift: s => {
+    const n = Math.min(22, s.length);
+    if (n < 6) return s[0];
+    const rev = s.slice(0, n).reverse();
+    let a = 0.35, e = 0.5;
+    for (let i = 0; i < rev.length; i++) {
+      e = a * (rev[i] === 'BIG' ? 1 : 0) + (1 - a) * e;
     }
+    return e >= 0.5 ? 'BIG' : 'SMALL';
   },
 
-  // 5. Gaussian Digit Mean Deviation (from ITACHI PRO s2Numeric)
-  digitMeanZ: {
-    name: 'Digit Mean Deviation',
-    base: 1.4,
-    fn: (sizes, nums) => {
-      const recent = nums.slice(0, 14);
-      if (recent.length < 6) return { pred: sizes[0] || 'BIG', conf: 50, note: 'Warmup' };
-      const mean = recent.reduce((a, b) => a + b, 0) / recent.length;
-      const variance = recent.reduce((s, n) => s + (n - mean) ** 2, 0) / recent.length;
-      const std = Math.sqrt(variance) || 1;
-      const z = (mean - 4.5) / std;
-      if (Math.abs(z) >= 0.40) {
-        const pred = z > 0 ? 'SMALL' : 'BIG';
-        return { pred, conf: Math.round(50 + Math.min(35, Math.abs(z) * 25)), note: `Mean=${mean.toFixed(1)}` };
-      }
-      return { pred: sizes[0], conf: 50, note: `Mean=${mean.toFixed(1)}` };
+  // Apex Titan: Chronological Streak, Doublet & Chop Recognition
+  titan: s => {
+    if (s.length < 3) return s[0];
+    let cRun = 1;
+    for (let i = 1; i < s.length; i++) {
+      if (s[i] === s[0]) cRun++;
+      else break;
     }
+    let altRun = 1;
+    for (let i = 0; i < s.length - 1; i++) {
+      if (s[i] !== s[i + 1]) altRun++;
+      else break;
+    }
+    if (cRun >= 3) return s[0];
+    if (altRun >= 3) return opp(s[0]);
+    if (cRun === 2 && s.length >= 4 && s[2] === s[3] && s[2] !== s[0]) return opp(s[0]);
+    return s[0];
   },
 
-  // 6. Chronological Apex Titan (Elite Run & Doublet Momentum)
-  apexTitan: {
-    name: 'Apex Titan (Momentum)',
-    base: 2.6,
-    fn: (sizes, nums) => {
-      if (sizes.length < 3) return { pred: sizes[0] || 'BIG', conf: 50, note: 'Warmup' };
-      let cRun = 1;
-      for (let i = 1; i < sizes.length; i++) {
-        if (sizes[i] === sizes[0]) cRun++;
-        else break;
+  // Markov 2-Gram Transitions (Forward In Time)
+  markov: s => {
+    if (s.length < 6) return s[0];
+    const chron = s.slice().reverse();
+    const s0 = chron[chron.length - 1], s1 = chron[chron.length - 2];
+    let bHits = 0, sHits = 0;
+    for (let i = 0; i < chron.length - 2; i++) {
+      if (chron[i] === s1 && chron[i + 1] === s0) {
+        if (chron[i + 2] === 'BIG') bHits++;
+        else sHits++;
       }
-      let altRun = 1;
-      for (let i = 0; i < sizes.length - 1; i++) {
-        if (sizes[i] !== sizes[i + 1]) altRun++;
-        else break;
-      }
-      // Dragon continuation
-      if (cRun >= 3) {
-        return { pred: sizes[0], conf: Math.min(88, 60 + cRun * 5), note: `Dragon x${cRun}` };
-      }
-      // Alternating chop continuation
-      if (altRun >= 3) {
-        return { pred: oppOf(sizes[0]), conf: Math.min(85, 62 + altRun * 4), note: `Chop x${altRun}` };
-      }
-      // 2-2 Doublet pattern
-      if (cRun === 2 && sizes.length >= 4 && sizes[2] === sizes[3] && sizes[2] !== sizes[0]) {
-        return { pred: oppOf(sizes[0]), conf: 75, note: '2-2 Doublet' };
-      }
-      return { pred: sizes[0], conf: 54, note: 'Follower' };
     }
+    if (bHits === sHits) return s[0];
+    return bHits > sHits ? 'BIG' : 'SMALL';
   },
 
-  // 7. Markov Deep 2-Gram & 3-Gram State Machine
-  markovDeep: {
-    name: 'Markov Deep Sync',
-    base: 2.0,
-    fn: (sizes, nums) => {
-      if (sizes.length < 6) return { pred: sizes[0] || 'BIG', conf: 50, note: 'Warmup' };
-      const chron = sizes.slice().reverse();
-      const s0 = chron[chron.length - 1], s1 = chron[chron.length - 2];
-      let bHits = 0, sHits = 0;
-      for (let i = 0; i < chron.length - 2; i++) {
-        if (chron[i] === s1 && chron[i + 1] === s0) {
-          if (chron[i + 2] === 'BIG') bHits += 1.5;
-          else sHits += 1.5;
-        }
-      }
-      if (bHits === 0 && sHits === 0) return { pred: sizes[0], conf: 50, note: 'Flat' };
-      const total = bHits + sHits;
-      const pred = bHits >= sHits ? 'BIG' : 'SMALL';
-      const conf = Math.round(50 + Math.abs(bHits - sHits) / total * 45);
-      return { pred, conf, note: `Trans ${bHits.toFixed(1)}:${sHits.toFixed(1)}` };
-    }
+  // Gaussian Digit Mean Deviation
+  digitmean: (s, h) => {
+    const nums = h.slice(0, 14).map(x => x.num);
+    if (nums.length < 6) return s[0];
+    const mean = nums.reduce((a, b) => a + b, 0) / nums.length;
+    if (Math.abs(mean - 4.5) >= 0.6) return mean > 4.5 ? 'SMALL' : 'BIG';
+    return s[0];
   },
 
-  // 8. Streak Boundary Reversion
-  streakReversion: {
-    name: 'Streak Boundary Reversion',
-    base: 1.5,
-    fn: (sizes, nums) => {
-      let streak = 1;
-      for (let i = 1; i < sizes.length; i++) {
-        if (sizes[i] === sizes[0]) streak++;
-        else break;
-      }
-      if (streak >= 4) {
-        return { pred: oppOf(sizes[0]), conf: Math.min(85, 55 + streak * 6), note: `Streak x${streak} Break` };
-      }
-      return { pred: sizes[0], conf: 52, note: `Streak x${streak}` };
+  // Streak Boundary Reversion
+  streak: s => {
+    let k = 1;
+    for (let i = 1; i < s.length; i++) {
+      if (s[i] === s[0]) k++;
+      else break;
     }
+    return k >= 4 ? opp(s[0]) : s[0];
   },
 
-  // 9. Window Distribution Majority Balance
-  majorityBalance: {
-    name: 'Window Majority Balance',
-    base: 1.2,
-    fn: (sizes, nums) => {
-      const win = sizes.slice(0, 10);
-      const b = win.filter(x => x === 'BIG').length;
-      const s = win.length - b;
-      if (b === s) return { pred: sizes[0], conf: 50, note: '5:5 Par' };
-      const pred = b > s ? 'BIG' : 'SMALL';
-      return { pred, conf: Math.round(50 + Math.abs(b - s) * 5), note: `${b}B / ${s}S` };
-    }
+  // Window Majority Balance
+  majority: s => {
+    const w = s.slice(0, 10), b = w.filter(x => x === 'BIG').length, m = w.length - b;
+    return b === m ? s[0] : (b > m ? 'BIG' : 'SMALL');
   },
 
-  // 10. Parity Harmonic Flow
-  parityFlow: {
-    name: 'Parity Harmonic Flow',
-    base: 1.1,
-    fn: (sizes, nums) => {
-      const recent = nums.slice(0, 8);
-      const evens = recent.filter(n => n % 2 === 0).length;
-      const odds = recent.length - evens;
-      const pred = evens >= odds ? 'BIG' : 'SMALL';
-      return { pred, conf: 55, note: `${evens}E / ${odds}O` };
+  // Alternation Detector
+  alt: s => {
+    let k = 1;
+    for (let i = 0; i < s.length - 1; i++) {
+      if (s[i] !== s[i + 1]) k++;
+      else break;
     }
+    return k >= 3 ? opp(s[0]) : s[0];
+  },
+
+  // Parity Harmonic
+  parity: (s, h) => {
+    const w = h.slice(0, 6), e = w.filter(x => x.num % 2 === 0).length;
+    return e >= 3 ? 'BIG' : 'SMALL';
   }
 };
 
-// ── LIVE WALK-FORWARD DYNAMIC AUTO-TUNING ────────────────────
-function backtestWeights(histList) {
-  const depth = Math.min(25, Math.max(6, histList.length - 4));
+const BASE_WEIGHTS = {
+  cycle: 2.2,
+  zscore: 1.8,
+  triplet: 1.6,
+  drift: 1.5,
+  titan: 2.5,
+  markov: 1.8,
+  digitmean: 1.4,
+  streak: 1.5,
+  majority: 1.2,
+  alt: 1.1,
+  parity: 0.9
+};
+
+// ── LIVE WALK-FORWARD DYNAMIC ADAPTIVE WEIGHTS ───────────────
+function getDynamicWeights(h) {
+  const depth = Math.min(25, Math.max(6, h.length - 4));
   const acc = {};
-  for (const k in ENGINES) acc[k] = { hits: 0, tested: 0 };
+  for (const k in E) acc[k] = { correct: 0, tested: 0 };
 
   for (let i = 1; i <= depth; i++) {
-    const truth = histList[i - 1].size;
-    const slice = histList.slice(i);
+    const truth = h[i - 1].size;
+    const slice = h.slice(i);
     if (slice.length < 4) break;
-    const sliceSizes = slice.map(x => x.size);
-    const sliceNums = slice.map(x => x.num);
+    const s = slice.map(x => x.size);
 
-    for (const k in ENGINES) {
-      const out = ENGINES[k].fn(sliceSizes, sliceNums);
+    for (const k in E) {
+      const pred = E[k](s, slice);
       acc[k].tested++;
-      if (out.pred === truth) acc[k].hits++;
+      if (pred === truth) acc[k].correct++;
     }
   }
 
-  const effectiveWeights = {};
-  const boosts = {};
-  for (const k in ENGINES) {
-    const a = acc[k].tested ? (acc[k].hits / acc[k].tested) : 0.5;
+  const weights = {};
+  for (const k in E) {
+    const a = acc[k].tested ? (acc[k].correct / acc[k].tested) : 0.5;
+    // Walk-forward performance boost curve: (a / 0.5)^2.2
     const boost = Math.max(0.20, Math.min(3.2, Math.pow(a / 0.50, 2.2)));
-    boosts[k] = boost;
-    effectiveWeights[k] = ENGINES[k].base * boost;
+    weights[k] = BASE_WEIGHTS[k] * boost;
   }
-
-  return { effectiveWeights, boosts, acc, depth };
+  return { weights, acc, depth };
 }
 
-// ── CONSENSUS & DIGIT PREDICTOR ──────────────────────────────
-function predict(histList) {
-  if (histList.length < 3) return null;
-  const sizes = histList.map(x => x.size);
-  const nums  = histList.map(x => x.num);
+function predict(h) {
+  if (h.length < 3) return null;
+  const s = h.map(x => x.size);
+  const { weights, acc } = getDynamicWeights(h);
+  const v = { BIG: 0, SMALL: 0 }, parts = {};
 
-  const { effectiveWeights, boosts, acc, depth } = backtestWeights(histList);
-  const votes = { BIG: 0, SMALL: 0 };
-  const engineSignals = {};
-
-  let topWeight = -1;
-  let topEngineKey = '';
-
-  for (const k in ENGINES) {
-    const out = ENGINES[k].fn(sizes, nums);
-    const w = effectiveWeights[k];
-    votes[out.pred] += w * (out.conf / 100);
-    engineSignals[k] = { ...out, boost: boosts[k], hits: acc[k].hits, tested: acc[k].tested, weight: w };
-
-    if (w > topWeight) {
-      topWeight = w;
-      topEngineKey = k;
-    }
+  for (const k in E) {
+    const r = E[k](s, h);
+    parts[k] = r;
+    v[r] += weights[k];
   }
 
-  const tot = votes.BIG + votes.SMALL;
-  const pred = votes.BIG >= votes.SMALL ? 'BIG' : 'SMALL';
-  const conf = Math.round(Math.max(votes.BIG, votes.SMALL) / (tot || 1) * 100);
+  const pred = v.BIG >= v.SMALL ? 'BIG' : 'SMALL';
+  const tot = v.BIG + v.SMALL;
+  const conf = Math.round(Math.max(v.BIG, v.SMALL) / (tot || 1) * 100);
 
-  // Target Digits Selector
-  const targetPool = pred === 'BIG' ? [5, 6, 7, 8, 9] : [0, 1, 2, 3, 4];
-  const digitFreq = {};
-  targetPool.forEach(d => digitFreq[d] = 0);
-  nums.slice(0, 20).forEach(d => { if (digitFreq[d] !== undefined) digitFreq[d]++; });
-  const sortedDigits = targetPool.sort((a, b) => (digitFreq[b] || 0) - (digitFreq[a] || 0));
-  const recommendedDigits = [sortedDigits[0], sortedDigits[1]];
+  return { pred, conf: Math.min(94, Math.max(58, conf)), parts };
+}
 
-  return {
-    pred,
-    conf: Math.min(94, Math.max(60, conf)),
-    digits: recommendedDigits,
-    engineSignals,
-    boosts,
-    topEngine: ENGINES[topEngineKey].name + ` (${boosts[topEngineKey].toFixed(2)}x)`,
-    depth
-  };
+function audit(h) {
+  const { acc } = getDynamicWeights(h);
+  return acc;
 }
 
 // ── ISSUE INCREMENT HELPER ──────────────────────────────────
@@ -1170,7 +1067,7 @@ async function fetchHist() {
     if (!list.length) return;
     hist = list.map(x => ({
       num: parseInt(x.number, 10),
-      size: sizeOf(parseInt(x.number, 10)),
+      size: size(parseInt(x.number, 10)),
       issue: String(x.issueNumber || '')
     })).filter(x => !isNaN(x.num));
 
@@ -1180,7 +1077,7 @@ async function fetchHist() {
     renderHistory();
     document.getElementById('status').textContent = 'live · ' + new Date().toLocaleTimeString();
   } catch(e) {
-    document.getElementById('status').textContent = 'fetch error (network/CORS)';
+    document.getElementById('status').textContent = 'fetch error (CORS/offline)';
   }
 }
 
@@ -1192,7 +1089,6 @@ function resolvePending() {
     log.unshift({
       issue: String(pending.issue),
       pred: pending.pred,
-      digits: pending.digits,
       actual: hit.size,
       num: hit.num,
       won: hit.size === pending.pred,
@@ -1212,12 +1108,7 @@ function makePending() {
   if (hist.some(x => String(x.issue) === next)) return;
   const r = predict(hist);
   if (!r) return;
-  pending = {
-    issue: next,
-    pred: r.pred,
-    digits: r.digits,
-    time: new Date().toLocaleTimeString()
-  };
+  pending = { issue: next, pred: r.pred, time: new Date().toLocaleTimeString() };
 }
 
 // ── LIVE RENDERING ──────────────────────────────────────────
@@ -1241,70 +1132,55 @@ function render() {
     `<div class="chip ${h.size}${i === 0 ? ' pend' : ''}">${h.num}</div>`).join('');
   document.getElementById('period').textContent = 'last issue: ' + (hist[0].issue || '—');
 
-  // Active streak
-  let st = 1;
-  for (let i = 1; i < s.length; i++) {
-    if (s[i] === s[0]) st++;
-    else break;
-  }
-  document.getElementById('streak').textContent = st + 'x ' + s[0];
-
-  // Alternating run
-  let al = 1;
-  for (let i = 0; i < s.length - 1; i++) {
-    if (s[i] !== s[i + 1]) al++;
-    else break;
-  }
-  document.getElementById('alt').textContent = al + 'x';
-
   const r = predict(hist);
   const ps = document.getElementById('psize');
   if (r) {
     ps.textContent = r.pred;
     ps.className = 'pred-size ' + r.pred;
     document.getElementById('plbl').textContent = pending
-      ? `queued for period ${pending.issue}` : 'walk-forward quant consensus';
-    document.getElementById('pdigits').textContent = `🎯 Target Digits: ${r.digits.join(', ')}`;
-    document.getElementById('conf').textContent = r.conf + '%';
-    document.getElementById('cycle-info').textContent = r.engineSignals.cycleHarmonic.note;
-    document.getElementById('zscore-info').textContent = r.engineSignals.zScoreBinomial.note;
-    document.getElementById('top-engine').textContent = r.topEngine;
-
-    // Render Dynamic Audit Table
-    let rows = '';
-    let boostedCount = 0;
-    for (const k in ENGINES) {
-      const sig = r.engineSignals[k];
-      const hr = sig.tested ? (sig.hits / sig.tested * 100) : 50;
-      const bst = sig.boost;
-      if (bst > 1.1) boostedCount++;
-
-      const bstBadge = bst > 1.2
-        ? `<span class="badge BOOST">⚡ ${bst.toFixed(2)}x BOOST</span>`
-        : (bst < 0.8
-          ? `<span class="badge DAMP">❄️ ${bst.toFixed(2)}x DAMP</span>`
-          : `<span class="badge NEUT">🛡️ ${bst.toFixed(2)}x BASE</span>`);
-
-      const statusBadge = hr >= 60
-        ? `<span class="badge HOT">HOT 🔥</span>`
-        : (hr <= 44 ? `<span class="badge LOSS">COLD ✕</span>` : `<span class="badge NEUT">ACTIVE</span>`);
-
-      rows += `<tr>
-        <td><b>${ENGINES[k].name}</b></td>
-        <td>${sig.tested} rounds</td>
-        <td class="${hr >= 52 ? 'g' : (hr <= 48 ? 'r' : 'y')}">${hr.toFixed(1)}%</td>
-        <td>${bstBadge}</td>
-        <td><b class="${sig.pred === 'BIG' ? 'y' : 'b'}">${sig.pred}</b> (${sig.conf}%)</td>
-        <td>${statusBadge}</td>
-      </tr>`;
+      ? `queued for period ${pending.issue}` : 'ensemble vote for next round';
+    let st = 1;
+    for (let i = 1; i < s.length; i++) {
+      if (s[i] === s[0]) st++;
+      else break;
     }
-    document.getElementById('audit').innerHTML = rows;
-    document.getElementById('verdict').textContent =
-      `Walk-forward backtest depth: ${r.depth} rounds. ${boostedCount} engines currently boosted by performance curve.`;
+    let al = 1;
+    for (let i = 0; i < s.length - 1; i++) {
+      if (s[i] !== s[i + 1]) al++;
+      else break;
+    }
+    document.getElementById('streak').textContent = st + 'x ' + s[0];
+    document.getElementById('alt').textContent = al + 'x';
+    document.getElementById('conf').textContent = r.conf + '%';
   } else {
     ps.textContent = '--';
     ps.className = 'pred-size';
   }
+
+  // Exact normal 5-column audit table
+  const a = audit(hist);
+  let rows = '', any = 0, beats = 0;
+  for (const k in a) {
+    const t = a[k].tested;
+    if (!t) continue;
+    any++;
+    const hr = a[k].correct / t * 100, d = hr - 50;
+    if (hr > 52) beats++;
+    const vd = hr > 52
+      ? '<span class="badge WIN">above</span>'
+      : (hr < 48 ? '<span class="badge LOSS">below</span>' : '<span class="badge PEND">≈chance</span>');
+
+    rows += `<tr>
+      <td><b>${k}</b></td>
+      <td>${t}</td>
+      <td>${hr.toFixed(1)}%</td>
+      <td class="${d >= 0 ? 'g' : 'r'}">${d >= 0 ? '+' : ''}${d.toFixed(1)}</td>
+      <td>${vd}</td>
+    </tr>`;
+  }
+  document.getElementById('audit').innerHTML = rows || '<tr><td colspan="5" style="text-align:center;color:var(--muted)">collecting data…</td></tr>';
+  document.getElementById('verdict').textContent = any
+    ? `${beats} of ${any} engines currently sit above 50%. Over more rounds they converge to ~50% — the RNG signature.` : '';
 }
 
 // ── HISTORY RENDERING ───────────────────────────────────────
@@ -1333,8 +1209,7 @@ function renderHistory() {
   document.getElementById('h-streak').className = cur > 0 ? 'g' : 'r';
   document.getElementById('h-best').textContent = log.length ? best : '--';
   document.getElementById('h-baseline').textContent = log.length
-    ? `${wins}W / ${losses}L · ${(rate - 50 >= 0 ? '+' : '')}${(rate - 50).toFixed(1)} pts vs the 50% baseline on ${document.getElementById('game').value}.`
-    : 'No rounds recorded yet in this browser session.';
+    ? `${wins}W / ${losses}L · ${(rate - 50 >= 0 ? '+' : '')}${(rate - 50).toFixed(1)} pts vs the 50% baseline. Longer samples drift toward 50%.` : '';
 
   const body = document.getElementById('hist-body');
   if (!log.length && !pending) {
@@ -1350,7 +1225,6 @@ function renderHistory() {
       <td>${log.length - i}</td>
       <td style="font-family:var(--font-mono)">${x.issue || '—'}</td>
       <td class="${x.pred === 'BIG' ? 'y' : 'b'}"><b>${x.pred}</b></td>
-      <td>${x.digits ? x.digits.join(', ') : '—'}</td>
       <td>${x.num !== undefined ? x.num + ' (' + x.actual + ')' : x.actual}</td>
       <td><span class="badge ${x.won ? 'WIN' : 'LOSS'}">${x.won ? 'WIN ✓' : 'LOSS ✕'}</span></td>
       <td style="color:var(--muted)">${x.time}</td>
@@ -1362,7 +1236,6 @@ function renderHistory() {
       <td>—</td>
       <td style="font-family:var(--font-mono)">${pending.issue || '—'}</td>
       <td class="${pending.pred === 'BIG' ? 'y' : 'b'}"><b>${pending.pred}</b></td>
-      <td>${pending.digits ? pending.digits.join(', ') : '—'}</td>
       <td>—</td>
       <td><span class="badge PEND">PENDING ⏳</span></td>
       <td style="color:var(--muted)">${pending.time}</td>
@@ -1392,7 +1265,7 @@ function toggle() {
     btn.style.color = '#fff';
     fetchHist();
     tId = setInterval(tick, 250);
-    fId = setInterval(fetchHist, 3500);
+    fId = setInterval(fetchHist, 4000);
   } else {
     dot.classList.remove('live');
     btn.textContent = '▶ Start Live';
@@ -1416,12 +1289,11 @@ function clearHistory() {
 
 function downloadHistory() {
   if (!log.length) { alert('No history to export yet.'); return; }
-  const rows = [['#', 'Period', 'Predicted', 'Target Digits', 'Actual', 'Result', 'Time']];
+  const rows = [['#', 'Period', 'Predicted', 'Actual', 'Result', 'Time']];
   log.forEach((x, i) => rows.push([
     log.length - i,
     x.issue,
     x.pred,
-    x.digits ? x.digits.join(' ') : '',
     x.num !== undefined ? x.num + ' ' + x.actual : x.actual,
     x.won ? 'WIN' : 'LOSS',
     x.time
@@ -1430,7 +1302,7 @@ function downloadHistory() {
   const blob = new Blob([csv], { type: 'text/csv' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = 'wingo_history_quant.csv';
+  a.download = 'wingo_history.csv';
   a.click();
 }
 
@@ -1441,7 +1313,6 @@ document.getElementById('game').onchange = () => {
 // ── BOOT ────────────────────────────────────────────────────
 loadLog();
 renderHistory();
-toggle(); // Auto-start live stream
 </script>
 </body>
 </html>
