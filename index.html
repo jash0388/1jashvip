@@ -1082,17 +1082,22 @@
             }
 
             if (lossStreak >= 2) {
-                if (cLen >= 2) return { vote: cSide, reg: '🛑 L3 DRAGON LOCK' };
+                if (cLen >= 3) return { vote: cSide, reg: '🛑 L3 DRAGON LOCK' };
+                if (cLen === 2 && pRun.len === 2) return { vote: opp(cSide), reg: '🛑 L3 2-2 CUT' };
                 if (alt >= 2) return { vote: opp(lastS), reg: '🛑 L3 CHOP FLIP' };
-                return { vote: cSide, reg: '🛑 L3 MOMENTUM LOCK' };
+                if (cLen === 1) return { vote: opp(cSide), reg: '🛑 L3 SINGLE CUT' };
+                return { vote: cSide, reg: '🛑 L3 DOUBLET' };
             } else if (lossStreak === 1) {
-                if (cLen >= 2) return { vote: cSide, reg: '🛡️ L2 DRAGON RIDE' };
+                if (cLen >= 3) return { vote: cSide, reg: '🛡️ L2 DRAGON RIDE' };
+                if (cLen === 2 && pRun.len === 2) return { vote: opp(cSide), reg: '🛡️ L2 2-2 CUT' };
                 if (alt >= 2) return { vote: opp(lastS), reg: '🛡️ L2 CHOP FLIP' };
-                return { vote: cSide, reg: '🛡️ L2 MOMENTUM LOCK' };
+                if (cLen === 1) return { vote: opp(cSide), reg: '🛡️ L2 SINGLE CUT' };
+                return { vote: cSide, reg: '🛡️ L2 DOUBLET' };
             } else {
                 if (cLen >= 3) return { vote: cSide, reg: '🌊 L1 DRAGON RIDE' };
+                if (cLen === 2 && pRun.len === 2) return { vote: opp(cSide), reg: '🌊 L1 2-2 CUT' };
                 if (cLen === 2) return { vote: cSide, reg: '🌊 L1 DOUBLET RIDE' };
-                if (alt >= 3) return { vote: opp(lastS), reg: '⚡ L1 CHOP OSC' };
+                if (alt >= 2) return { vote: opp(lastS), reg: '⚡ L1 CHOP OSC' };
                 if (cLen === 1) return { vote: opp(cSide), reg: '🌊 L1 SINGLE CUT' };
                 return { vote: cSide, reg: '🌊 L1 MOMENTUM' };
             }
@@ -1282,6 +1287,24 @@
                 }
             }
 
+            // Layer 8: Harmonic Lag Cycle (from ITACHI PRO s2Cycle)
+            const lags = [1, 2, 3];
+            let bestLag = 0, bestRate = 0;
+            for (const lag of lags) {
+                let match = 0, tot = 0;
+                for (let i = lag; i < sizes.length; i++) {
+                    tot++;
+                    if (sizes[i] === sizes[i - lag]) match++;
+                }
+                if (tot >= 4 && (match / tot) > bestRate) {
+                    bestRate = match / tot;
+                    bestLag = lag;
+                }
+            }
+            if (bestRate >= 0.58 && bestLag > 0) {
+                votes[sizes[bestLag - 1]] += 3.2;
+            }
+
             // Circuit Breaker & Strict Level Protection
             const isChopZone = (alt >= 3 && currentLevel >= 3);
             let patternType = 'consensus';
@@ -1291,16 +1314,26 @@
                 votes[sizes[0]] += 5.5; // Irresistible Dragon Ride
                 patternType = 'dragon';
                 patternLabel = `⚡ DRAGON RIDE (${streak}X)`;
-            } else if (streak === 2 && currentLevel >= 2) {
-                votes[sizes[0]] += 4.0; // Pair Lock during L2/L3 Recovery
-                patternType = 'cycle';
-                patternLabel = `🛡️ L${currentLevel} DOUBLET RIDE`;
-            } else if (isChopZone) {
-                patternType = 'zigzag';
-                patternLabel = '🛑 CAPITAL SHIELD: CHOP ZONE (FLAT 1X)';
-            } else if (alt >= 3) {
+            } else if (alt >= 2) {
+                // CRITICAL FIX: ZIGZAG SWITCH MUST ACTUALLY ADD VOTES TO opp(sizes[0])!
+                votes[opp(sizes[0])] += 5.2;
                 patternType = 'zigzag';
                 patternLabel = `⚡ ZIGZAG SWITCH (${alt}X)`;
+            } else if (streak === 2) {
+                // Doublet awareness: check if 2-2 doublet
+                if (sizes.length >= 4 && sizes[2] === sizes[3] && sizes[2] !== sizes[0]) {
+                    votes[opp(sizes[0])] += 4.2; // 2-2 Doublet Cut
+                    patternType = 'cycle';
+                    patternLabel = `🛡️ 2-2 DOUBLET CUT`;
+                } else if (currentLevel >= 2) {
+                    votes[sizes[0]] += 3.0; // Pair Lock
+                    patternType = 'cycle';
+                    patternLabel = `🛡️ L${currentLevel} DOUBLET RIDE`;
+                }
+            } else if (isChopZone) {
+                votes[opp(sizes[0])] += 4.5;
+                patternType = 'zigzag';
+                patternLabel = '🛑 CAPITAL SHIELD: CHOP ZONE (FLAT 1X)';
             } else {
                 patternType = 'consensus';
             }
