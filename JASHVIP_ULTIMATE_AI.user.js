@@ -120,14 +120,15 @@
     return runs;
   }
 
-  // 1. APEX TITAN CADENCE ENGINE (100% IDENTICAL TO JASHVIP.VERCEL.APP)
+  // 1. APEX TITAN CADENCE ENGINE (TRUE CHRONOLOGICAL MOMENTUM & RECOVERY)
   function apexTitanEngine(sizes, lossStreak) {
-    const runs = getRuns(sizes);
-    const cRun = runs[runs.length - 1];
+    const chron = sizes.slice().reverse(); // Chronological: [oldest ... newest]
+    const runs = getRuns(chron);
+    const cRun = runs[runs.length - 1]; // Current active run
     const cSide = cRun ? cRun.size : sizes[0];
     const cLen = cRun ? cRun.len : 1;
     const pRun = runs.length >= 2 ? runs[runs.length - 2] : { size: opp(cSide), len: 0 };
-    const lastS = sizes[sizes.length - 1];
+    const lastS = chron[chron.length - 1]; // Current newest draw
 
     let alt = 0;
     for (let i = runs.length - 1; i >= 0; i--) {
@@ -189,14 +190,18 @@
     return bigs >= smalls ? 'BIG' : 'SMALL';
   }
 
-  // 4. QUANTUM MARKOV 2-GRAM
+  // 4. QUANTUM MARKOV 2-GRAM (TRUE FORWARD TIME PREDICTOR)
   function markovEngine(sizes) {
     if (sizes.length < 5) return sizes[0];
-    const s1 = sizes[1], s0 = sizes[0];
+    const chron = sizes.slice().reverse(); // Chronological: [oldest ... newest]
+    const n = chron.length;
+    const s1 = chron[n - 2];
+    const s0 = chron[n - 1];
     let nextB = 0, nextS = 0;
-    for (let i = 0; i < sizes.length - 2; i++) {
-      if (sizes[i + 1] === s1 && sizes[i] === s0) {
-        if (sizes[i + 2] === 'BIG') nextB++; else nextS++;
+    for (let i = 0; i < n - 2; i++) {
+      if (chron[i] === s1 && chron[i + 1] === s0) {
+        if (chron[i + 2] === 'BIG') nextB++;
+        else if (chron[i + 2] === 'SMALL') nextS++;
       }
     }
     if (nextB > nextS) return 'BIG';
