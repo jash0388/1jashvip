@@ -937,6 +937,8 @@
                     <div class="matrix-pill span2" id="mPillMarkov">MARKOV: --</div>
                     <div class="matrix-pill span2" id="mPillPain">PAIN: --</div>
                     <div class="matrix-pill span2" id="mPillNexa">NEXA: 15R</div>
+                    <div class="matrix-pill span2" id="mPillAutocorr">AUTOCORR: --</div>
+                    <div class="matrix-pill span2" id="mPillTsx">TSX: --</div>
                 </div>
             </div>
         </main>
@@ -1422,7 +1424,9 @@
                     suresh,
                     markov,
                     painPro,
-                    nexaVote
+                    nexaVote,
+                    autocorr: r1 < -0.12 ? opp(sizes[0]) : (r1 > 0.18 ? sizes[0] : 'NEUTRAL'),
+                    tsx: tsx ? tsx.pred : 'SCAN'
                 }
             };
         }
@@ -1512,6 +1516,8 @@
                 updateMatrixPill('mPillMarkov', `MARKOV: ${data.models.markov}`, data.models.markov);
                 updateMatrixPill('mPillPain', `PAIN: ${data.models.painPro}`, data.models.painPro);
                 updateMatrixPill('mPillNexa', `NEXA: ${data.models.nexaVote}`, data.models.nexaVote.includes('B') ? 'BIG' : (data.models.nexaVote.includes('S') ? 'SMALL' : ''));
+                updateMatrixPill('mPillAutocorr', `AUTOCORR: ${data.models.autocorr}`, data.models.autocorr);
+                updateMatrixPill('mPillTsx', `TSX: ${data.models.tsx}`, data.models.tsx);
             }
         }
 
