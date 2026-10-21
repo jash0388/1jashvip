@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         JASH VIP ULTIMATE 1 — WinGo 12-Engine BIG & SMALL Prediction HUD & AutoBet (1M & 30S)
 // @namespace    https://github.com/jash0388/jashvip
-// @version      42.0
-// @description  👑 JASH VIP · 100% Exact jashvip.vercel.app Ultimate 12-Engine Consensus (Titan, Radhe, Suresh, Markov, TGX L1-L6, Pain-Pro, Nexa Reversion) + Bulletproof BIG/SMALL AutoBet + Self-Healing Martingale (₹3 -> ₹7 -> ₹14 -> ₹28 -> ₹56) + Real Total Verifier + Zero Early-Loss Settlement + Complete Reset Engine.
+// @version      43.0
+// @description  👑 JASH VIP V43 · Synthesized Quant Consensus Engine with Time-Series Autocorrelation (Anti-Chop r1), TSX Multi-Order Geometric Recognition (1B+2S, 2B+2S, 3B+3S), N-gram Context Memory, and High-Conviction Zigzag/Doublet Rides.
 // @match        *://*.dmfirst7.com/*
 // @match        *://*.dmfirst0.com/*
 // @match        *://*.dmfirst*.com/*
@@ -28,7 +28,7 @@
   window.__JASH_VIP_ULTIMATE_ACTIVE__ = true;
 
   console.log(
-    "%c👑 JASH VIP ULTIMATE 1 · 12-ENGINE BIG/SMALL CONSENSUS & BULLETPROOF MARTINGALE ACTIVE",
+    "%c👑 JASH VIP ULTIMATE V43 · QUANT CONSENSUS (ANTI-CHOP r1 & TSX GEOM) ACTIVE",
     "background:linear-gradient(135deg,#00f5a0,#00d9ff,#ff3366);color:#000;font-size:15px;font-weight:900;padding:8px 16px;border-radius:8px;box-shadow:0 0 25px rgba(0,245,160,0.6);"
   );
 
