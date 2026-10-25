@@ -834,8 +834,8 @@
 'use strict';
 /* ============================================================
    JASH VIP · WinGo Max Analyser (v1)
-   Quantum 6-Algorithm Ensemble with Walk-Forward Adaptive Consensus
-   Deterministic Period Math & Seamless Seed-Live Data Pipeline
+   Quantum 6-Algorithm Ensemble Suite & Adaptive Consensus Vote
+   Rock-solid 1-second countdown & live server pipeline
    ============================================================ */
 
 const GAMES = {
@@ -856,8 +856,7 @@ let hist = [];
 const histStore = {};
 let log = [], pending = null, loggedSet = new Set();
 const algoStats = {};
-let lastPeriodMap = {};
-let serverOffset = 0;
+let lastLeft = null;
 
 // ── DETERMINISTIC PSEUDO-RANDOM & PERIOD MATH ────────────────
 function hash32(str) {
@@ -886,17 +885,21 @@ function prevDayStr(dayStr) {
     String(prev.getUTCDate()).padStart(2, '0');
 }
 
+function incIssue(s) {
+  try { return String(BigInt(String(s).trim()) + 1n); }
+  catch(e) { return String(Number(s) + 1); }
+}
+
 function periodInfo(gameKey, nowMs) {
   const g = GAMES[gameKey] || GAMES['WinGo_1M'];
-  const d = new Date(nowMs + serverOffset);
+  const d = new Date(nowMs);
   const dayStr = d.getUTCFullYear() +
     String(d.getUTCMonth() + 1).padStart(2, '0') +
     String(d.getUTCDate()).padStart(2, '0');
-  const msOfDay = ((d.getUTCHours() * 60 + d.getUTCMinutes()) * 60 + d.getUTCSeconds()) * 1000 + d.getUTCMilliseconds();
-  const durMs = g.dur * 1000;
-  const idx = g.base + Math.floor(msOfDay / durMs);
-  const remain = durMs - (msOfDay % durMs);
-  return { issue: dayStr + '1000' + String(idx).padStart(5, '0'), idx, remain, durMs, dayStr };
+  const secOfDay = (d.getUTCHours() * 3600) + (d.getUTCMinutes() * 60) + d.getUTCSeconds();
+  const idx = g.base + Math.floor(secOfDay / g.dur);
+  const remain = g.dur - (secOfDay % g.dur);
+  return { issue: dayStr + '1000' + String(idx).padStart(5, '0'), idx, remain, dur: g.dur };
 }
 
 function simHistory(gameKey, uptoIssue, count) {
@@ -918,7 +921,7 @@ function simHistory(gameKey, uptoIssue, count) {
   return out;
 }
 
-// ── 6-ALGORITHM QUANTUM ENSEMBLE ─────────────────────────────
+// ── 6-ALGORITHM QUANTUM ENSEMBLE SUITE ─────────────────────────
 const ALGOS = [
   {
     name: 'Markov Chain ·1',
@@ -1065,7 +1068,7 @@ function audit(h) {
   return acc;
 }
 
-// ── DATA FETCHING & ROBUST MERGE ─────────────────────────────
+// ── DATA FETCHING & ROBUST BACKFILLING ──────────────────────
 async function fetchLive(gameKey) {
   const g = GAMES[gameKey] || GAMES['WinGo_1M'];
   const base = `https://draw.ar-lottery01.com/WinGo/${g.api}/GetHistoryIssuePage.json?_t=${Date.now()}`;
@@ -1088,9 +1091,6 @@ async function fetchLive(gameKey) {
         j = (raw && raw.contents) ? JSON.parse(raw.contents) : raw;
       } catch(e) { continue; }
       if (j?.data?.list && Array.isArray(j.data.list) && j.data.list.length) {
-        if (j.serviceTime && Math.abs(j.serviceTime - Date.now()) < 86400000) {
-          serverOffset = j.serviceTime - Date.now();
-        }
         return j.data.list.map(x => ({
           num: parseInt(x.number, 10),
           size: size(parseInt(x.number, 10)),
@@ -1158,13 +1158,16 @@ function resolvePending() {
 }
 
 function makePending() {
-  const g = document.getElementById('game').value;
-  const pi = periodInfo(g, Date.now());
-  if (pending && pending.issue === pi.issue) return;
+  if (!hist.length || pending) return;
+  const newest = String(hist[0].issue || '');
+  if (!newest) return;
+  const next = incIssue(newest);
+  if (loggedSet.has(next)) return;
+  if (hist.some(x => String(x.issue) === next)) return;
   const r = predict(hist);
   if (!r) return;
   pending = {
-    issue: pi.issue,
+    issue: next,
     pred: r.pred,
     conf: r.conf,
     votes: r.votes,
@@ -1172,7 +1175,33 @@ function makePending() {
   };
 }
 
-// ── RENDERING ───────────────────────────────────────────────
+// ── TIMER & RENDERING ───────────────────────────────────────
+function getGameDuration() {
+  const g = document.getElementById('game').value;
+  return GAMES[g] ? GAMES[g].dur : 60;
+}
+
+function tick() {
+  const iv = getGameDuration();
+  const left = iv - (Math.floor(Date.now() / 1000) % iv);
+  const el = document.getElementById('timer');
+
+  if (left >= 60) {
+    const m = Math.floor(left / 60);
+    const s = left % 60;
+    el.textContent = `${m}:${String(s).padStart(2, '0')}`;
+  } else {
+    el.textContent = left + 's';
+  }
+  el.className = 'timer' + (left <= 5 ? ' low' : '');
+
+  // Exact round boundary: poll when round resets
+  if (lastLeft !== null && (left === iv || (left <= 1 && lastLeft > 1))) {
+    if (live) fetchHist();
+  }
+  lastLeft = left;
+}
+
 async function fetchHist() {
   const g = document.getElementById('game').value;
   const statusEl = document.getElementById('status');
@@ -1200,54 +1229,17 @@ async function fetchHist() {
   }
 }
 
-function tick() {
-  const g = document.getElementById('game').value;
-  const pi = periodInfo(g, Date.now());
-  const sec = Math.ceil(pi.remain / 1000);
-  const el = document.getElementById('timer');
-
-  if (sec >= 60) {
-    const m = Math.floor(sec / 60);
-    const s = sec % 60;
-    el.textContent = `${m}:${String(s).padStart(2, '0')}`;
-  } else {
-    el.textContent = sec + 's';
-  }
-  el.className = 'timer' + (sec <= 5 ? ' low' : '');
-
-  // Exact period rollover detection
-  if (lastPeriodMap[g] && lastPeriodMap[g] !== pi.issue) {
-    const prevIssue = lastPeriodMap[g];
-    // Settle deterministic round immediately if not live yet
-    if (!hist.some(h => h.issue === prevIssue)) {
-      const num = Math.floor(seededUnit(prevIssue)() * 10);
-      hist.unshift({ issue: prevIssue, num, size: size(num), real: false });
-    }
-    resolvePending();
-    makePending();
-    render();
-    renderHistory();
-    fetchHist();
-  }
-  lastPeriodMap[g] = pi.issue;
-
-  if (sec <= 1 && live) {
-    fetchHist();
-  }
-}
-
 function render() {
   if (!hist.length) return;
-  const g = document.getElementById('game').value;
-  const pi = periodInfo(g, Date.now());
   const s = hist.map(x => x.size);
   const big = s.filter(x => x === 'BIG').length;
+  const targetPeriod = pending ? pending.issue : (hist[0] ? incIssue(hist[0].issue) : '—');
 
   document.getElementById('last').textContent = hist[0].num + ' (' + hist[0].size + ')';
   document.getElementById('split').textContent = big + ' / ' + (s.length - big);
   document.getElementById('chips').innerHTML = hist.slice(0, 24).map((h, i) =>
     `<div class="chip ${h.size}${i === 0 ? ' pend' : ''}">${h.num}</div>`).join('');
-  document.getElementById('period').textContent = 'current round: ' + pi.issue;
+  document.getElementById('period').textContent = 'target round: ' + targetPeriod;
 
   const r = predict(hist);
   const ps = document.getElementById('psize');
@@ -1383,17 +1375,14 @@ function toggle() {
     btn.style.background = 'linear-gradient(135deg, var(--red), #c02020)';
     btn.style.color = '#fff';
     fetchHist();
-    tId = setInterval(tick, 250);
-    fId = setInterval(fetchHist, 4000);
+    if (!fId) fId = setInterval(fetchHist, 3000);
   } else {
     dot.classList.remove('live');
     btn.textContent = '▶ Start Live';
     btn.style.background = 'linear-gradient(135deg, var(--green), var(--blue))';
     btn.style.color = '#04121a';
-    clearInterval(tId);
-    clearInterval(fId);
+    clearInterval(fId); fId = null;
     document.getElementById('status').textContent = 'idle';
-    document.getElementById('timer').textContent = '--';
   }
 }
 
@@ -1431,6 +1420,7 @@ document.getElementById('game').onchange = () => {
   pending = null;
   makePending();
   render();
+  tick();
   if (live) fetchHist();
 };
 
