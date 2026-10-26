@@ -1431,70 +1431,62 @@
             const tot = extend + break_;
             const empiricalCont = tot >= 2 ? (extend / tot) : 0.40;
 
-            // Layer 14: Vortex Nova Exact Structural Signatures
+            // Layer 14: Dynamic Live Alternation Frequency (GHOST V45 x REAL OM)
+            const lookback = Math.min(8, sizes.length - 1);
+            let flips = 0;
+            for (let i = 0; i < lookback; i++) {
+                if (sizes[i] !== sizes[i + 1]) flips++;
+            }
+            const altRate = flips / lookback;
+
+            // Layer 15: Vortex Nova Exact Structural Signatures
             const vSig = scanVortexSignatures(sizes);
 
-            // 2-2 Pair Formation (cut after a pair: e.g. SSB -> B, BBS -> S)
-            const isPairFormation = (streak === 1 && sizes.length >= 3 && sizes[1] === sizes[2] && sizes[0] !== sizes[1]);
-
-            // Circuit Breakers & Anti-Whipsaw Protection (Drago AI & Real OM Safeguards)
-            const isChopZone = (alt >= 3 && currentLevel >= 3);
+            // Dynamic Regime Decision Matrix:
             let patternType = 'consensus';
             let patternLabel = titan.reg;
 
-            if (isPairFormation) {
-                votes[sizes[0]] += 7.0; // Overwhelming conviction for 2-2 pair completion
-                patternType = 'cycle';
-                patternLabel = `🛡️ 2-2 PAIR FORMATION (${sizes[0]})`;
-            } else if (vSig && vSig.score >= 60) {
-                votes[vSig.pred] += 6.5; // Structural macro signature
-                patternType = 'cycle';
-                patternLabel = `🛡️ VORTEX ${vSig.name}`;
-            } else if (streak >= 4) {
-                votes[sizes[0]] += 6.0; // Long dragon continuation
+            if (altRate >= 0.50) {
+                // REGIME 1: ACTIVE CHOP ZONE (flips >= 50%)
+                // The table is in an alternating chop: inverting single cuts catches the switches cleanly!
+                votes[opp(sizes[0])] += 6.5;
+                patternType = 'zigzag';
+                patternLabel = `⚡ CHOP INVERSION (${(altRate * 100).toFixed(0)}% CHOP)`;
+            } else if (altRate <= 0.28) {
+                // REGIME 2: PERSISTENT STREAK ZONE (flips <= 28%)
+                // The table is trending in runs: ride the prevailing side!
+                votes[sizes[0]] += 6.5;
                 patternType = 'dragon';
-                patternLabel = `⚡ DRAGON RIDE (${streak}X)`;
-            } else if (streak === 3) {
-                if (empiricalCont >= 0.55) {
-                    votes[sizes[0]] += 5.0;
-                    patternType = 'dragon';
-                    patternLabel = `⚡ DRAGON EXTENSION (${streak}X)`;
-                } else {
-                    votes[opp(sizes[0])] += 5.5; // Drago streak-3 break
+                patternLabel = `⚡ DRAGON MOMENTUM (${streak}X)`;
+            } else {
+                // REGIME 3: BALANCED CYCLE / DOUBLETS (30% to 49% flips)
+                const isPairFormation = (streak === 1 && sizes.length >= 3 && sizes[1] === sizes[2] && sizes[0] !== sizes[1]);
+                if (isPairFormation) {
+                    votes[sizes[0]] += 6.0;
+                    patternType = 'cycle';
+                    patternLabel = `🛡️ 2-2 PAIR FORMATION (${sizes[0]})`;
+                } else if (vSig && vSig.score >= 65) {
+                    votes[vSig.pred] += 6.0;
+                    patternType = 'cycle';
+                    patternLabel = `🛡️ VORTEX ${vSig.name}`;
+                } else if (streak >= 3) {
+                    votes[opp(sizes[0])] += 5.5; // streak 3 cut
                     patternType = 'cycle';
                     patternLabel = `🛡️ STREAK-3 BREAK (${sizes[0]}➔${opp(sizes[0])})`;
-                }
-            } else if (alt >= 3) {
-                // High-conviction Zigzag Switch (requires true chop alternation of 3+ switches)
-                votes[opp(sizes[0])] += 5.5;
-                patternType = 'zigzag';
-                patternLabel = `⚡ ZIGZAG SWITCH (${alt}X)`;
-            } else if (streak === 2) {
-                // Doublet handling
-                if (sizes.length >= 4 && sizes[2] === sizes[3] && sizes[2] !== sizes[0]) {
-                    votes[opp(sizes[0])] += 4.5; // 2-2 Doublet Cut
+                } else if (streak === 2) {
+                    votes[opp(sizes[0])] += 4.5; // doublet cut
                     patternType = 'cycle';
-                    patternLabel = `🛡️ 2-2 DOUBLET CUT`;
-                } else {
-                    votes[opp(sizes[0])] += 3.5;
+                    patternLabel = `🛡️ DOUBLET CUT`;
+                } else if (tsx) {
+                    votes[tsx.pred] += 4.5;
                     patternType = 'cycle';
-                    patternLabel = `🛡️ PAIR BREAK`;
+                    patternLabel = `🛡️ TSX ${tsx.name} (${tsx.pred})`;
                 }
-            } else if (tsx) {
-                votes[tsx.pred] += 4.5;
-                patternType = 'cycle';
-                patternLabel = `🛡️ TSX ${tsx.name} (${tsx.pred})`;
-            } else if (isChopZone) {
-                votes[opp(sizes[0])] += 4.5;
-                patternType = 'zigzag';
-                patternLabel = '🛑 CAPITAL SHIELD: CHOP ZONE (FLAT 1X)';
-            } else {
-                patternType = 'consensus';
             }
 
             // Real OM Recovery Safeguard (Level 3+)
-            if (currentLevel >= 3 && !isPairFormation) {
-                if (alt >= 3) {
+            if (currentLevel >= 3) {
+                if (altRate >= 0.45) {
                     votes[opp(sizes[0])] += 4.0;
                 } else {
                     votes[sizes[0]] += 4.0;
