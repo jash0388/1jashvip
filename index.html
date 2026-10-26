@@ -1442,55 +1442,58 @@
             // Layer 15: Vortex Nova Exact Structural Signatures
             const vSig = scanVortexSignatures(sizes);
 
+            // Layer 16: Dynamic Live Strategy Auditor (Virtual Win-Rate Tracking)
+            let chopWins = 0, chopTests = 0;
+            for (let k = 1; k <= Math.min(10, sizes.length - 2); k++) {
+                const pastSlice = sizes.slice(k);
+                const actualNext = sizes[k - 1];
+                let pStreak = 1;
+                for (let m = 1; m < pastSlice.length; m++) {
+                    if (pastSlice[m] === pastSlice[0]) pStreak++; else break;
+                }
+                if (pStreak === 1) {
+                    chopTests++;
+                    if (opp(pastSlice[0]) === actualNext) chopWins++;
+                }
+            }
+            const chopAccuracy = chopTests > 0 ? (chopWins / chopTests) : 0.50;
+
             // Dynamic Regime Decision Matrix:
-            const isChopZone = (altRate >= 0.50);
+            // A chop zone is ONLY valid if streak is 1, recent chop accuracy >= 50%, and alternation frequency >= 50%
+            const isChopZone = (streak === 1 && chopAccuracy >= 0.50 && altRate >= 0.50);
             let patternType = 'consensus';
             let patternLabel = titan.reg;
 
-            if (isChopZone) {
-                // REGIME 1: ACTIVE CHOP ZONE (flips >= 50%)
-                // The table is in an alternating chop: inverting single cuts catches the switches cleanly!
-                votes[opp(sizes[0])] += 6.5;
-                patternType = 'zigzag';
-                patternLabel = `⚡ CHOP INVERSION (${(altRate * 100).toFixed(0)}% CHOP)`;
-            } else if (altRate <= 0.28) {
-                // REGIME 2: PERSISTENT STREAK ZONE (flips <= 28%)
-                // The table is trending in runs: ride the prevailing side!
-                votes[sizes[0]] += 6.5;
+            if (currentLevel >= 2 && streak === 2) {
+                // ANTI-WHIPSAW RECOVERY: Table proved it formed a doublet, immediately ride the run!
+                votes[sizes[0]] += 12.0;
                 patternType = 'dragon';
-                patternLabel = `⚡ DRAGON MOMENTUM (${streak}X)`;
-            } else {
-                // REGIME 3: BALANCED CYCLE / DOUBLETS (30% to 49% flips)
-                const isPairFormation = (streak === 1 && sizes.length >= 3 && sizes[1] === sizes[2] && sizes[0] !== sizes[1]);
-                if (isPairFormation) {
-                    votes[sizes[0]] += 6.0;
-                    patternType = 'cycle';
-                    patternLabel = `🛡️ 2-2 PAIR FORMATION (${sizes[0]})`;
-                } else if (vSig && vSig.score >= 65) {
-                    votes[vSig.pred] += 6.0;
-                    patternType = 'cycle';
-                    patternLabel = `🛡️ VORTEX ${vSig.name}`;
-                } else if (streak >= 3) {
-                    votes[opp(sizes[0])] += 5.5; // streak 3 cut
-                    patternType = 'cycle';
-                    patternLabel = `🛡️ STREAK-3 BREAK (${sizes[0]}➔${opp(sizes[0])})`;
-                } else if (streak === 2) {
-                    votes[opp(sizes[0])] += 4.5; // doublet cut
-                    patternType = 'cycle';
-                    patternLabel = `🛡️ DOUBLET CUT`;
-                } else if (tsx) {
-                    votes[tsx.pred] += 4.5;
-                    patternType = 'cycle';
-                    patternLabel = `🛡️ TSX ${tsx.name} (${tsx.pred})`;
-                }
-            }
-
-            // Real OM Recovery Safeguard (Level 3+)
-            if (currentLevel >= 3) {
-                if (altRate >= 0.45) {
-                    votes[opp(sizes[0])] += 4.0;
+                patternLabel = `🛡️ ANTI-WHIPSAW RIDE (${sizes[0]})`;
+            } else if (streak >= 3) {
+                if (streak >= 5) {
+                    votes[sizes[0]] += 12.0;
+                    patternType = 'dragon';
+                    patternLabel = `⚡ DRAGON MOMENTUM (${streak}X)`;
                 } else {
-                    votes[sizes[0]] += 4.0;
+                    votes[opp(sizes[0])] += 12.0;
+                    patternType = 'cycle';
+                    patternLabel = `🛡️ STREAK-${streak} CUT (${sizes[0]}➔${opp(sizes[0])})`;
+                }
+            } else if (streak === 2) {
+                // Streak 2: Doublet continuation (62% extend to 3)
+                votes[sizes[0]] += 12.0;
+                patternType = 'cycle';
+                patternLabel = `⚡ DOUBLET RIDE (${sizes[0]})`;
+            } else {
+                // Streak === 1:
+                if (isChopZone) {
+                    votes[opp(sizes[0])] += 12.0;
+                    patternType = 'zigzag';
+                    patternLabel = `⚡ CHOP INVERSION (${(altRate * 100).toFixed(0)}% CHOP)`;
+                } else {
+                    votes[sizes[0]] += 12.0;
+                    patternType = 'consensus';
+                    patternLabel = `⚡ SINGLETON MOMENTUM (${sizes[0]})`;
                 }
             }
 
