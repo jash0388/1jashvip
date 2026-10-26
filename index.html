@@ -1443,10 +1443,11 @@
             const vSig = scanVortexSignatures(sizes);
 
             // Dynamic Regime Decision Matrix:
+            const isChopZone = (altRate >= 0.50);
             let patternType = 'consensus';
             let patternLabel = titan.reg;
 
-            if (altRate >= 0.50) {
+            if (isChopZone) {
                 // REGIME 1: ACTIVE CHOP ZONE (flips >= 50%)
                 // The table is in an alternating chop: inverting single cuts catches the switches cleanly!
                 votes[opp(sizes[0])] += 6.5;
