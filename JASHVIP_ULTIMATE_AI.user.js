@@ -291,6 +291,49 @@
     return null;
   }
 
+  const VORTEX_SIGS = [
+    {n:"Triple Big Push",   s:"BBB",   x:"S", c:71, g:"STREAK"},
+    {n:"Triple Small Push", s:"SSS",   x:"B", c:71, g:"STREAK"},
+    {n:"Mirror Chain BSBSB",s:"BSBSB", x:"S", c:87, g:"MIRROR"},
+    {n:"Mirror Chain SBSBS",s:"SBSBS", x:"B", c:87, g:"MIRROR"},
+    {n:"Zigzag BSBS",       s:"BSBS",  x:"B", c:78, g:"MIRROR"},
+    {n:"Zigzag SBSB",       s:"SBSB",  x:"S", c:78, g:"MIRROR"},
+    {n:"Double Trend BBSS", s:"BBSS",  x:"B", c:76, g:"DOUBLE"},
+    {n:"Double Trend SSBB", s:"SSBB",  x:"S", c:76, g:"DOUBLE"},
+    {n:"Double Cycle BBSSB",s:"BBSSB", x:"B", c:80, g:"DOUBLE"},
+    {n:"Double Cycle SSBBS",s:"SSBBS", x:"S", c:80, g:"DOUBLE"},
+    {n:"Pair Open B",       s:"SBB",   x:"S", c:62, g:"DOUBLE"},
+    {n:"Pair Open S",       s:"BSS",   x:"B", c:62, g:"DOUBLE"},
+    {n:"Three in One B",    s:"BBBSB", x:"B", c:79, g:"GROUP"},
+    {n:"Three in One S",    s:"SSSBS", x:"S", c:79, g:"GROUP"},
+    {n:"Two in One B",      s:"BBSBB", x:"S", c:75, g:"GROUP"},
+    {n:"Two in One S",      s:"SSBSS", x:"B", c:75, g:"GROUP"},
+    {n:"Three in Two B",    s:"BBBSS", x:"B", c:77, g:"GROUP"},
+    {n:"Three in Two S",    s:"SSSBB", x:"S", c:77, g:"GROUP"},
+    {n:"Big Wall Break",    s:"BBBBS", x:"S", c:74, g:"BREAK"},
+    {n:"Small Wall Break",  s:"SSSSB", x:"B", c:74, g:"BREAK"},
+    {n:"Trap Reversal B",   s:"SBBBS", x:"B", c:72, g:"BREAK"},
+    {n:"Trap Reversal S",   s:"BSSSB", x:"S", c:72, g:"BREAK"},
+    {n:"Snap Back B",       s:"BSSB",  x:"S", c:68, g:"BREAK"},
+    {n:"Snap Back S",       s:"SBBS",  x:"B", c:68, g:"BREAK"},
+    {n:"Sandwich B-S-B",    s:"BBSBS", x:"B", c:73, g:"TRAP"},
+    {n:"Sandwich S-B-S",    s:"SSBSB", x:"S", c:73, g:"TRAP"},
+    {n:"Ladder Up",         s:"SSBBB", x:"S", c:70, g:"TRAP"},
+    {n:"Ladder Down",       s:"BBSSS", x:"B", c:70, g:"TRAP"},
+    {n:"Single Alternate",  s:"BSB",   x:"S", c:64, g:"MIRROR"},
+    {n:"Single Alternate R",s:"SBS",   x:"B", c:64, g:"MIRROR"}
+  ];
+
+  function scanVortexSignatures(sizes) {
+    const win = sizes.slice(0, 5).map(s => s[0]).reverse().join("");
+    for (const p of VORTEX_SIGS) {
+      if (win.endsWith(p.s)) {
+        return { name: p.n, pred: p.x === "B" ? "BIG" : "SMALL", score: p.c, group: p.g };
+      }
+    }
+    return null;
+  }
+
   // 6. MASTER COMBINED PREDICTION (100% IDENTICAL TO JASHVIP.VERCEL.APP)
   function calculateCombinedPrediction(list, activeLevel = 1) {
     if (!list || list.length < 3) return null;
@@ -315,23 +358,23 @@
 
     // Layer 1: Apex Titan Cadence Engine (Jash Autobet)
     const titan = apexTitanEngine(sizes, Math.max(0, activeLevel - 1));
-    votes[titan.vote] += 3.2;
+    votes[titan.vote] += 3.0;
 
     // Layer 2: Radhe Hack 2-3 Level Fix
     const radhe = radheEngine(list);
-    votes[radhe] += 2.4;
+    votes[radhe] += 2.0;
 
     // Layer 3: Suresh VIP Supreme V15
     const suresh = sureshEngine(list);
-    votes[suresh] += 2.0;
+    votes[suresh] += 1.8;
 
     // Layer 4: Quantum Markov 2-Gram
     const markov = markovEngine(sizes);
-    votes[markov] += 1.8;
+    votes[markov] += 1.6;
 
     // Layer 5: TGX 6-Logic Ensemble
     const l1 = tgxLogic1(nums, sizes); votes[l1] += 1.0;
-    const l2 = tgxLogic2(nums);        votes[l2] += 1.2;
+    const l2 = tgxLogic2(nums);        votes[l2] += 1.0;
     const l3 = tgxLogic3(nums, sizes); votes[l3] += 1.0;
     const l4 = tgxLogic4(sizes);       votes[l4] += 1.0;
     const l5 = tgxLogic5(nums);        votes[l5] += 0.8;
@@ -383,10 +426,10 @@
       for (let i = 0; i < acN; i++) den += (s[i] - mean) ** 2;
       if (den > 0) r1 = num / den;
     }
-    if (r1 < -0.12) {
-      votes[opp(sizes[0])] += 4.8; // Anti-persistent alternating chop detected
-    } else if (r1 > 0.18) {
-      votes[sizes[0]] += 4.5; // Persistent streak momentum detected
+    if (r1 < -0.15) {
+      votes[opp(sizes[0])] += 3.5; // Anti-persistent alternating chop detected
+    } else if (r1 > 0.20) {
+      votes[sizes[0]] += 3.5; // Persistent streak momentum detected
     }
 
     // Layer 10: Multi-Order Geometric Recognition (from TSX CRACK MODZ)
@@ -412,31 +455,72 @@
       }
     }
 
-    // Circuit Breakers & Strict Level Protection
+    // Layer 12: Recency-Weighted Momentum (from Diwali Brutal Max / Real Bhai 4)
+    let rwB = 0, rwS = 0;
+    for (let i = 0; i < Math.min(10, sizes.length); i++) {
+      const w = Math.pow(0.82, i);
+      if (sizes[i] === 'BIG') rwB += w; else rwS += w;
+    }
+    votes[rwB >= rwS ? 'BIG' : 'SMALL'] += 2.2;
+
+    // Layer 13: Empirical Streak Extension vs Break (from GHOST V45)
+    let extend = 0, break_ = 0, run = 1;
+    for (let i = sizes.length - 2; i >= 0; i--) {
+      if (sizes[i] === sizes[i + 1]) run++; else run = 1;
+      if (run === streak && sizes[i] === sizes[0]) {
+        if (i - 1 >= 0) { (sizes[i - 1] === sizes[0]) ? extend++ : break_++; }
+      }
+    }
+    const tot = extend + break_;
+    const empiricalCont = tot >= 2 ? (extend / tot) : 0.40;
+
+    // Layer 14: Vortex Nova Exact Structural Signatures
+    const vSig = scanVortexSignatures(sizes);
+    if (vSig) {
+      votes[vSig.pred] += 4.8;
+    }
+
+    // Circuit Breakers & Anti-Whipsaw Protection (Drago AI & Real OM Safeguards)
     const isChopZone = (alt >= 3 && activeLevel >= 3);
     let patternType = 'consensus';
     let patternLabel = titan.reg;
 
-    if (streak >= 3) {
-      votes[sizes[0]] += 6.5; // Irresistible Dragon Ride
+    if (streak >= 4) {
+      votes[sizes[0]] += 5.5; // Long dragon continuation
       patternType = 'dragon';
       patternLabel = `⚡ DRAGON RIDE (${streak}X)`;
-    } else if (alt >= 2) {
-      // High-conviction Zigzag Switch
-      votes[opp(sizes[0])] += 5.8;
+    } else if (streak === 3) {
+      if (empiricalCont >= 0.55) {
+        votes[sizes[0]] += 4.5;
+        patternType = 'dragon';
+        patternLabel = `⚡ DRAGON EXTENSION (${streak}X)`;
+      } else {
+        votes[opp(sizes[0])] += 5.0; // Drago streak-3 break
+        patternType = 'cycle';
+        patternLabel = `🛡️ STREAK-3 BREAK (${sizes[0]}➔${opp(sizes[0])})`;
+      }
+    } else if (alt >= 3 || (alt === 2 && r1 < -0.15)) {
+      // High-conviction Zigzag Switch (requires true chop alternation, avoids single-cut traps)
+      votes[opp(sizes[0])] += 5.2;
       patternType = 'zigzag';
       patternLabel = `⚡ ZIGZAG SWITCH (${alt}X)`;
     } else if (streak === 2) {
-      // Doublet awareness: check if 2-2 doublet
-      if (sizes.length >= 4 && sizes[2] === sizes[3] && sizes[2] !== sizes[0]) {
+      // Doublet handling
+      if (vSig) {
+        patternType = 'cycle';
+        patternLabel = `🛡️ VORTEX ${vSig.name}`;
+      } else if (sizes.length >= 4 && sizes[2] === sizes[3] && sizes[2] !== sizes[0]) {
         votes[opp(sizes[0])] += 4.5; // 2-2 Doublet Cut
         patternType = 'cycle';
         patternLabel = `🛡️ 2-2 DOUBLET CUT`;
-      } else if (activeLevel >= 2) {
-        votes[sizes[0]] += 3.0; // Pair Lock
+      } else {
+        votes[opp(sizes[0])] += 3.5;
         patternType = 'cycle';
-        patternLabel = `🛡️ L${activeLevel} DOUBLET RIDE`;
+        patternLabel = `🛡️ PAIR BREAK`;
       }
+    } else if (vSig) {
+      patternType = 'cycle';
+      patternLabel = `🛡️ VORTEX ${vSig.name}`;
     } else if (tsx) {
       patternType = 'cycle';
       patternLabel = `🛡️ TSX ${tsx.name} (${tsx.pred})`;
@@ -446,6 +530,15 @@
       patternLabel = '🛑 CAPITAL SHIELD: CHOP ZONE (FLAT 1X)';
     } else {
       patternType = 'consensus';
+    }
+
+    // Real OM Recovery Safeguard (Level 3+ loss-direction locking)
+    if (activeLevel >= 3) {
+      if (alt >= 3 || r1 < -0.10) {
+        votes[opp(sizes[0])] += 4.0; // Chop flip
+      } else {
+        votes[sizes[0]] += 4.0; // Momentum tape follow
+      }
     }
 
     const prediction = votes.BIG >= votes.SMALL ? 'BIG' : 'SMALL';
