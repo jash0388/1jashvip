@@ -993,7 +993,7 @@
         </section>
 
         <footer>
-            ULTIMATE ENSEMBLE ENGINE • PAIN PRO x TGX x NEXA x RONIN • <span>JASHVIP</span>
+            ULTIMATE ENSEMBLE ENGINE • VORTEX NOVA x GHOST x DRAGO x REAL OM • <span>JASHVIP</span>
         </footer>
 
     </div>
@@ -1433,40 +1433,45 @@
 
             // Layer 14: Vortex Nova Exact Structural Signatures
             const vSig = scanVortexSignatures(sizes);
-            if (vSig) {
-                votes[vSig.pred] += 4.8;
-            }
+
+            // 2-2 Pair Formation (cut after a pair: e.g. SSB -> B, BBS -> S)
+            const isPairFormation = (streak === 1 && sizes.length >= 3 && sizes[1] === sizes[2] && sizes[0] !== sizes[1]);
 
             // Circuit Breakers & Anti-Whipsaw Protection (Drago AI & Real OM Safeguards)
             const isChopZone = (alt >= 3 && currentLevel >= 3);
             let patternType = 'consensus';
             let patternLabel = titan.reg;
 
-            if (streak >= 4) {
-                votes[sizes[0]] += 5.5; // Long dragon continuation
+            if (isPairFormation) {
+                votes[sizes[0]] += 7.0; // Overwhelming conviction for 2-2 pair completion
+                patternType = 'cycle';
+                patternLabel = `🛡️ 2-2 PAIR FORMATION (${sizes[0]})`;
+            } else if (vSig && vSig.score >= 60) {
+                votes[vSig.pred] += 6.5; // Structural macro signature
+                patternType = 'cycle';
+                patternLabel = `🛡️ VORTEX ${vSig.name}`;
+            } else if (streak >= 4) {
+                votes[sizes[0]] += 6.0; // Long dragon continuation
                 patternType = 'dragon';
                 patternLabel = `⚡ DRAGON RIDE (${streak}X)`;
             } else if (streak === 3) {
                 if (empiricalCont >= 0.55) {
-                    votes[sizes[0]] += 4.5;
+                    votes[sizes[0]] += 5.0;
                     patternType = 'dragon';
                     patternLabel = `⚡ DRAGON EXTENSION (${streak}X)`;
                 } else {
-                    votes[opp(sizes[0])] += 5.0; // Drago streak-3 break
+                    votes[opp(sizes[0])] += 5.5; // Drago streak-3 break
                     patternType = 'cycle';
                     patternLabel = `🛡️ STREAK-3 BREAK (${sizes[0]}➔${opp(sizes[0])})`;
                 }
-            } else if (alt >= 3 || (alt === 2 && r1 < -0.15)) {
-                // High-conviction Zigzag Switch (requires true chop alternation, avoids single-cut traps)
-                votes[opp(sizes[0])] += 5.2;
+            } else if (alt >= 3) {
+                // High-conviction Zigzag Switch (requires true chop alternation of 3+ switches)
+                votes[opp(sizes[0])] += 5.5;
                 patternType = 'zigzag';
                 patternLabel = `⚡ ZIGZAG SWITCH (${alt}X)`;
             } else if (streak === 2) {
                 // Doublet handling
-                if (vSig) {
-                    patternType = 'cycle';
-                    patternLabel = `🛡️ VORTEX ${vSig.name}`;
-                } else if (sizes.length >= 4 && sizes[2] === sizes[3] && sizes[2] !== sizes[0]) {
+                if (sizes.length >= 4 && sizes[2] === sizes[3] && sizes[2] !== sizes[0]) {
                     votes[opp(sizes[0])] += 4.5; // 2-2 Doublet Cut
                     patternType = 'cycle';
                     patternLabel = `🛡️ 2-2 DOUBLET CUT`;
@@ -1475,10 +1480,8 @@
                     patternType = 'cycle';
                     patternLabel = `🛡️ PAIR BREAK`;
                 }
-            } else if (vSig) {
-                patternType = 'cycle';
-                patternLabel = `🛡️ VORTEX ${vSig.name}`;
             } else if (tsx) {
+                votes[tsx.pred] += 4.5;
                 patternType = 'cycle';
                 patternLabel = `🛡️ TSX ${tsx.name} (${tsx.pred})`;
             } else if (isChopZone) {
@@ -1489,12 +1492,12 @@
                 patternType = 'consensus';
             }
 
-            // Real OM Recovery Safeguard (Level 3+ loss-direction locking)
-            if (currentLevel >= 3) {
-                if (alt >= 3 || r1 < -0.10) {
-                    votes[opp(sizes[0])] += 4.0; // Chop flip
+            // Real OM Recovery Safeguard (Level 3+)
+            if (currentLevel >= 3 && !isPairFormation) {
+                if (alt >= 3) {
+                    votes[opp(sizes[0])] += 4.0;
                 } else {
-                    votes[sizes[0]] += 4.0; // Momentum tape follow
+                    votes[sizes[0]] += 4.0;
                 }
             }
 
