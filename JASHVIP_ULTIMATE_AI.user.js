@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         JASH VIP ULTIMATE 1 — WinGo 12-Engine BIG & SMALL Prediction HUD & AutoBet (1M & 30S)
 // @namespace    https://github.com/jash0388/jashvip
-// @version      43.0
-// @description  👑 JASH VIP V43 · Synthesized Quant Consensus Engine with Time-Series Autocorrelation (Anti-Chop r1), TSX Multi-Order Geometric Recognition (1B+2S, 2B+2S, 3B+3S), N-gram Context Memory, and High-Conviction Zigzag/Doublet Rides.
+// @version      44.0
+// @description  👑 JASH VIP V44 · Auto Game-Mode Sync (30S/1M), Strict L3 Safe Martingale Guard (Never Wipes Balance), Desync-Block & Multi-Model Quant Consensus.
 // @match        *://*.dmfirst7.com/*
 // @match        *://*.dmfirst0.com/*
 // @match        *://*.dmfirst*.com/*
@@ -28,7 +28,7 @@
   window.__JASH_VIP_ULTIMATE_ACTIVE__ = true;
 
   console.log(
-    "%c👑 JASH VIP ULTIMATE V43 · QUANT CONSENSUS (ANTI-CHOP r1 & TSX GEOM) ACTIVE",
+    "%c👑 JASH VIP ULTIMATE V44 · AUTO-SYNC (30S/1M) & STRICT L3 SAFE CAPITAL GUARD ACTIVE",
     "background:linear-gradient(135deg,#00f5a0,#00d9ff,#ff3366);color:#000;font-size:15px;font-weight:900;padding:8px 16px;border-radius:8px;box-shadow:0 0 25px rgba(0,245,160,0.6);"
   );
 
@@ -42,19 +42,35 @@
   setInterval(requestWakeLock, 8000);
   requestWakeLock();
 
-  // ── 2. STATE PERSISTENCE & MARTINGALE FORMULA ─────────────
-  let GAME_MODE = localStorage.getItem('JASH_MODE') || '1M';
-  if (GAME_MODE !== '1M' && GAME_MODE !== '30S') GAME_MODE = '1M';
+  // ── 2. STATE PERSISTENCE & RISK MANAGEMENT ─────────────
+  let GAME_MODE = '1M';
+  try {
+    const initHref = (window.location.href || '').toLowerCase();
+    if (initHref.includes('wingo_30s') || initHref.includes('gamecode=wingo_30s') || initHref.includes('30s')) {
+      GAME_MODE = '30S';
+    } else {
+      const savedMode = localStorage.getItem('JASH_MODE');
+      if (savedMode === '30S' || savedMode === '1M') GAME_MODE = savedMode;
+    }
+  } catch (e) {
+    GAME_MODE = '1M';
+  }
 
   let BASE_BET = parseInt(localStorage.getItem('JASH_BASE_BET') || '3', 10);
   if (isNaN(BASE_BET) || BASE_BET < 1) BASE_BET = 3;
 
+  // STRICT CAPITAL PROTECTION GUARD: Max Martingale Level (Default L3: ₹3 -> ₹7 -> ₹14 -> Auto-Reset)
+  let MAX_MARTINGALE_LEVEL = parseInt(localStorage.getItem('JASH_MAX_LEVEL') || '3', 10);
+  if (isNaN(MAX_MARTINGALE_LEVEL) || MAX_MARTINGALE_LEVEL < 1) MAX_MARTINGALE_LEVEL = 3;
+
   function getStakeForStep(base, step) {
     const b = Math.max(1, parseInt(base, 10) || 3);
     const s = Math.max(0, parseInt(step, 10) || 0);
-    if (s === 0) return b;
-    if (s === 1) return (b * 2) + 1; // e.g. 7 if base 3, 5 if base 2
-    return ((b * 2) + 1) * Math.pow(2, s - 1); // 14, 28, 56, 112, 224, 448...
+    if (MAX_MARTINGALE_LEVEL <= 1) return b; // Flat bet mode
+    const capped = Math.min(s, MAX_MARTINGALE_LEVEL - 1);
+    if (capped === 0) return b;
+    if (capped === 1) return (b * 2) + 1; // 7 if base 3
+    return ((b * 2) + 1) * Math.pow(2, capped - 1); // 14 for L3 (step 2)
   }
 
   let currentEngineLevel = 1;
@@ -86,6 +102,7 @@
     try {
       localStorage.setItem('JASH_MODE', GAME_MODE);
       localStorage.setItem('JASH_BASE_BET', BASE_BET.toString());
+      localStorage.setItem('JASH_MAX_LEVEL', MAX_MARTINGALE_LEVEL.toString());
       localStorage.setItem('JASH_WINS', wins.toString());
       localStorage.setItem('JASH_LOSSES', losses.toString());
       localStorage.setItem('JASH_STEP', martingaleStep.toString());
@@ -547,9 +564,27 @@
         patternType = 'dragon';
         patternLabel = `⚡ DRAGON MOMENTUM (${streak}X)`;
       } else {
-        votes[opp(sizes[0])] += 4.5;
-        patternType = 'cycle';
-        patternLabel = `🛡️ STREAK-${streak} CUT (${sizes[0]}➔${opp(sizes[0])})`;
+        // Streak 3 or 4: Check if recent history has been dragon-heavy
+        let maxRecentStreak = 1;
+        let rStreak = 1;
+        for (let k = 1; k < Math.min(sizes.length, 25); k++) {
+          if (sizes[k] === sizes[k - 1]) {
+            rStreak++;
+            if (rStreak > maxRecentStreak) maxRecentStreak = rStreak;
+          } else {
+            rStreak = 1;
+          }
+        }
+
+        if (maxRecentStreak >= 5) {
+          votes[sizes[0]] += 4.0;
+          patternType = 'dragon';
+          patternLabel = `⚡ DRAGON RIDE (${streak}X)`;
+        } else {
+          votes[opp(sizes[0])] += 3.5;
+          patternType = 'cycle';
+          patternLabel = `🛡️ STREAK-${streak} CUT (${sizes[0]}➔${opp(sizes[0])})`;
+        }
       }
     } else if (streak === 2) {
       // Streak 2: Doublet continuation (extend to 3)
@@ -774,17 +809,21 @@
   let LAST_SYNCED_PERIOD = null;
 
   function updateMasterSignal() {
-    if (!CURRENT_API_DRAWS || CURRENT_API_DRAWS.length < 3) return;
-    const top = CURRENT_API_DRAWS[0];
+    try {
+      if (!CURRENT_API_DRAWS || CURRENT_API_DRAWS.length < 3) return;
+      const top = CURRENT_API_DRAWS[0];
 
-    const result = calculateCombinedPrediction(CURRENT_API_DRAWS, currentEngineLevel);
-    if (result) {
-      if (LAST_SYNCED_PERIOD !== top.issueNumber) {
-        LAST_SYNCED_PERIOD = top.issueNumber;
-        console.log(`%c[👑 JASH VIP] 🎯 Synced Next Issue #${result.nextPeriod}: ${result.prediction} (${result.patternLabel}) [Guard Level: L${activeLvl}]`, 'background:#00f5a0;color:#000;font-weight:900;padding:4px 8px;border-radius:4px;');
+      const result = calculateCombinedPrediction(CURRENT_API_DRAWS, currentEngineLevel);
+      if (result) {
+        if (LAST_SYNCED_PERIOD !== top.issueNumber) {
+          LAST_SYNCED_PERIOD = top.issueNumber;
+          console.log(`%c[👑 JASH VIP] 🎯 Synced Next Issue #${result.nextPeriod}: ${result.prediction} (${result.patternLabel}) [Guard Level: L${currentEngineLevel}]`, 'background:#00f5a0;color:#000;font-weight:900;padding:4px 8px;border-radius:4px;');
+        }
+        CURRENT_SIGNAL_PREDICTION = result;
+        CURRENT_SIGNAL_PREDICTION.guardLevel = currentEngineLevel;
       }
-      CURRENT_SIGNAL_PREDICTION = result;
-      CURRENT_SIGNAL_PREDICTION.guardLevel = currentEngineLevel;
+    } catch (err) {
+      console.warn('[👑 JASH VIP] updateMasterSignal error:', err);
     }
   }
 
@@ -899,8 +938,15 @@
       martingaleStep++;
       currentEngineLevel++;
       if (currentEngineLevel > 3) currentEngineLevel = 1;
+
+      // 🛡️ STRICT CAPITAL SHIELD: Auto-reset to base bet when reaching MAX_MARTINGALE_LEVEL!
+      if (martingaleStep >= MAX_MARTINGALE_LEVEL) {
+        console.warn(`%c🛡️ JASH VIP CAPITAL SHIELD: Reached Max Martingale Level ${MAX_MARTINGALE_LEVEL}! Auto-resetting to Base Bet ₹${BASE_BET} to prevent high-stake losses!`, 'background:#f59e0b;color:#000;font-weight:900;padding:6px;border-radius:4px');
+        martingaleStep = 0; // AUTO-RESET TO BASE BET!
+      }
+
       currentBet = getStakeForStep(BASE_BET, martingaleStep);
-      console.log(`%c💀 JASH VIP LOSS on #${period}! Result=${actualNum} (${outcomeSize}). Streak=${LOSS_STREAK} Next=₹${currentBet}`, 'background:#ef4444;color:#fff;font-weight:900;padding:6px;border-radius:4px');
+      console.log(`%c💀 JASH VIP LOSS on #${period}! Result=${actualNum} (${outcomeSize}). Streak=${LOSS_STREAK} Next=₹${currentBet} (Step ${martingaleStep}/${MAX_MARTINGALE_LEVEL})`, 'background:#ef4444;color:#fff;font-weight:900;padding:6px;border-radius:4px');
     }
 
     pendingBet = null;
@@ -1181,6 +1227,82 @@
     return Math.floor(Date.now() / ivMs);
   }
 
+  // ── 11B. GAME MODE AUTO-SYNC & UI BINDING SYSTEM ──────────
+  function updateModeButtonUI() {
+    const modeBtn = document.getElementById('j-mode-btn');
+    const modeTxt = document.getElementById('j-mode-text');
+    if (!modeBtn || !modeTxt) return;
+    if (GAME_MODE === '30S') {
+      modeBtn.style.background = 'rgba(255,51,102,0.18)';
+      modeBtn.style.borderColor = 'rgba(255,51,102,0.45)';
+      modeBtn.style.color = '#ff3366';
+      modeTxt.textContent = '🔥 WINGO 30S';
+    } else {
+      modeBtn.style.background = 'rgba(0,245,160,0.12)';
+      modeBtn.style.borderColor = 'rgba(0,245,160,0.35)';
+      modeBtn.style.color = '#00f5a0';
+      modeTxt.textContent = '⚡ WINGO 1M';
+    }
+  }
+
+  function detectActualGameMode() {
+    // 1. Check current URL query, hash, and path
+    try {
+      const href = (window.location.href || '').toLowerCase();
+      if (href.includes('wingo_30s') || href.includes('gamecode=wingo_30s') || href.includes('wingo30')) {
+        return '30S';
+      }
+      if (href.includes('wingo_1m') || href.includes('gamecode=wingo_1m') || href.includes('wingo1m') || href.includes('wingo_60s')) {
+        return '1M';
+      }
+    } catch (e) {}
+
+    // 2. Check DOM period numbers
+    try {
+      const allText = Array.from(document.querySelectorAll('div, span, p, b, h1, h2, h3')).filter(e => !e.closest('#jash-hud'));
+      for (const el of allText) {
+        const txt = (el.textContent || '').trim();
+        const m = txt.match(/\b(202\d{11,15})\b/);
+        if (m && txt.length < 35) {
+          const p = m[1];
+          if (p.includes('10005')) return '30S';
+          if (p.includes('10001')) return '1M';
+        }
+      }
+    } catch (e) {}
+
+    // 3. Check active tab buttons
+    try {
+      const activeTab = document.querySelector('.van-tab--active, .active, [class*="tab"][class*="active"], [class*="tab"][class*="selected"]');
+      if (activeTab) {
+        const tText = (activeTab.textContent || '').toLowerCase();
+        if (tText.includes('30s') || tText.includes('30 s') || tText.includes('30sec')) return '30S';
+        if (tText.includes('1m') || tText.includes('1 min') || tText.includes('1min') || tText.includes('60s')) return '1M';
+      }
+    } catch (e) {}
+
+    return null;
+  }
+
+  function syncGameMode(forcedMode = null) {
+    const detected = forcedMode || detectActualGameMode();
+    if (detected && detected !== GAME_MODE) {
+      console.log(`%c[👑 JASH VIP] 🔄 AUTO-SWITCHED GAME MODE: ${GAME_MODE} ➔ ${detected}`, 'background:linear-gradient(90deg,#ff3366,#ff0055);color:#fff;font-weight:900;padding:6px 12px;border-radius:4px;');
+      GAME_MODE = detected;
+      localStorage.setItem('JASH_MODE', GAME_MODE);
+
+      DRAW_HISTORY_MAP.clear();
+      LOTTERY_HISTORY = [];
+      CURRENT_API_DRAWS = [];
+      CURRENT_SIGNAL_PREDICTION = null;
+      pendingBet = null;
+
+      updateModeButtonUI();
+      updateHud();
+      fetchDrawHistory();
+    }
+  }
+
   // ── 12. CYBER GLASSMORPHIC VIP HUD ────────────────────────
   function createHud() {
     if (document.getElementById('jash-hud')) return;
@@ -1258,18 +1380,26 @@
           </div>
         </div>
 
-        <!-- Stake Controls -->
-        <div style="display:flex;gap:6px;margin-bottom:8px;">
-          <div style="flex:1;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:6px;">
-            <div style="font-size:9px;color:#94a3b8;">BASE BET</div>
+        <!-- Stake & Risk Controls -->
+        <div style="display:flex;gap:5px;margin-bottom:8px;">
+          <div style="flex:1;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:5px 6px;">
+            <div style="font-size:8.5px;color:#94a3b8;">BASE BET</div>
             <div style="display:flex;align-items:center;gap:2px;">
-              <span style="color:#00f5a0;font-weight:bold;">₹</span>
-              <input id="j-base-input" type="number" value="${BASE_BET}" min="1" style="width:100%;background:transparent;border:none;color:#fff;font-weight:bold;font-size:12px;outline:none;" />
+              <span style="color:#00f5a0;font-weight:bold;font-size:11px;">₹</span>
+              <input id="j-base-input" type="number" value="${BASE_BET}" min="1" style="width:100%;background:transparent;border:none;color:#fff;font-weight:bold;font-size:11px;outline:none;" />
             </div>
           </div>
-          <div style="flex:1;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:6px;">
-            <div style="font-size:9px;color:#94a3b8;">CURRENT BET</div>
-            <div id="j-current-bet-display" style="font-weight:bold;color:#E4FF4A;font-size:12px;">₹${currentBet}</div>
+          <div style="flex:1;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:5px 6px;">
+            <div style="font-size:8.5px;color:#94a3b8;">MAX LEVEL</div>
+            <select id="j-max-level-select" style="width:100%;background:transparent;border:none;color:#00d9ff;font-weight:bold;font-size:10px;outline:none;cursor:pointer;">
+              <option value="3" ${MAX_MARTINGALE_LEVEL === 3 ? 'selected' : ''} style="background:#0b0f19;color:#00d9ff;">L3 (₹14 SAFE)</option>
+              <option value="4" ${MAX_MARTINGALE_LEVEL === 4 ? 'selected' : ''} style="background:#0b0f19;color:#00d9ff;">L4 (₹28 MED)</option>
+              <option value="1" ${MAX_MARTINGALE_LEVEL === 1 ? 'selected' : ''} style="background:#0b0f19;color:#00d9ff;">L1 (FLAT ₹${BASE_BET})</option>
+            </select>
+          </div>
+          <div style="flex:1;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:5px 6px;">
+            <div style="font-size:8.5px;color:#94a3b8;">NEXT BET</div>
+            <div id="j-current-bet-display" style="font-weight:bold;color:#E4FF4A;font-size:11px;">₹${currentBet}</div>
           </div>
         </div>
 
@@ -1405,6 +1535,20 @@
       updateHud();
     };
 
+    // Max Martingale Level Selector
+    const maxLvlSelect = document.getElementById('j-max-level-select');
+    if (maxLvlSelect) {
+      maxLvlSelect.onchange = (e) => {
+        let val = parseInt(e.target.value, 10);
+        if (isNaN(val) || val < 1) val = 3;
+        MAX_MARTINGALE_LEVEL = val;
+        currentBet = getStakeForStep(BASE_BET, martingaleStep);
+        persistAll();
+        updateHud();
+        console.log(`%c[👑 JASH VIP] Max Martingale Level Set to: L${MAX_MARTINGALE_LEVEL}`, 'background:#00d9ff;color:#000;font-weight:bold;');
+      };
+    }
+
     // Complete Reset Triggers (Both Header and Action Bar Buttons)
     const triggerFullReset = (e) => {
       if (e) e.stopPropagation();
@@ -1509,8 +1653,13 @@
     const curBetEl = document.getElementById('j-current-bet-display');
     if (curBetEl) curBetEl.textContent = `₹${currentBet}`;
 
+    updateModeButtonUI();
+
     const streakEl = document.getElementById('j-streak-lbl');
-    if (streakEl) streakEl.textContent = `${LOSS_STREAK} (L${LOSS_STREAK + 1})`;
+    if (streakEl) {
+      streakEl.textContent = `${LOSS_STREAK} (L${martingaleStep + 1}/${MAX_MARTINGALE_LEVEL})`;
+      streakEl.style.color = martingaleStep >= 2 ? '#ff3366' : (martingaleStep === 1 ? '#ffcc00' : '#00f5a0');
+    }
 
     const scoreEl = document.getElementById('j-score-lbl');
     if (scoreEl) scoreEl.innerHTML = `<b style="color:#00f5a0;">${wins}W</b> / <b style="color:#ff3366;">${losses}L</b>`;
@@ -1533,6 +1682,9 @@
   // ── 13. AUTOBET CYCLE (ADAPTIVE 1M & 30S) ─────────────────
   async function botCycle() {
     try {
+      // 1. INSTANT GAME MODE AUTO-SYNC (Checks URL, DOM period, and active tabs)
+      syncGameMode();
+
       const secondsLeft = getTimerSeconds();
       const currentBucket = getCurrentTimeBucket();
 
@@ -1570,9 +1722,31 @@
         }
       }
 
+      // Period Contradiction Guard: If DOM shows 30S issue (10005) or 1M issue (10001), auto-lock immediately
+      if (activePeriod) {
+        if (activePeriod.includes('10005') && GAME_MODE !== '30S') {
+          syncGameMode('30S');
+          return;
+        } else if (activePeriod.includes('10001') && GAME_MODE !== '1M') {
+          syncGameMode('1M');
+          return;
+        }
+      }
+
       if (CURRENT_API_DRAWS.length > 0) {
         try {
-          const apiNext = BigInt(CURRENT_API_DRAWS[0].issueNumber) + 1n;
+          const apiTopIssue = CURRENT_API_DRAWS[0].issueNumber;
+          const apiIs30S = apiTopIssue.includes('10005');
+          const apiIs1M = apiTopIssue.includes('10001');
+
+          // If API draws mismatch mode, invalidate and refetch
+          if ((GAME_MODE === '30S' && !apiIs30S) || (GAME_MODE === '1M' && !apiIs1M)) {
+            CURRENT_API_DRAWS = [];
+            fetchDrawHistory();
+            return;
+          }
+
+          const apiNext = BigInt(apiTopIssue) + 1n;
           if (!activePeriod || apiNext > maxFound) {
             activePeriod = apiNext.toString();
           }
@@ -1593,35 +1767,19 @@
       if (activePeriod && PLACED_PERIODS.has(activePeriod)) return;
       if (pred.noData) return;
 
-      // Auto-detect mode from URL and active tabs
-      try {
-        const href = window.location.href || '';
-        if (/WinGo_30S|gameCode=WinGo_30S/i.test(href)) {
-          if (GAME_MODE !== '30S') {
-            GAME_MODE = '30S';
-            persistAll();
-            DRAW_HISTORY_MAP.clear();
-            LOTTERY_HISTORY = [];
-            CURRENT_API_DRAWS = [];
-            CURRENT_SIGNAL_PREDICTION = null;
-            pendingBet = null;
-            updateHud();
-            fetchDrawHistory();
-          }
-        } else if (/WinGo_1M|gameCode=WinGo_1M/i.test(href)) {
-          if (GAME_MODE !== '1M') {
-            GAME_MODE = '1M';
-            persistAll();
-            DRAW_HISTORY_MAP.clear();
-            LOTTERY_HISTORY = [];
-            CURRENT_API_DRAWS = [];
-            CURRENT_SIGNAL_PREDICTION = null;
-            pendingBet = null;
-            updateHud();
-            fetchDrawHistory();
-          }
+      // 🛑 DESYNC BET BLOCK GUARD: Never bet if activePeriod and API history mismatch
+      if (activePeriod && CURRENT_API_DRAWS.length > 0) {
+        const pIs30S = activePeriod.includes('10005');
+        const pIs1M = activePeriod.includes('10001');
+        const apiIs30S = CURRENT_API_DRAWS[0].issueNumber.includes('10005');
+        const apiIs1M = CURRENT_API_DRAWS[0].issueNumber.includes('10001');
+
+        if ((pIs30S && !apiIs30S) || (pIs1M && !apiIs1M)) {
+          console.warn(`[👑 JASH VIP] 🛑 BET BLOCKED: Desync detected! Page period is ${activePeriod} but API history is ${CURRENT_API_DRAWS[0].issueNumber}. Switching mode...`);
+          syncGameMode(pIs30S ? '30S' : '1M');
+          return;
         }
-      } catch (e) {}
+      }
 
       const canBet = (GAME_MODE === '30S')
         ? (secondsLeft <= 27 && secondsLeft >= 6)
@@ -1667,38 +1825,20 @@
     }
   }
 
-  // ── 14. INITIALIZATION & TAB SWITCH LISTENER ──────────────
+  // ── 14. INITIALIZATION & DYNAMIC LISTENERS ────────────────
+  window.addEventListener('hashchange', () => syncGameMode());
+  window.addEventListener('popstate', () => syncGameMode());
+  setInterval(syncGameMode, 600);
+
   document.addEventListener("click", (e) => {
     try {
       const el = e.target;
       if (!el || el.closest("#jash-hud")) return;
       const txt = (el.textContent || "").trim().toLowerCase();
       if (/(30s|30sec|30\s*sec|30\s*second|30秒|wingo\s*30)/i.test(txt)) {
-        if (GAME_MODE !== "30S") {
-          console.log("[👑 JASH VIP] Auto-detected switch to 30S tab on game site!");
-          GAME_MODE = "30S";
-          persistAll();
-          DRAW_HISTORY_MAP.clear();
-          LOTTERY_HISTORY = [];
-          CURRENT_API_DRAWS = [];
-          CURRENT_SIGNAL_PREDICTION = null;
-          pendingBet = null;
-          updateHud();
-          fetchDrawHistory();
-        }
+        syncGameMode('30S');
       } else if (/(1m|1min|1\s*min|1\s*minute|60s|1分|wingo\s*1)/i.test(txt)) {
-        if (GAME_MODE !== "1M") {
-          console.log("[👑 JASH VIP] Auto-detected switch to 1M tab on game site!");
-          GAME_MODE = "1M";
-          persistAll();
-          DRAW_HISTORY_MAP.clear();
-          LOTTERY_HISTORY = [];
-          CURRENT_API_DRAWS = [];
-          CURRENT_SIGNAL_PREDICTION = null;
-          pendingBet = null;
-          updateHud();
-          fetchDrawHistory();
-        }
+        syncGameMode('1M');
       }
     } catch(err) {}
   }, true);
@@ -1707,6 +1847,7 @@
     if (!document.getElementById('jash-hud')) createHud();
   }
 
+  syncGameMode();
   createHud();
   setInterval(ensureHud, 1000);
   setInterval(botCycle, 400);

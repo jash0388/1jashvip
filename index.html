@@ -1504,9 +1504,27 @@
                     patternType = 'dragon';
                     patternLabel = `⚡ DRAGON MOMENTUM (${streak}X)`;
                 } else {
-                    votes[opp(sizes[0])] += 4.5;
-                    patternType = 'cycle';
-                    patternLabel = `🛡️ STREAK-${streak} CUT (${sizes[0]}➔${opp(sizes[0])})`;
+                    // Check if table recent history is dragon-heavy
+                    let maxRecentStreak = 1;
+                    let rStreak = 1;
+                    for (let k = 1; k < Math.min(sizes.length, 25); k++) {
+                        if (sizes[k] === sizes[k - 1]) {
+                            rStreak++;
+                            if (rStreak > maxRecentStreak) maxRecentStreak = rStreak;
+                        } else {
+                            rStreak = 1;
+                        }
+                    }
+
+                    if (maxRecentStreak >= 5) {
+                        votes[sizes[0]] += 4.0;
+                        patternType = 'dragon';
+                        patternLabel = `⚡ DRAGON RIDE (${streak}X)`;
+                    } else {
+                        votes[opp(sizes[0])] += 3.5;
+                        patternType = 'cycle';
+                        patternLabel = `🛡️ STREAK-${streak} CUT (${sizes[0]}➔${opp(sizes[0])})`;
+                    }
                 }
             } else if (streak === 2) {
                 // Streak 2: Doublet continuation (extend to 3)
@@ -1772,6 +1790,7 @@
         function switchMode(mode) {
             if (currentMode === mode) return;
             currentMode = mode;
+            try { localStorage.setItem('JASH_MODE', mode); } catch (e) {}
             document.getElementById('tab-1m').classList.toggle('active', mode === '1M');
             document.getElementById('tab-30s').classList.toggle('active', mode === '30S');
 
@@ -1863,6 +1882,18 @@
         function manualRefresh() {
             runEngine();
         }
+
+        // Boot: Check initial mode from URL or localStorage
+        try {
+            const urlParams = new URLSearchParams(window.location.search);
+            const mParam = urlParams.get('mode') || urlParams.get('gameCode') || '';
+            const savedM = localStorage.getItem('JASH_MODE') || '';
+            if (mParam.toUpperCase().includes('30S') || savedM === '30S') {
+                currentMode = '30S';
+                document.getElementById('tab-1m').classList.remove('active');
+                document.getElementById('tab-30s').classList.add('active');
+            }
+        } catch (e) {}
 
         // Boot
         updateLevelUI();
