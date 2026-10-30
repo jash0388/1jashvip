@@ -513,42 +513,42 @@
 
     if (isPair22Complete) {
       // 2-2 PAIR BREAK: YYXX is complete! Break the doublet cleanly (XX -> Y)
-      votes[opp(sizes[0])] += 12.0;
+      votes[opp(sizes[0])] += 4.5;
       patternType = 'cycle';
       patternLabel = `🛡️ 2-2 PAIR BREAK (${sizes[0]}➔${opp(sizes[0])})`;
     } else if (isPair22Forming) {
       // 2-2 PAIR FORMING: YYX has appeared! Complete the 2nd piece of the pair (X -> X)
-      votes[sizes[0]] += 12.0;
+      votes[sizes[0]] += 4.5;
       patternType = 'cycle';
       patternLabel = `🛡️ 2-2 PAIR FORMING (${sizes[0]})`;
     } else if (activeLevel >= 2 && streak === 2) {
-      // ANTI-WHIPSAW RECOVERY: Table proved it formed a doublet, immediately ride the run!
-      votes[sizes[0]] += 12.0;
+      // ANTI-WHIPSAW RECOVERY: Table proved it formed a doublet, ride the run!
+      votes[sizes[0]] += 4.5;
       patternType = 'dragon';
       patternLabel = `🛡️ ANTI-WHIPSAW RIDE (${sizes[0]})`;
     } else if (streak >= 3) {
       if (streak >= 5) {
-        votes[sizes[0]] += 12.0;
+        votes[sizes[0]] += 5.0;
         patternType = 'dragon';
         patternLabel = `⚡ DRAGON MOMENTUM (${streak}X)`;
       } else {
-        votes[opp(sizes[0])] += 12.0;
+        votes[opp(sizes[0])] += 4.5;
         patternType = 'cycle';
         patternLabel = `🛡️ STREAK-${streak} CUT (${sizes[0]}➔${opp(sizes[0])})`;
       }
     } else if (streak === 2) {
       // Streak 2: Doublet continuation (extend to 3)
-      votes[sizes[0]] += 12.0;
+      votes[sizes[0]] += 4.0;
       patternType = 'cycle';
       patternLabel = `⚡ DOUBLET RIDE (${sizes[0]})`;
     } else {
       // Streak === 1:
       if (isChopZone) {
-        votes[opp(sizes[0])] += 12.0;
+        votes[opp(sizes[0])] += 4.5;
         patternType = 'zigzag';
         patternLabel = `⚡ CHOP INVERSION (${(altRate * 100).toFixed(0)}% CHOP)`;
       } else {
-        votes[sizes[0]] += 12.0;
+        votes[sizes[0]] += 3.5;
         patternType = 'consensus';
         patternLabel = `⚡ SINGLETON MOMENTUM (${sizes[0]})`;
       }
