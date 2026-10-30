@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         JASH VIP ULTIMATE 1 — WinGo 12-Engine BIG & SMALL Prediction HUD & AutoBet (1M & 30S)
 // @namespace    https://github.com/jash0388/jashvip
-// @version      45.0
-// @description  👑 JASH VIP V45 · Auto Game-Mode Sync (30S/1M), Unlimited Martingale Progression (Full Streak Doubling), Desync-Block & Multi-Model Quant Consensus.
+// @version      46.0
+// @description  👑 JASH VIP V46 · Anti-Whipsaw Trend Lock (No More BSBSBS Flipping), Dominant Market Follower, 30S Auto-Sync & Unlimited Martingale.
 // @match        *://*.dmfirst7.com/*
 // @match        *://*.dmfirst0.com/*
 // @match        *://*.dmfirst*.com/*
@@ -28,7 +28,7 @@
   window.__JASH_VIP_ULTIMATE_ACTIVE__ = true;
 
   console.log(
-    "%c👑 JASH VIP ULTIMATE V45 · AUTO-SYNC (30S/1M) & UNLIMITED MARTINGALE ACTIVE",
+    "%c👑 JASH VIP ULTIMATE V46 · ANTI-WHIPSAW TREND LOCK & UNLIMITED MARTINGALE ACTIVE",
     "background:linear-gradient(135deg,#00f5a0,#00d9ff,#ff3366);color:#000;font-size:15px;font-weight:900;padding:8px 16px;border-radius:8px;box-shadow:0 0 25px rgba(0,245,160,0.6);"
   );
 
@@ -519,83 +519,78 @@
       else break;
     }
 
-    // Dynamic Regime Decision Matrix:
-    // Active Zigzag: if table has alternated 2+ times consecutively, it is in a live chop!
-    const isActiveZigzag = (altStreak >= 2);
+    // ── DYNAMIC REGIME & ANTI-WHIPSAW ENGINE ─────────────────
+    // 1. Dominant Market Bias in Last 10 Rounds:
+    const recent10 = sizes.slice(0, 10);
+    const big10 = recent10.filter(x => x === 'BIG').length;
+    const small10 = 10 - big10;
+    const dominantSide = big10 >= 6 ? 'BIG' : (small10 >= 6 ? 'SMALL' : null);
 
-    // 2-2 Formation Signature Checks (ONLY valid if not in active zigzag):
-    const isPair22Complete = (!isActiveZigzag && streak === 2 && sizes.length >= 4 && sizes[2] === sizes[3] && sizes[2] !== sizes[0]);
-    const isPair22Forming = (!isActiveZigzag && streak === 1 && sizes.length >= 3 && sizes[1] === sizes[2] && sizes[1] !== sizes[0]);
+    // 2. Strict Zigzag Qualification: Requires 3+ true alternating transitions AND negative autocorrelation!
+    const isActiveZigzag = (altStreak >= 3 && r1 < -0.10);
 
-    // A chop zone is valid if in active zigzag OR (streak 1, chop accuracy >= 50%, altRate >= 50%)
-    const isChopZone = isActiveZigzag || (streak === 1 && !isPair22Forming && chopAccuracy >= 0.50 && altRate >= 0.50);
+    // 3. Strict 2-2 Formation Signature:
+    // Requires exact doublet (YYX) where previous piece was NOT a 3+ streak!
+    const isPair22Forming = (streak === 1 && sizes.length >= 4 && sizes[1] === sizes[2] && sizes[1] !== sizes[0] && sizes[3] !== sizes[1]);
+    const isPair22Complete = (streak === 2 && sizes.length >= 5 && sizes[2] === sizes[3] && sizes[2] !== sizes[0] && sizes[4] !== sizes[2]);
+
     let patternType = 'consensus';
     let patternLabel = titan.reg;
 
+    // 4. Balanced Macro Weighting (Gentle bias +1.5 - +2.0 without overriding the 14 quant engines)
     if (isActiveZigzag) {
-      // ACTIVE ZIGZAG: Table is cleanly alternating (e.g. S-B-S or B-S-B)! Always ride the switch!
-      votes[opp(sizes[0])] += 5.5;
+      // Verified active zigzag (3+ consecutive switches with negative autocorrelation)
+      votes[opp(sizes[0])] += 1.8;
       patternType = 'zigzag';
       patternLabel = `⚡ ACTIVE ZIGZAG (${altStreak}X)`;
     } else if (isPair22Complete) {
-      // 2-2 PAIR BREAK: YYXX is complete! Break the doublet cleanly (XX -> Y)
-      votes[opp(sizes[0])] += 4.5;
+      // Complete 2-2: YYXX complete -> break cleanly
+      votes[opp(sizes[0])] += 1.6;
       patternType = 'cycle';
       patternLabel = `🛡️ 2-2 PAIR BREAK (${sizes[0]}➔${opp(sizes[0])})`;
     } else if (isPair22Forming) {
-      // 2-2 PAIR FORMING: YYX has appeared! Complete the 2nd piece of the pair (X -> X)
-      votes[sizes[0]] += 4.5;
+      // Verified 2-2 forming: YYX -> X
+      votes[sizes[0]] += 1.6;
       patternType = 'cycle';
       patternLabel = `🛡️ 2-2 PAIR FORMING (${sizes[0]})`;
-    } else if (activeLevel >= 2 && streak === 2) {
-      // ANTI-WHIPSAW RECOVERY: Table proved it formed a doublet, ride the run!
-      votes[sizes[0]] += 4.5;
-      patternType = 'dragon';
-      patternLabel = `🛡️ ANTI-WHIPSAW RIDE (${sizes[0]})`;
     } else if (streak >= 3) {
-      if (streak >= 5) {
-        votes[sizes[0]] += 5.0;
+      // Long streak / dragon: Follow dominant side or ride momentum
+      if (streak >= 5 || dominantSide === sizes[0]) {
+        votes[sizes[0]] += 2.0;
         patternType = 'dragon';
         patternLabel = `⚡ DRAGON MOMENTUM (${streak}X)`;
       } else {
-        // Streak 3 or 4: Check if recent history has been dragon-heavy
-        let maxRecentStreak = 1;
-        let rStreak = 1;
-        for (let k = 1; k < Math.min(sizes.length, 25); k++) {
-          if (sizes[k] === sizes[k - 1]) {
-            rStreak++;
-            if (rStreak > maxRecentStreak) maxRecentStreak = rStreak;
-          } else {
-            rStreak = 1;
-          }
-        }
-
-        if (maxRecentStreak >= 5) {
-          votes[sizes[0]] += 4.0;
-          patternType = 'dragon';
-          patternLabel = `⚡ DRAGON RIDE (${streak}X)`;
-        } else {
-          votes[opp(sizes[0])] += 3.5;
-          patternType = 'cycle';
-          patternLabel = `🛡️ STREAK-${streak} CUT (${sizes[0]}➔${opp(sizes[0])})`;
-        }
+        votes[opp(sizes[0])] += 1.6;
+        patternType = 'cycle';
+        patternLabel = `🛡️ STREAK-${streak} CUT (${sizes[0]}➔${opp(sizes[0])})`;
       }
     } else if (streak === 2) {
-      // Streak 2: Doublet continuation (extend to 3)
-      votes[sizes[0]] += 4.0;
-      patternType = 'cycle';
-      patternLabel = `⚡ DOUBLET RIDE (${sizes[0]})`;
-    } else {
-      // Streak === 1:
-      if (isChopZone) {
-        votes[opp(sizes[0])] += 4.5;
-        patternType = 'zigzag';
-        patternLabel = `⚡ CHOP INVERSION (${(altRate * 100).toFixed(0)}% CHOP)`;
+      // Doublet: If dominant market side supports this doublet, ride it
+      if (dominantSide === sizes[0]) {
+        votes[sizes[0]] += 1.6;
+        patternType = 'cycle';
+        patternLabel = `⚡ DOUBLET RIDE (${sizes[0]})`;
       } else {
-        votes[sizes[0]] += 3.5;
         patternType = 'consensus';
-        patternLabel = `⚡ SINGLETON MOMENTUM (${sizes[0]})`;
+        patternLabel = `⚡ CONSENSUS MATRIX`;
       }
+    } else {
+      // Streak === 1: Follow dominant market trend if strong, otherwise let quant models decide naturally
+      if (dominantSide) {
+        votes[dominantSide] += 1.6;
+        patternType = 'consensus';
+        patternLabel = `⚡ TREND FOLLOW (${dominantSide} ${Math.max(big10, small10) * 10}%)`;
+      } else {
+        patternType = 'consensus';
+        patternLabel = `⚡ CONSENSUS MATRIX`;
+      }
+    }
+
+    // 5. Anti-Whipsaw Consecutive Loss Stabilizer:
+    // When the table has whipsawed the engine on consecutive losses, LOCK onto the dominant market trend!
+    if (activeLevel >= 3 && dominantSide) {
+      votes[dominantSide] += 2.5;
+      patternLabel = `🛡️ ANTI-WHIPSAW TREND LOCK (${dominantSide})`;
     }
 
     const prediction = votes.BIG >= votes.SMALL ? 'BIG' : 'SMALL';
