@@ -502,12 +502,26 @@
     const chopAccuracy = chopTests > 0 ? (chopWins / chopTests) : 0.50;
 
     // Dynamic Regime Decision Matrix:
-    // A chop zone is ONLY valid if streak is 1, recent chop accuracy >= 50%, and alternation frequency >= 50%
-    const isChopZone = (streak === 1 && chopAccuracy >= 0.50 && altRate >= 0.50);
+    // 2-2 Formation Signature Checks:
+    const isPair22Complete = (streak === 2 && sizes.length >= 4 && sizes[2] === sizes[3] && sizes[2] !== sizes[0]);
+    const isPair22Forming = (streak === 1 && sizes.length >= 3 && sizes[1] === sizes[2] && sizes[1] !== sizes[0]);
+
+    // A chop zone is ONLY valid if streak is 1, not forming a 2-2 pair, recent chop accuracy >= 50%, and alternation frequency >= 50%
+    const isChopZone = (streak === 1 && !isPair22Forming && chopAccuracy >= 0.50 && altRate >= 0.50);
     let patternType = 'consensus';
     let patternLabel = titan.reg;
 
-    if (activeLevel >= 2 && streak === 2) {
+    if (isPair22Complete) {
+      // 2-2 PAIR BREAK: YYXX is complete! Break the doublet cleanly (XX -> Y)
+      votes[opp(sizes[0])] += 12.0;
+      patternType = 'cycle';
+      patternLabel = `🛡️ 2-2 PAIR BREAK (${sizes[0]}➔${opp(sizes[0])})`;
+    } else if (isPair22Forming) {
+      // 2-2 PAIR FORMING: YYX has appeared! Complete the 2nd piece of the pair (X -> X)
+      votes[sizes[0]] += 12.0;
+      patternType = 'cycle';
+      patternLabel = `🛡️ 2-2 PAIR FORMING (${sizes[0]})`;
+    } else if (activeLevel >= 2 && streak === 2) {
       // ANTI-WHIPSAW RECOVERY: Table proved it formed a doublet, immediately ride the run!
       votes[sizes[0]] += 12.0;
       patternType = 'dragon';
@@ -523,7 +537,7 @@
         patternLabel = `🛡️ STREAK-${streak} CUT (${sizes[0]}➔${opp(sizes[0])})`;
       }
     } else if (streak === 2) {
-      // Streak 2: Doublet continuation (62% extend to 3)
+      // Streak 2: Doublet continuation (extend to 3)
       votes[sizes[0]] += 12.0;
       patternType = 'cycle';
       patternLabel = `⚡ DOUBLET RIDE (${sizes[0]})`;
