@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         JASH VIP ULTIMATE 1 — WinGo 12-Engine BIG & SMALL Prediction HUD & AutoBet (1M & 30S)
 // @namespace    https://github.com/jash0388/jashvip
-// @version      44.0
-// @description  👑 JASH VIP V44 · Auto Game-Mode Sync (30S/1M), Strict L3 Safe Martingale Guard (Never Wipes Balance), Desync-Block & Multi-Model Quant Consensus.
+// @version      45.0
+// @description  👑 JASH VIP V45 · Auto Game-Mode Sync (30S/1M), Unlimited Martingale Progression (Full Streak Doubling), Desync-Block & Multi-Model Quant Consensus.
 // @match        *://*.dmfirst7.com/*
 // @match        *://*.dmfirst0.com/*
 // @match        *://*.dmfirst*.com/*
@@ -28,7 +28,7 @@
   window.__JASH_VIP_ULTIMATE_ACTIVE__ = true;
 
   console.log(
-    "%c👑 JASH VIP ULTIMATE V44 · AUTO-SYNC (30S/1M) & STRICT L3 SAFE CAPITAL GUARD ACTIVE",
+    "%c👑 JASH VIP ULTIMATE V45 · AUTO-SYNC (30S/1M) & UNLIMITED MARTINGALE ACTIVE",
     "background:linear-gradient(135deg,#00f5a0,#00d9ff,#ff3366);color:#000;font-size:15px;font-weight:900;padding:8px 16px;border-radius:8px;box-shadow:0 0 25px rgba(0,245,160,0.6);"
   );
 
@@ -59,18 +59,13 @@
   let BASE_BET = parseInt(localStorage.getItem('JASH_BASE_BET') || '3', 10);
   if (isNaN(BASE_BET) || BASE_BET < 1) BASE_BET = 3;
 
-  // STRICT CAPITAL PROTECTION GUARD: Max Martingale Level (Default L3: ₹3 -> ₹7 -> ₹14 -> Auto-Reset)
-  let MAX_MARTINGALE_LEVEL = parseInt(localStorage.getItem('JASH_MAX_LEVEL') || '3', 10);
-  if (isNaN(MAX_MARTINGALE_LEVEL) || MAX_MARTINGALE_LEVEL < 1) MAX_MARTINGALE_LEVEL = 3;
-
+  // UNLIMITED MARTINGALE PROGRESSION (Continuous doubling until WIN)
   function getStakeForStep(base, step) {
     const b = Math.max(1, parseInt(base, 10) || 3);
     const s = Math.max(0, parseInt(step, 10) || 0);
-    if (MAX_MARTINGALE_LEVEL <= 1) return b; // Flat bet mode
-    const capped = Math.min(s, MAX_MARTINGALE_LEVEL - 1);
-    if (capped === 0) return b;
-    if (capped === 1) return (b * 2) + 1; // 7 if base 3
-    return ((b * 2) + 1) * Math.pow(2, capped - 1); // 14 for L3 (step 2)
+    if (s === 0) return b;
+    if (s === 1) return (b * 2) + 1; // e.g. 7 if base 3, 5 if base 2
+    return ((b * 2) + 1) * Math.pow(2, s - 1); // 14, 28, 56, 112, 224, 448, 896...
   }
 
   let currentEngineLevel = 1;
@@ -102,7 +97,6 @@
     try {
       localStorage.setItem('JASH_MODE', GAME_MODE);
       localStorage.setItem('JASH_BASE_BET', BASE_BET.toString());
-      localStorage.setItem('JASH_MAX_LEVEL', MAX_MARTINGALE_LEVEL.toString());
       localStorage.setItem('JASH_WINS', wins.toString());
       localStorage.setItem('JASH_LOSSES', losses.toString());
       localStorage.setItem('JASH_STEP', martingaleStep.toString());
@@ -939,14 +933,8 @@
       currentEngineLevel++;
       if (currentEngineLevel > 3) currentEngineLevel = 1;
 
-      // 🛡️ STRICT CAPITAL SHIELD: Auto-reset to base bet when reaching MAX_MARTINGALE_LEVEL!
-      if (martingaleStep >= MAX_MARTINGALE_LEVEL) {
-        console.warn(`%c🛡️ JASH VIP CAPITAL SHIELD: Reached Max Martingale Level ${MAX_MARTINGALE_LEVEL}! Auto-resetting to Base Bet ₹${BASE_BET} to prevent high-stake losses!`, 'background:#f59e0b;color:#000;font-weight:900;padding:6px;border-radius:4px');
-        martingaleStep = 0; // AUTO-RESET TO BASE BET!
-      }
-
       currentBet = getStakeForStep(BASE_BET, martingaleStep);
-      console.log(`%c💀 JASH VIP LOSS on #${period}! Result=${actualNum} (${outcomeSize}). Streak=${LOSS_STREAK} Next=₹${currentBet} (Step ${martingaleStep}/${MAX_MARTINGALE_LEVEL})`, 'background:#ef4444;color:#fff;font-weight:900;padding:6px;border-radius:4px');
+      console.log(`%c💀 JASH VIP LOSS on #${period}! Result=${actualNum} (${outcomeSize}). Streak=${LOSS_STREAK} Next=₹${currentBet} (L${martingaleStep + 1} UNLIMITED)`, 'background:#ef4444;color:#fff;font-weight:900;padding:6px;border-radius:4px');
     }
 
     pendingBet = null;
@@ -1380,26 +1368,18 @@
           </div>
         </div>
 
-        <!-- Stake & Risk Controls -->
-        <div style="display:flex;gap:5px;margin-bottom:8px;">
-          <div style="flex:1;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:5px 6px;">
-            <div style="font-size:8.5px;color:#94a3b8;">BASE BET</div>
+        <!-- Stake Controls (Unlimited Martingale) -->
+        <div style="display:flex;gap:6px;margin-bottom:8px;">
+          <div style="flex:1;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:6px;">
+            <div style="font-size:9px;color:#94a3b8;">BASE BET</div>
             <div style="display:flex;align-items:center;gap:2px;">
-              <span style="color:#00f5a0;font-weight:bold;font-size:11px;">₹</span>
-              <input id="j-base-input" type="number" value="${BASE_BET}" min="1" style="width:100%;background:transparent;border:none;color:#fff;font-weight:bold;font-size:11px;outline:none;" />
+              <span style="color:#00f5a0;font-weight:bold;">₹</span>
+              <input id="j-base-input" type="number" value="${BASE_BET}" min="1" style="width:100%;background:transparent;border:none;color:#fff;font-weight:bold;font-size:12px;outline:none;" />
             </div>
           </div>
-          <div style="flex:1;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:5px 6px;">
-            <div style="font-size:8.5px;color:#94a3b8;">MAX LEVEL</div>
-            <select id="j-max-level-select" style="width:100%;background:transparent;border:none;color:#00d9ff;font-weight:bold;font-size:10px;outline:none;cursor:pointer;">
-              <option value="3" ${MAX_MARTINGALE_LEVEL === 3 ? 'selected' : ''} style="background:#0b0f19;color:#00d9ff;">L3 (₹14 SAFE)</option>
-              <option value="4" ${MAX_MARTINGALE_LEVEL === 4 ? 'selected' : ''} style="background:#0b0f19;color:#00d9ff;">L4 (₹28 MED)</option>
-              <option value="1" ${MAX_MARTINGALE_LEVEL === 1 ? 'selected' : ''} style="background:#0b0f19;color:#00d9ff;">L1 (FLAT ₹${BASE_BET})</option>
-            </select>
-          </div>
-          <div style="flex:1;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:5px 6px;">
-            <div style="font-size:8.5px;color:#94a3b8;">NEXT BET</div>
-            <div id="j-current-bet-display" style="font-weight:bold;color:#E4FF4A;font-size:11px;">₹${currentBet}</div>
+          <div style="flex:1;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:6px;">
+            <div style="font-size:9px;color:#94a3b8;">CURRENT BET (UNLIMITED)</div>
+            <div id="j-current-bet-display" style="font-weight:bold;color:#E4FF4A;font-size:12px;">₹${currentBet}</div>
           </div>
         </div>
 
@@ -1535,19 +1515,7 @@
       updateHud();
     };
 
-    // Max Martingale Level Selector
-    const maxLvlSelect = document.getElementById('j-max-level-select');
-    if (maxLvlSelect) {
-      maxLvlSelect.onchange = (e) => {
-        let val = parseInt(e.target.value, 10);
-        if (isNaN(val) || val < 1) val = 3;
-        MAX_MARTINGALE_LEVEL = val;
-        currentBet = getStakeForStep(BASE_BET, martingaleStep);
-        persistAll();
-        updateHud();
-        console.log(`%c[👑 JASH VIP] Max Martingale Level Set to: L${MAX_MARTINGALE_LEVEL}`, 'background:#00d9ff;color:#000;font-weight:bold;');
-      };
-    }
+
 
     // Complete Reset Triggers (Both Header and Action Bar Buttons)
     const triggerFullReset = (e) => {
@@ -1657,8 +1625,8 @@
 
     const streakEl = document.getElementById('j-streak-lbl');
     if (streakEl) {
-      streakEl.textContent = `${LOSS_STREAK} (L${martingaleStep + 1}/${MAX_MARTINGALE_LEVEL})`;
-      streakEl.style.color = martingaleStep >= 2 ? '#ff3366' : (martingaleStep === 1 ? '#ffcc00' : '#00f5a0');
+      streakEl.textContent = `${LOSS_STREAK} (L${martingaleStep + 1} • UNLIMITED)`;
+      streakEl.style.color = martingaleStep >= 3 ? '#ff3366' : (martingaleStep >= 1 ? '#ffcc00' : '#00f5a0');
     }
 
     const scoreEl = document.getElementById('j-score-lbl');
