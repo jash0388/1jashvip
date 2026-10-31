@@ -1797,7 +1797,7 @@
         }
     }
 
-    // ================= HEURISTIC PREDICTION ENGINE =================
+    // ================= JASHVIP 12-MODEL QUANT ENSEMBLE ENGINE =================
     function classifyNumber(num) {
         const size = num >= 5 ? 'BIG' : 'SMALL';
         let color = ['GREEN'];
@@ -1805,6 +1805,162 @@
         else if (num === 5) color = ['GREEN', 'VIOLET'];
         else if (num % 2 === 0) color = ['RED'];
         return { num, size, color };
+    }
+
+    function getSize(n) { return parseInt(n, 10) >= 5 ? 'BIG' : 'SMALL'; }
+    function opp(s) { return s === 'BIG' ? 'SMALL' : 'BIG'; }
+
+    function getRuns(sizes) {
+        const runs = [];
+        if (!sizes.length) return runs;
+        let cur = sizes[0], len = 1;
+        for (let i = 1; i < sizes.length; i++) {
+            if (sizes[i] === cur) len++;
+            else { runs.push({ size: cur, len }); cur = sizes[i]; len = 1; }
+        }
+        runs.push({ size: cur, len });
+        return runs;
+    }
+
+    function apexTitanEngine(sizes, lossStreak) {
+        const runs = getRuns(sizes);
+        const cRun = runs[runs.length - 1];
+        const cSide = cRun ? cRun.size : sizes[0];
+        const cLen = cRun ? cRun.len : 1;
+        const lastS = sizes[sizes.length - 1];
+
+        let alt = 0;
+        for (let i = runs.length - 1; i >= 0; i--) {
+            if (runs[i].len === 1) alt++; else break;
+        }
+
+        if (lossStreak >= 2) {
+            if (cLen >= 2) return { vote: cSide, reg: '🛑 L3 DRAGON LOCK' };
+            if (alt >= 2) return { vote: opp(lastS), reg: '🛑 L3 CHOP FLIP' };
+            return { vote: cSide, reg: '🛑 L3 MOMENTUM LOCK' };
+        } else if (lossStreak === 1) {
+            if (cLen >= 2) return { vote: cSide, reg: '🛡️ L2 DRAGON RIDE' };
+            if (alt >= 2) return { vote: opp(lastS), reg: '🛡️ L2 CHOP FLIP' };
+            return { vote: cSide, reg: '🛡️ L2 MOMENTUM LOCK' };
+        } else {
+            if (cLen >= 3) return { vote: cSide, reg: '🌊 L1 DRAGON RIDE' };
+            if (cLen === 2) return { vote: cSide, reg: '🌊 L1 DOUBLET RIDE' };
+            if (alt >= 3) return { vote: opp(lastS), reg: '⚡ L1 CHOP OSC' };
+            if (cLen === 1) return { vote: opp(cSide), reg: '🌊 L1 SINGLE CUT' };
+            return { vote: cSide, reg: '🌊 L1 MOMENTUM' };
+        }
+    }
+
+    function radheEngine(list) {
+        let sizes = list.slice(0, 12).map(item => getSize(item.number));
+        let consecutiveCount = 1;
+        for (let i = 1; i < sizes.length; i++) {
+            if (sizes[i] === sizes[0]) consecutiveCount++; else break;
+        }
+        if (consecutiveCount >= 4) return sizes[0];
+        let isAlternating = true;
+        for (let i = 0; i < 4; i++) {
+            if (sizes[i] === sizes[i + 1]) { isAlternating = false; break; }
+        }
+        if (isAlternating) return sizes[0] === 'BIG' ? 'SMALL' : 'BIG';
+        let weightSum = 0;
+        for (let i = 0; i < Math.min(list.length, 6); i++) {
+            let num = parseInt(list[i].number, 10);
+            let pWeight = (6 - i) * 3;
+            weightSum += (num >= 5) ? pWeight : -pWeight;
+        }
+        return weightSum >= 0 ? 'BIG' : 'SMALL';
+    }
+
+    function sureshEngine(list) {
+        let bigs = 0, smalls = 0;
+        for (let i = 0; i < Math.min(10, list.length); i++) {
+            const num = parseInt(list[i].number, 10);
+            const weight = (10 - i);
+            if (num >= 5) bigs += weight; else smalls += weight;
+        }
+        const last3 = list.slice(0, 3).map(x => getSize(x.number));
+        if (last3[0] === last3[1] && last3[1] === last3[2]) return last3[0];
+        return bigs >= smalls ? 'BIG' : 'SMALL';
+    }
+
+    function markovEngine(sizes) {
+        if (sizes.length < 5) return sizes[0];
+        const s1 = sizes[1], s0 = sizes[0];
+        let nextB = 0, nextS = 0;
+        for (let i = 0; i < sizes.length - 2; i++) {
+            if (sizes[i + 1] === s1 && sizes[i] === s0) {
+                if (sizes[i + 2] === 'BIG') nextB++; else nextS++;
+            }
+        }
+        if (nextB > nextS) return 'BIG';
+        if (nextS > nextB) return 'SMALL';
+        return s0;
+    }
+
+    function tgxLogic1(nums, sizes) {
+        const n1 = nums[0], n2 = nums[1] || nums[0];
+        const n9 = nums[8] || nums[nums.length - 1], n10 = nums[9] || nums[nums.length - 1];
+        let total = Math.abs((n1 - n2) + (n9 - n10)) % 10;
+        let bigs = 0;
+        for (let i = 0; i < Math.min(5, sizes.length); i++) if (sizes[i] === 'BIG') bigs++;
+        if (bigs >= 4) return total >= 4 ? 'BIG' : 'SMALL';
+        if (bigs <= 1) return total >= 6 ? 'BIG' : 'SMALL';
+        return total >= 5 ? 'BIG' : 'SMALL';
+    }
+
+    function tgxLogic2(nums) {
+        const w = [3, 2, 1, 1, 1];
+        let sum = 0;
+        for (let i = 0; i < Math.min(5, nums.length); i++) sum += nums[i] * w[i];
+        sum += nums[0] * 2;
+        return (sum % 10) >= 5 ? 'BIG' : 'SMALL';
+    }
+
+    function tgxLogic3(nums, sizes) {
+        let vol = 0;
+        for (let i = 0; i < Math.min(5, nums.length - 1); i++) vol += Math.abs(nums[i] - nums[i + 1]);
+        vol = vol / 5;
+        let streak = 1;
+        for (let i = 1; i < Math.min(5, sizes.length); i++) if (sizes[i] === sizes[0]) streak++; else break;
+        let streakScore = streak >= 3 ? -25 : (streak === 2 ? -15 : (vol > 3 ? 10 : 5));
+        let bigCnt = sizes.slice(0, 8).filter(x => x === 'BIG').length;
+        let imbalance = ((bigCnt - 4) / 8) * 100;
+        let pattern = (sizes[0] === sizes[1] && sizes[1] === sizes[2]) ? -35 : (sizes[0] === sizes[1] ? -20 : 25);
+        let total = (streakScore * 0.3) + (imbalance * 0.4) + (pattern * 0.3);
+        return total >= 0 ? 'BIG' : 'SMALL';
+    }
+
+    function tgxLogic4(sizes) {
+        let streak = 1;
+        for (let i = 1; i < sizes.length; i++) if (sizes[i] === sizes[0]) streak++; else break;
+        if (streak >= 2) return sizes[0];
+        let changes = 0;
+        for (let i = 0; i < Math.min(5, sizes.length - 1); i++) if (sizes[i] !== sizes[i + 1]) changes++;
+        if (changes >= 3) return sizes[0] === 'BIG' ? 'SMALL' : 'BIG';
+        return sizes[0];
+    }
+
+    function tgxLogic5(nums) {
+        let ev = 0;
+        for (let i = 0; i < Math.min(6, nums.length); i++) if (nums[i] % 2 === 0) ev++;
+        return ev >= 3 ? 'BIG' : 'SMALL';
+    }
+
+    function tgxLogic6(sizes) {
+        if (sizes.length < 2) return sizes[0];
+        return sizes[0] === sizes[1] ? (sizes[0] === 'BIG' ? 'SMALL' : 'BIG') : sizes[0];
+    }
+
+    function getActiveLossStreak() {
+        let streak = 0;
+        for (const item of historyList) {
+            if (item.mode === ACTIVE_MODE && item.status !== 'pending') {
+                if (item.status === 'loss') streak++;
+                else break;
+            }
+        }
+        return streak;
     }
 
     function generateEnsemblePrediction(history = []) {
@@ -1840,31 +1996,75 @@
         const bigCount = sizes.filter(s => s === 'BIG').length;
         const smallCount = total - bigCount;
 
-        let predictedSize = 'BIG';
-        let patternName = 'VORTEX ENSEMBLE';
-        let confidence = 84;
+        const lossStreak = getActiveLossStreak();
+        const activeLevel = Math.min(3, lossStreak + 1);
 
-        if (streak >= 4) {
-            // Dragon ride or cut
-            predictedSize = sizes[0]; // Ride dragon with high confidence
-            patternName = '⚡ DRAGON RIDE (' + streak + 'X)';
-            confidence = Math.min(94, 82 + streak * 2);
+        const votes = { BIG: 0, SMALL: 0 };
+
+        // 1. Apex Titan Engine
+        const titan = apexTitanEngine(sizes, lossStreak);
+        votes[titan.vote] += 3.2;
+
+        // 2. Radhe Momentum
+        const radhe = radheEngine(history);
+        votes[radhe] += 2.4;
+
+        // 3. Suresh Recency
+        const suresh = sureshEngine(history);
+        votes[suresh] += 2.0;
+
+        // 4. 2nd-Order Markov
+        const markov = markovEngine(sizes);
+        votes[markov] += 1.8;
+
+        // 5. TGX 1-6 Quant Logic
+        votes[tgxLogic1(numbers, sizes)] += 1.0;
+        votes[tgxLogic2(numbers)] += 1.2;
+        votes[tgxLogic3(numbers, sizes)] += 1.0;
+        votes[tgxLogic4(sizes)] += 1.0;
+        votes[tgxLogic5(numbers)] += 0.8;
+        votes[tgxLogic6(sizes)] += 1.0;
+
+        // 6. PainPro Short-Term Bias
+        const painPro = sizes.slice(0, 3).filter(x => x === 'BIG').length > 1 ? 'BIG' : 'SMALL';
+        votes[painPro] += 1.0;
+
+        // 7. Strict 2-2 Formation & Cycle Detection (SS -> BB -> SS)
+        const isPair22Forming = (streak === 1 && sizes.length >= 4 && sizes[1] === sizes[2] && sizes[1] !== sizes[0] && sizes[3] !== sizes[1]);
+        const isPair22Complete = (streak === 2 && sizes.length >= 5 && sizes[2] === sizes[3] && sizes[2] !== sizes[0] && sizes[4] !== sizes[2]);
+
+        let patternName = titan.reg;
+        let isChopZone = (altStreak >= 3 && activeLevel >= 3);
+
+        if (streak >= 3) {
+            votes[sizes[0]] += 5.5;
+            patternName = `⚡ DRAGON RIDE (${streak}X)`;
+        } else if (streak === 2 && activeLevel >= 2) {
+            votes[sizes[0]] += 4.0;
+            patternName = `🛡️ L${activeLevel} DOUBLET RIDE`;
+        } else if (isPair22Forming) {
+            votes[sizes[0]] += 2.8;
+            patternName = `🛡️ 2-2 PAIR FORMING (${sizes[0]})`;
+        } else if (isPair22Complete) {
+            votes[opp(sizes[0])] += 2.8;
+            patternName = `⚡ 2-2 PAIR BREAK (${opp(sizes[0])})`;
+        } else if (isChopZone) {
+            votes[opp(sizes[0])] += 2.5;
+            patternName = `🛑 CAPITAL GUARD: CHOP FLIP`;
         } else if (altStreak >= 3) {
-            // Alternating chop continuation
-            predictedSize = sizes[0] === 'BIG' ? 'SMALL' : 'BIG';
-            patternName = '⚡ CHOP ALTERNATION';
-            confidence = Math.min(92, 80 + altStreak * 3);
-        } else if (Math.abs(bigCount - smallCount) >= 4) {
-            // Mean Reversion
-            predictedSize = bigCount > smallCount ? 'SMALL' : 'BIG';
-            patternName = '⚖️ MEAN REVERSION';
-            confidence = 86;
-        } else {
-            // Markov transition
-            predictedSize = sizes[0] === 'BIG' ? 'BIG' : 'SMALL';
-            patternName = '🛡️ MARKOV CONTINUUM';
-            confidence = 83;
+            votes[opp(sizes[0])] += 3.0;
+            patternName = `⚡ ZIGZAG SWITCH (${altStreak}X)`;
+        } else if (activeLevel >= 2) {
+            // Anti-Whipsaw Loss Protection: Lock onto dominant side
+            const big10 = sizes.slice(0, 10).filter(x => x === 'BIG').length;
+            const dominant = big10 >= 6 ? 'BIG' : (big10 <= 4 ? 'SMALL' : sizes[0]);
+            votes[dominant] += 2.5;
+            patternName = `🛡️ L${activeLevel} DOMINANT LOCK (${dominant})`;
         }
+
+        const predictedSize = votes.BIG >= votes.SMALL ? 'BIG' : 'SMALL';
+        const totalVotes = votes.BIG + votes.SMALL;
+        const confidence = Math.min(97, Math.max(80, Math.round((Math.max(votes.BIG, votes.SMALL) / totalVotes) * 100)));
 
         // Predict number matching predicted size
         const candidateNumbers = predictedSize === 'BIG' ? [5, 6, 7, 8, 9] : [0, 1, 2, 3, 4];
