@@ -850,9 +850,29 @@
             display: flex;
             flex-direction: column;
             gap: 6px;
-            max-height: 220px;
+            max-height: 380px;
             overflow-y: auto;
             padding-right: 4px;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(0, 245, 160, 0.4) transparent;
+        }
+
+        .activity-log-list::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .activity-log-list::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 4px;
+        }
+
+        .activity-log-list::-webkit-scrollbar-thumb {
+            background: rgba(0, 245, 160, 0.35);
+            border-radius: 4px;
+        }
+
+        .activity-log-list::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 245, 160, 0.6);
         }
 
         .log-row {
@@ -1339,7 +1359,7 @@
 
                 <div class="section-header-row">
                     <div class="section-title"><i class="bi bi-journal-check"></i> VERIFIED SIGNAL LOG</div>
-                    <span style="font-size:10px; font-family:var(--font-mono); color:var(--text-muted);">AUTO-VERIFIED</span>
+                    <span style="font-size:10px; font-family:var(--font-mono); color:var(--neon-green);" id="logCountBadge">UNLIMITED SESSION</span>
                 </div>
 
                 <div class="activity-log-list" id="activityLogList">
@@ -1536,8 +1556,14 @@
 
     function saveHistory() {
         try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(historyList.slice(0, 150)));
-        } catch(e) {}
+            // Unlimited storage in memory and localStorage
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(historyList));
+        } catch(e) {
+            try {
+                // Graceful fallback only if browser storage quota is hit
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(historyList.slice(0, 1000)));
+            } catch(e2) {}
+        }
     }
 
     // Audio Synthesizer (Web Audio API)
@@ -2036,7 +2062,13 @@
 
     function renderActivityLog() {
         const container = document.getElementById('activityLogList');
-        const filtered = historyList.filter(h => h.mode === ACTIVE_MODE).slice(0, 15);
+        const countBadge = document.getElementById('logCountBadge');
+        // Unlimited session storage: keep and display all rounds while tab is opened
+        const filtered = historyList.filter(h => h.mode === ACTIVE_MODE);
+
+        if (countBadge) {
+            countBadge.textContent = filtered.length ? `${filtered.length} ROUNDS (UNLIMITED)` : 'UNLIMITED SESSION';
+        }
 
         if (!filtered.length) {
             container.innerHTML = `
