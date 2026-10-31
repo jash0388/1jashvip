@@ -1673,22 +1673,20 @@
         const sec = now.getSeconds();
         const remain = g.dur - (sec % g.dur);
 
-        // Calculate period via API calibration if available
-        let activePeriod = null;
-        const cal = calibData[modeKey];
-        if (cal) {
-            const currentSlot = Math.floor(now.getTime() / (g.dur * 1000));
-            const elapsed = currentSlot - cal.slot;
-            activePeriod = (cal.issue + BigInt(elapsed)).toString();
-        } else {
-            // Fallback deterministic UTC period
-            const d = new Date();
-            const dayStr = d.getUTCFullYear() +
-                String(d.getUTCMonth() + 1).padStart(2, '0') +
-                String(d.getUTCDate()).padStart(2, '0');
-            const secOfDay = (d.getUTCHours() * 3600) + (d.getUTCMinutes() * 60) + d.getUTCSeconds();
-            const idx = g.base + Math.floor(secOfDay / g.dur);
-            activePeriod = dayStr + '1000' + String(idx).padStart(5, '0');
+        const dayStr = now.getUTCFullYear() +
+            String(now.getUTCMonth() + 1).padStart(2, '0') +
+            String(now.getUTCDate()).padStart(2, '0');
+        const secOfDay = (now.getUTCHours() * 3600) + (now.getUTCMinutes() * 60) + sec;
+        const idx = g.base + Math.floor(secOfDay / g.dur);
+        let activePeriod = dayStr + '1000' + String(idx);
+
+        // Calibration lock: Active period must always be ahead of latest drawn issue
+        const draws = drawsData[modeKey];
+        if (draws && draws.length) {
+            const latestDrawIssue = BigInt(draws[0].issue);
+            if (latestDrawIssue >= BigInt(activePeriod)) {
+                activePeriod = (latestDrawIssue + 1n).toString();
+            }
         }
 
         return { period: activePeriod, remain, dur: g.dur };
@@ -1966,47 +1964,74 @@
     function resolveDrawOutcomes(mode, drawList) {
         if (!drawList || !drawList.length) return;
         const drawMap = {};
-        drawList.forEach(d => drawMap[d.issue] = d);
+        drawList.forEach(d => {
+            const iss = String(d.issue || d.issueNumber);
+            drawMap[iss] = d;
+            drawMap[iss.slice(-5)] = d;
+            drawMap[iss.slice(-4)] = d;
+        });
 
         let statsChanged = false;
-        Object.keys(lockedPredictions).forEach(key => {
-            const pred = lockedPredictions[key];
-            if (pred.mode === mode && pred.status === 'pending') {
-                const draw = drawMap[String(pred.period)];
+
+        // 1. Resolve directly across full persistent historyList
+        historyList.forEach(item => {
+            if (item.mode === mode && item.status === 'pending') {
+                const pStr = String(item.period);
+                const draw = drawMap[pStr] || drawMap[pStr.slice(-5)] || drawMap[pStr.slice(-4)];
                 if (draw) {
-                    const actualSize = draw.number >= 5 ? 'BIG' : 'SMALL';
-                    pred.result = { number: draw.number, size: actualSize };
-                    pred.status = (actualSize === pred.size) ? 'win' : 'loss';
+                    const actualNum = parseInt(draw.number, 10);
+                    const actualSize = actualNum >= 5 ? 'BIG' : 'SMALL';
+                    item.result = { number: actualNum, size: actualSize };
+                    item.status = (actualSize === item.size) ? 'win' : 'loss';
                     statsChanged = true;
 
-                    if (pred.status === 'win') {
+                    if (item.status === 'win') {
                         AudioEngine.winChord();
-                        showToast(`WIN! Draw #${String(pred.period).slice(-4)} verified as ${actualSize} (${draw.number})`);
+                        showToast(`WIN! #${pStr.slice(-4)} verified: ${actualSize} (${actualNum})`);
                     } else {
                         AudioEngine.lossTone();
                     }
-
-                    upsertActivityLog(pred);
                 }
             }
         });
 
+        // 2. Also update lockedPredictions in-memory cache
+        Object.keys(lockedPredictions).forEach(key => {
+            const pred = lockedPredictions[key];
+            if (pred.mode === mode && pred.status === 'pending') {
+                const pStr = String(pred.period);
+                const draw = drawMap[pStr] || drawMap[pStr.slice(-5)] || drawMap[pStr.slice(-4)];
+                if (draw) {
+                    const actualNum = parseInt(draw.number, 10);
+                    const actualSize = actualNum >= 5 ? 'BIG' : 'SMALL';
+                    pred.result = { number: actualNum, size: actualSize };
+                    pred.status = (actualSize === pred.size) ? 'win' : 'loss';
+                }
+            }
+        });
+
+        // 3. Keep history strictly sorted newest period first
+        historyList.sort((a, b) => (BigInt(String(b.period).replace(/\D/g, '') || 0) > BigInt(String(a.period).replace(/\D/g, '') || 0) ? 1 : -1));
+
         if (statsChanged) {
+            renderActivityLog();
             updatePerformanceStats();
             saveHistory();
         }
     }
 
     function upsertActivityLog(entry) {
-        // Find existing or unshift
-        const idx = historyList.findIndex(h => h.period === entry.period && h.mode === entry.mode);
+        const ePeriod = String(entry.period);
+        const idx = historyList.findIndex(h => String(h.period) === ePeriod && h.mode === entry.mode);
         if (idx >= 0) {
             historyList[idx] = entry;
         } else {
             historyList.unshift(entry);
         }
+        historyList.sort((a, b) => (BigInt(String(b.period).replace(/\D/g, '') || 0) > BigInt(String(a.period).replace(/\D/g, '') || 0) ? 1 : -1));
         renderActivityLog();
         updatePerformanceStats();
+        saveHistory();
     }
 
     function renderActivityLog() {
