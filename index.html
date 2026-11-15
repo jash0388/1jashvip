@@ -1618,8 +1618,11 @@ function buildResult(side, picked, period, mode, engineName,
             };
         }
 
-        // Real-time Wingo Period Clock Math
+        // Real-time Wingo Period Calculation
         function getUpcomingPeriod(latestDrawIssue) {
+            if (latestDrawIssue) {
+                return (BigInt(latestDrawIssue) + 1n).toString();
+            }
             const is30s = (currentMode === '30S');
             const dur = is30s ? 30 : 60;
             const base = is30s ? 50001 : 10001;
@@ -1631,15 +1634,7 @@ function buildResult(side, picked, period, mode, engineName,
                 String(now.getUTCDate()).padStart(2, '0');
             const secOfDay = (now.getUTCHours() * 3600) + (now.getUTCMinutes() * 60) + sec;
             const idx = base + Math.floor(secOfDay / dur);
-            let activePeriod = dayStr + '1000' + String(idx);
-
-            if (latestDrawIssue) {
-                const latestBig = BigInt(latestDrawIssue);
-                if (latestBig >= BigInt(activePeriod)) {
-                    activePeriod = (latestBig + 1n).toString();
-                }
-            }
-            return activePeriod;
+            return dayStr + '1000' + String(idx);
         }
 
         function calculateCombinedPrediction(list) {
@@ -1675,17 +1670,21 @@ function buildResult(side, picked, period, mode, engineName,
         // Persistent History Cache across polls separated by mode
         let persistentHistory = { '1M': [], '30S': [] };
 
-        // Fetch WinGo History with CORS proxy fallback
+        // Fetch WinGo History with resilient multi-endpoint fallback
         async function fetchHistory() {
-            const targetUrl = API_ENDPOINTS[currentMode] + '?pageNo=1&pageSize=50&t=' + Date.now();
-            const proxies = [
-                targetUrl,
-                'https://corsproxy.io/?' + encodeURIComponent(targetUrl),
-                'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(targetUrl)
+            const skyUrl = currentMode === '1M'
+                ? 'https://sky-predictor-1012593186417.asia-southeast1.run.app/api/wingo-history-1m-1000'
+                : 'https://sky-predictor-1012593186417.asia-southeast1.run.app/api/wingo-history-30s-1000';
+            const officialUrl = API_ENDPOINTS[currentMode] + '?pageNo=1&pageSize=50&t=' + Date.now();
+
+            const candidates = [
+                skyUrl,
+                officialUrl,
+                'https://api.ar-lottery01.com/WinGo/' + (currentMode === '1M' ? 'WinGo_1M' : 'WinGo_30S') + '/GetHistoryIssuePage.json?pageNo=1&pageSize=50&t=' + Date.now()
             ];
 
             let incoming = null;
-            for (const u of proxies) {
+            for (const u of candidates) {
                 try {
                     const ctrl = new AbortController();
                     const timer = setTimeout(() => ctrl.abort(), 4000);
