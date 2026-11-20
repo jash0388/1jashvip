@@ -1556,65 +1556,66 @@ function buildResult(side, picked, period, mode, engineName,
            30-SECOND STRATEGY: CHARAN VIP HYBRID (Dragon Pulse + Neural Reverse)
            Source: index (1) (2).html
            ============================================================== */
-        let consecutiveLossesByMode = { '30S': 0, '1M': 0 };
-
-        function computeBayesianMarkovWinBooster(list, nextPeriod, mode) {
-            const periodNum = parseInt(String(nextPeriod).slice(-4), 10) || 1000;
-            const previousResultsHistory = list.slice(0, 30).map(item => parseInt(item.number, 10));
-
-            let sumSeq = 0;
-            if (previousResultsHistory.length > 0) {
-                sumSeq = previousResultsHistory.reduce((a, b) => a + b, 0);
+        function compute30SPrediction(list, nextPeriod) {
+            const last5 = list.slice(0, 5).map(x => parseInt(x.number, 10) >= 5 ? 'BIG' : 'SMALL');
+            const lastNums = list.slice(0, 5).map(x => parseInt(x.number, 10));
+            let nextP = '';
+            let modeName = '';
+            if (last5.length >= 3 && last5[0] === last5[1] && last5[1] === last5[2]) {
+                nextP = last5[0];
+                modeName = 'DRAGON PULSE';
             } else {
-                sumSeq = periodNum * 7 + 13;
+                nextP = (last5[0] === 'BIG') ? 'SMALL' : 'BIG';
+                modeName = 'NEURAL REVERSE';
             }
 
-            const lossTracker = consecutiveLossesByMode[mode] || 0;
-            const adaptiveFactor = (lossTracker > 0) ? (lossTracker * 3) : 1;
-            const activeStrategy = 1;
-            const isBig = ((sumSeq + periodNum * 3 + activeStrategy * 7 + adaptiveFactor) % 2) === 0;
-
-            const plainCategory = isBig ? 'BIG' : 'SMALL';
-            const displayCategory = isBig ? '𝐁𝐈𝐆' : '𝐒𝐌𝐀𝐋𝐋';
-
-            let num1, num2;
-            if (isBig) {
-                num1 = 5 + ((sumSeq + adaptiveFactor) % 3);
-                num2 = 8 + ((sumSeq + periodNum) % 2);
+            const sum = lastNums.reduce((a, b) => a + b, 0);
+            let targets = [];
+            if (nextP === 'BIG') {
+                targets = sum > 20 ? [0, 2] : [1, 3];
             } else {
-                num1 = 0 + ((sumSeq + adaptiveFactor) % 3);
-                num2 = 3 + ((sumSeq + periodNum) % 2);
+                targets = sum < 25 ? [7, 9] : [6, 8];
             }
-
-            let conf = 98.4 + ((sumSeq % 15) / 10);
-            if (conf > 99.9) conf = 99.9;
-
-            const models = {
-                'Markov Stochastic': plainCategory,
-                'Bayesian Booster': plainCategory,
-                'Adaptive Parity': (adaptiveFactor > 1) ? plainCategory : (isBig ? 'BIG' : 'SMALL'),
-                'Sum-Seq Modulo': ((sumSeq % 2) === (isBig ? 0 : 1)) ? plainCategory : plainCategory,
-                'Target #1': '#' + num1,
-                'Target #2': '#' + num2
-            };
 
             return {
-                prediction: plainCategory,
-                predictedNumber: num1,
-                secondaryNumber: num2,
-                confidence: parseFloat(conf.toFixed(1)),
-                patternType: isBig ? 'dragon' : 'zigzag',
-                patternLabel: `💎 ${mode}: BAYESIAN-MARKOV [${num1}, ${num2}] (${displayCategory})`,
-                models
+                prediction: nextP,
+                predictedNumber: targets[0],
+                secondaryNumber: targets[1],
+                confidence: 88,
+                patternType: nextP === 'BIG' ? 'dragon' : 'zigzag',
+                patternLabel: '⚡ 30S: ' + modeName + ' • TARGET: [' + targets.join(', ') + '] (' + nextP + ')',
+                models: {
+                    'Pattern Engine': modeName,
+                    'Dragon Pulse': last5[0] || '--',
+                    'Neural Reverse': (last5[0] === 'BIG' ? 'SMALL' : 'BIG'),
+                    '5-Draw Sum': sum + (sum > 22 ? ' (HIGH)' : ' (LOW)'),
+                    'Target #1': '#' + targets[0],
+                    'Target #2': '#' + targets[1]
+                }
             };
-        }
-
-        function compute30SPrediction(list, nextPeriod) {
-            return computeBayesianMarkovWinBooster(list, nextPeriod, '30S');
         }
 
         function compute1MPrediction(list, nextPeriod) {
-            return computeBayesianMarkovWinBooster(list, nextPeriod, '1M');
+            const records = list.map(item => ({
+                issue: item.issueNumber || item.issue,
+                number: parseInt(item.number, 10)
+            }));
+            const res = computeNextPrediction(records, nextPeriod, '1m');
+            const models = {};
+            if (res.detectorBreakdown && Array.isArray(res.detectorBreakdown)) {
+                res.detectorBreakdown.slice(0, 10).forEach(d => {
+                    models[d.label] = d.pB >= 0.5 ? 'BIG' : 'SMALL';
+                });
+            }
+            return {
+                prediction: res.prediction,
+                predictedNumber: res.targetNumber,
+                secondaryNumber: res.secondaryNumber,
+                confidence: res.confidence || 85,
+                patternType: res.prediction === 'BIG' ? 'dragon' : 'zigzag',
+                patternLabel: '🎯 1M: ' + (res.patternName || ('TARGET ' + res.targetNumber)),
+                models
+            };
         }
 
         // Real-time Wingo Period Calculation
@@ -1812,17 +1813,7 @@ function buildResult(side, picked, period, mode, engineName,
                     ? currentPrediction.predictedNumber
                     : fallbackPred.predictedNumber;
 
-                const secondaryNum = (currentPrediction && currentPrediction.nextPeriod === top.issueNumber)
-                    ? currentPrediction.secondaryNumber
-                    : fallbackPred.secondaryNumber;
-                const isJackpot = (predictedNum === actualNum) || (secondaryNum === actualNum);
-                const isWin = (predictedSide === actualCategory) || isJackpot;
-
-                if (isWin) {
-                    consecutiveLossesByMode[currentMode] = 0;
-                } else {
-                    consecutiveLossesByMode[currentMode] = (consecutiveLossesByMode[currentMode] || 0) + 1;
-                }
+                const isWin = (predictedSide === actualCategory);
 
                 recordOutcome({
                     period: top.issueNumber,
