@@ -3,37 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>JASHVIP · DHANRAJ QUANTUM PRO</title>
+    <title>JASHVIP · TGX OWNER 2 LVL FIX</title>
+    <!-- Firebase SDK (Compatible) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Rajdhani:wght@600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-dark: #06080c;
-            --panel-bg: rgba(13, 18, 25, 0.8);
+            --glass: rgba(0, 255, 255, 0.08);
             --border: rgba(0, 255, 255, 0.35);
             --neon-cyan: #00ffff;
             --neon-violet: #8a2be2;
-            --cyber-lime: #00ff6a;
-            --electric-red: #ff3b3b;
-            --gold: #ffcc00;
-            --deep-dark: #080c14;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
+            --cyber-lime: #ccff00;
+            --deep-dark: #0b0c1e;
+            --electric-pink: #ff10f0;
         }
 
         body, html {
             min-height: 100%;
-            background: var(--bg-dark);
-            color: #e0f0ff;
+            margin: 0;
+            padding: 0;
             font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--deep-dark);
+            color: #e0f0ff;
             overflow-x: hidden;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
         /* --- Stylish Typing Intro --- */
@@ -43,24 +40,24 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: var(--bg-dark);
+            background: var(--deep-dark);
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             z-index: 10000;
-            transition: opacity 0.6s ease-out;
+            transition: opacity 0.8s ease-out;
         }
 
         .intro-line {
-            font-size: clamp(26px, 8vw, 44px);
-            font-weight: 900;
-            letter-spacing: 4px;
+            font-size: clamp(26px, 8vw, 46px);
+            font-weight: 800;
+            letter-spacing: 5px;
             white-space: nowrap;
             text-transform: uppercase;
             border-right: 4px solid var(--neon-cyan);
             padding-right: 12px;
-            animation: typing 1.8s steps(22), blink 0.5s step-end infinite;
+            animation: typing 2s steps(22), blink 0.5s step-end infinite;
             overflow: hidden;
             text-shadow: 0 0 20px var(--neon-violet), 0 0 40px var(--neon-cyan);
             color: #ffffff;
@@ -85,7 +82,7 @@
         .app-frame {
             max-width: 480px;
             margin: auto;
-            padding: 14px 12px 70px;
+            padding: 14px 12px 60px;
         }
 
         .header {
@@ -100,14 +97,12 @@
             font-weight: 800;
             letter-spacing: 2px;
             font-size: 24px;
-            font-family: 'Orbitron', sans-serif;
         }
 
         .header span:last-child {
             color: var(--neon-cyan);
-            font-weight: 800;
+            font-weight: 700;
             font-size: 22px;
-            font-family: 'Orbitron', sans-serif;
         }
 
         /* MODE TOGGLE CHIPS */
@@ -121,7 +116,7 @@
             background: rgba(0, 20, 30, 0.6);
             border: 1px solid var(--border);
             border-radius: 12px;
-            padding: 11px;
+            padding: 10px;
             font-family: 'Rajdhani', sans-serif;
             font-size: 14px;
             font-weight: 800;
@@ -139,26 +134,13 @@
         }
 
         .glass-card {
-            background: rgba(10, 20, 30, 0.65);
+            background: rgba(10, 20, 30, 0.55);
             backdrop-filter: blur(16px) saturate(180%);
             border: 1px solid var(--border);
-            border-radius: 22px;
+            border-radius: 24px;
             padding: 18px;
             margin-bottom: 16px;
-            box-shadow: 0 10px 35px -5px rgba(0, 255, 255, 0.2);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .glass-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 70%;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, var(--cyber-lime), transparent);
+            box-shadow: 0 10px 35px -5px rgba(0, 255, 255, 0.25);
         }
 
         .status-info {
@@ -168,18 +150,18 @@
             color: var(--neon-cyan);
             margin-bottom: 10px;
             letter-spacing: 0.5px;
-            font-weight: 700;
+            font-weight: 600;
         }
 
         .expiry-warning {
-            color: var(--gold);
+            color: var(--cyber-lime);
             font-size: 12px;
             margin: 0 0 14px;
             font-weight: 700;
-            background: rgba(255, 204, 0, 0.1);
+            background: rgba(204, 255, 0, 0.1);
             padding: 8px 12px;
             border-radius: 30px;
-            border: 1px solid rgba(255, 204, 0, 0.4);
+            border: 1px solid rgba(204, 255, 0, 0.4);
             text-align: center;
             letter-spacing: 1px;
         }
@@ -193,60 +175,37 @@
             border: 1px solid var(--neon-cyan);
             margin-bottom: 12px;
             display: inline-block;
-            font-weight: 800;
+            font-weight: 700;
             letter-spacing: 1px;
             backdrop-filter: blur(4px);
         }
 
         .timer-display {
-            font-size: 34px;
+            font-size: 32px;
             color: var(--cyber-lime);
             font-weight: 800;
-            text-shadow: 0 0 14px var(--cyber-lime);
+            text-shadow: 0 0 14px #ccff00;
             font-family: 'Orbitron', monospace;
             margin-bottom: 4px;
         }
 
         #pID {
-            color: rgba(200, 230, 255, 0.85);
+            color: rgba(200, 230, 255, 0.8);
             font-size: 13px;
             font-family: 'Rajdhani', monospace;
-            letter-spacing: 1.5px;
+            letter-spacing: 1px;
             margin-bottom: 6px;
-            font-weight: 700;
         }
 
         .pred-val {
-            font-size: 82px;
+            font-size: 80px;
             font-weight: 900;
+            text-shadow: 0 0 25px var(--neon-violet), 0 0 45px var(--neon-cyan);
             margin: 6px 0;
+            color: #fff;
             font-family: 'Orbitron', sans-serif;
             letter-spacing: 4px;
             line-height: 1;
-            transition: all 0.3s ease;
-        }
-        .pred-val.big {
-            color: var(--cyber-lime);
-            text-shadow: 0 0 25px rgba(0, 255, 106, 0.7), 0 0 45px rgba(0, 255, 106, 0.4);
-        }
-        .pred-val.small {
-            color: var(--electric-red);
-            text-shadow: 0 0 25px rgba(255, 59, 59, 0.7), 0 0 45px rgba(255, 59, 59, 0.4);
-        }
-
-        .conf-pill {
-            display: inline-block;
-            font-size: 11px;
-            font-weight: 800;
-            padding: 6px 18px;
-            border-radius: 20px;
-            background: rgba(0, 255, 106, 0.12);
-            border: 1px solid rgba(0, 255, 106, 0.4);
-            color: var(--cyber-lime);
-            letter-spacing: 1.5px;
-            margin: 10px 0;
-            box-shadow: 0 0 12px rgba(0, 255, 106, 0.2);
-            font-family: 'Orbitron', monospace;
         }
 
         .lvl-badge {
@@ -255,60 +214,41 @@
             padding: 8px 14px;
             border-radius: 40px;
             font-weight: 800;
-            margin: 10px 0 12px;
+            margin: 14px 0 10px;
             font-size: 13px;
             color: #fff;
             box-shadow: 0 0 10px var(--neon-cyan);
             letter-spacing: 1px;
-            font-family: 'Rajdhani', sans-serif;
         }
 
-        .numbers-title {
+        .opposite-header {
             font-size: 12px;
-            color: var(--gold);
-            margin: 12px 0 10px;
+            color: var(--cyber-lime);
+            margin: 14px 0 8px;
             font-weight: 800;
-            letter-spacing: 2px;
-            text-shadow: 0 0 10px rgba(255, 204, 0, 0.6);
-            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            text-shadow: 0 0 8px rgba(204, 255, 0, 0.6);
         }
 
         .num-row {
             display: flex;
             justify-content: center;
-            align-items: center;
-            gap: 20px;
-            margin: 8px 0 14px;
+            gap: 25px;
         }
 
-        .num-ball {
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            box-shadow: 0 0 18px rgba(255, 204, 0, 0.55);
-            border: 2px solid rgba(255, 204, 0, 0.4);
-            animation: ballPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            object-fit: cover;
-        }
-
-        .num-fallback {
-            width: 56px;
-            height: 56px;
+        .num-circle {
+            width: 52px;
+            height: 52px;
             line-height: 52px;
-            border: 2px solid var(--gold);
+            border: 2px solid var(--cyber-lime);
             border-radius: 50%;
             font-weight: 900;
-            background: rgba(0, 0, 0, 0.7);
-            color: var(--gold);
-            font-size: 26px;
+            background: rgba(0, 0, 0, 0.6);
+            color: var(--cyber-lime);
+            font-size: 24px;
             font-family: 'Orbitron', monospace;
-            box-shadow: 0 0 18px var(--gold);
+            box-shadow: 0 0 18px var(--cyber-lime);
             text-align: center;
-        }
-
-        @keyframes ballPop {
-            0% { transform: scale(0); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
         }
 
         /* SCOREBOARD MATRIX */
@@ -319,9 +259,9 @@
             margin-top: 14px;
         }
         .stat-box {
-            background: rgba(0, 0, 0, 0.45);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
             padding: 8px 2px;
             text-align: center;
         }
@@ -338,8 +278,8 @@
             letter-spacing: 0.5px;
         }
         .stat-win b { color: var(--cyber-lime); }
-        .stat-jp b { color: var(--gold); text-shadow: 0 0 8px var(--gold); }
-        .stat-loss b { color: var(--electric-red); }
+        .stat-hedge b { color: var(--neon-cyan); }
+        .stat-loss b { color: var(--electric-pink); }
         .stat-rate b { color: #fff; }
 
         .btn-clear {
@@ -358,16 +298,17 @@
             letter-spacing: 1px;
             transition: 0.2s;
         }
+
         .btn-clear:hover {
             background: linear-gradient(90deg, #ff1a4f, #9f1f9f);
             scale: 1.01;
         }
 
         .history-wrap {
-            max-height: 420px;
+            max-height: 400px;
             overflow-y: auto;
-            border-radius: 14px;
-            padding-right: 4px;
+            border-radius: 16px;
+            padding-right: 5px;
         }
 
         table {
@@ -384,33 +325,25 @@
             letter-spacing: 1px;
             position: sticky;
             top: 0;
-            background: rgba(10, 20, 30, 0.96);
-            z-index: 5;
+            background: rgba(10, 20, 30, 0.95);
         }
 
         td {
-            padding: 10px 4px;
-            border-bottom: 1px solid rgba(0, 255, 255, 0.08);
+            padding: 8px 4px;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.1);
             text-align: center;
-            font-weight: 700;
         }
 
-        .s-win {
-            color: var(--cyber-lime);
+        .win {
+            color: #ccff00;
             font-weight: 800;
-            text-shadow: 0 0 8px var(--cyber-lime);
+            text-shadow: 0 0 8px lime;
         }
 
-        .s-jp {
-            color: var(--gold);
+        .loss {
+            color: #ff10f0;
             font-weight: 800;
-            text-shadow: 0 0 10px rgba(255, 204, 0, 0.6);
-        }
-
-        .s-loss {
-            color: var(--electric-red);
-            font-weight: 800;
-            text-shadow: 0 0 8px var(--electric-red);
+            text-shadow: 0 0 8px magenta;
         }
 
         .hidden {
@@ -420,7 +353,7 @@
         .footer-note {
             text-align: center;
             font-size: 10px;
-            color: rgba(255, 255, 255, 0.35);
+            color: rgba(255, 255, 255, 0.3);
             letter-spacing: 1.5px;
             margin-top: 20px;
             text-transform: uppercase;
@@ -432,14 +365,14 @@
     <div id="introScreen">
         <div class="intro-line"><span>JASHVIP</span> PRO</div>
         <p style="color: var(--neon-violet); letter-spacing: 3px; margin-top: 22px; font-size: 11px; font-weight: 700;">
-            ⚡ DHANRAJ QUANTUM PREDICTION ENGINE ⚡
+            ⚡ TGX OWNER 2 LVL FIX · CYBER ENGINE ⚡
         </p>
     </div>
 
     <div id="mainWrapper" class="hidden">
         <div class="app-frame">
             <div class="header">
-                <span>JASHVIP </span><span>DHANRAJ PRO</span>
+                <span>JASHVIP </span><span>TGX PRO</span>
             </div>
 
             <!-- MODE SWITCHER -->
@@ -450,43 +383,41 @@
 
             <div id="hackSection">
                 <div class="status-info">
-                    <span>🔷 SERVER: DHANRAJ-QUANTUM</span>
-                    <span id="pingVal">PING: 14MS</span>
+                    <span>🔷 SERVER: CYBERLINK</span>
+                    <span id="pingVal">PING: 12MS</span>
                 </div>
 
                 <div id="expiryDisplay" class="expiry-warning">
-                    👑 ACCESS UNLOCKED · LIFETIME VIP PREDICTION 👑
+                    ⚡ ACCESS UNLOCKED · LIFETIME PRO ⚡
                 </div>
 
                 <div class="glass-card" style="text-align: center;">
-                    <div id="stratDisplay" class="strat-mode">MODE: 100% QUANTUM SWITCH</div>
+                    <div id="stratDisplay" class="strat-mode">MODE: TGX OWNER SCAN</div>
                     <div id="timer" class="timer-display">00:30</div>
                     <div id="pID" style="margin-bottom: 6px;">PERIOD: ---</div>
-                    <div id="pRes" class="pred-val big">INIT</div>
-                    
-                    <div id="confTxt" class="conf-pill">CONF --%</div>
+                    <div id="pRes" class="pred-val">INIT</div>
                     <div id="mLevel" class="lvl-badge">MARTINGALE: LEVEL 1 (1X)</div>
                     
-                    <!-- 2 NUMBERS PREDICTION FROM DHANRAJ -->
-                    <div class="numbers-title">👑 2 TARGET NUMBERS (JACKPOT) 👑</div>
+                    <!-- 2 NUMBERS PREDICTION AS REQUESTED -->
+                    <div class="opposite-header">⟁ OPPOSITE NUMBERS ⟁</div>
                     <div class="num-row" id="numRow">
-                        <div class="num-fallback">?</div>
-                        <div class="num-fallback">?</div>
+                        <div class="num-circle">?</div>
+                        <div class="num-circle">?</div>
                     </div>
 
                     <!-- SESSION PERFORMANCE STATS -->
                     <div class="stats-grid">
                         <div class="stat-box stat-win">
                             <b id="statDirectWin">0</b>
-                            <span>Win ✅</span>
+                            <span>Direct Win</span>
                         </div>
-                        <div class="stat-box stat-jp">
-                            <b id="statJpWin">0</b>
-                            <span>Jackpot 👑</span>
+                        <div class="stat-box stat-hedge">
+                            <b id="statHedgeWin">0</b>
+                            <span>Hedge Win</span>
                         </div>
                         <div class="stat-box stat-loss">
                             <b id="statLoss">0</b>
-                            <span>Loss ❌</span>
+                            <span>Loss</span>
                         </div>
                         <div class="stat-box stat-rate">
                             <b id="statRate">0%</b>
@@ -497,7 +428,7 @@
 
                 <div class="glass-card">
                     <div style="font-size: 12px; color: var(--neon-cyan); margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; font-weight: 700;">
-                        <span>🌀 QUANTUM HISTORY (VERIFIED)</span>
+                        <span>🌀 NEURAL HISTORY (PERSISTENT)</span>
                         <button class="btn-clear" onclick="clearHistory()" style="width: auto; margin-top: 0; padding: 6px 14px;">🗑️ CLEAR</button>
                     </div>
                     <div class="history-wrap">
@@ -506,7 +437,7 @@
                                 <tr>
                                     <th>PERIOD</th>
                                     <th>PRED</th>
-                                    <th>TARGETS</th>
+                                    <th>OPP NUMS</th>
                                     <th>RESULT</th>
                                     <th>STATUS</th>
                                 </tr>
@@ -518,35 +449,14 @@
             </div>
 
             <div class="footer-note">
-                JASHVIP.VERCEL.APP · DHANRAJ PREDICTION SYSTEM · REAL-TIME AUTO SYNC
+                JASHVIP.VERCEL.APP · TGX OWNER ENGINE · REAL-TIME AUTO SYNC
             </div>
         </div>
     </div>
 
     <script>
-        /* =========================================================
-           NUMBER IMAGES
-        ========================================================= */
-        const numImgs = [
-            'https://i.ibb.co/WvTR3Jrx/num0.png',
-            'https://i.ibb.co/yFQwGPZv/num1.png',
-            'https://i.ibb.co/XZNjXwjq/num2.png',
-            'https://i.ibb.co/233fFQqz/num3.png',
-            'https://i.ibb.co/mVsBYfQR/num4.png',
-            'https://i.ibb.co/Dg5kjr9L/num5.png',
-            'https://i.ibb.co/Z1HMQSPM/num6.png',
-            'https://i.ibb.co/0y8yYzDH/num7.png',
-            'https://i.ibb.co/dsRvZmSf/num8.png',
-            'https://i.ibb.co/prMV31Ng/num9.png'
-        ];
-
-        /* =========================================================
-           ENGINE - DHANRAJ 100% BIG & SMALL SWITCHING
-        ========================================================= */
-        const BIG_POOL = [5, 6, 7, 8, 9];
-        const SMALL_POOL = [0, 1, 2, 3, 4];
-
-        let currentMode = '30S';
+        const STORAGE_KEY = 'JASHVIP_TGX_LOGS';
+        let currentMode = '30S'; // Default 30S as requested
         let cycleSeconds = 30;
 
         const MODES = {
@@ -562,53 +472,30 @@
             }
         };
 
-        function predict(history) {
-            let pred;
-            const key = 'dhanraj_lastPred_' + currentMode;
-            const lastPred = localStorage.getItem(key) || localStorage.getItem('lastPred');
-            
-            if (!lastPred) {
-                pred = 'BIG';
-            } else {
-                pred = (lastPred === 'BIG') ? 'SMALL' : 'BIG';
-            }
-            
-            localStorage.setItem(key, pred);
-            localStorage.setItem('lastPred', pred);
-            
-            const conf = 55 + Math.floor(Math.random() * 25);
-            return { pred, confidence: conf };
-        }
-
-        /* Generate 2 numbers from BIG/SMALL pool */
-        function generateNumbers(pred, history) {
-            const pool = (pred === 'BIG') ? BIG_POOL : SMALL_POOL;
-            const first = pool[Math.floor(Math.random() * pool.length)];
-            let second = pool[Math.floor(Math.random() * pool.length)];
-            while (second === first) {
-                second = pool[Math.floor(Math.random() * pool.length)];
-            }
-            return [first, second].sort((a, b) => a - b);
-        }
-
-        /* =========================================================
-           STATE
-        ========================================================= */
-        let state = {
-            prediction: null,
-            confidence: 0,
-            numbers: [],
-            logs: [],
-            period: ''
-        };
-        let lastProcessed = null;
-        let seeded = false;
+        let lastP = null, nextP = null, targetNums = [], currentLevel = 1;
+        let historyLogs = [];
         let engineInterval = null;
-        let currentLevel = 1;
 
         const sWin = new Audio('https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3');
         const sLoss = new Audio('https://assets.mixkit.co/active_storage/sfx/951/951-preview.mp3');
         const sDing = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+
+        // Load persisted history on boot
+        function loadHistory() {
+            try {
+                historyLogs = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+            } catch (e) {
+                historyLogs = [];
+            }
+            renderHistoryTable();
+        }
+
+        function saveHistory() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(historyLogs));
+            } catch (e) {}
+            renderHistoryTable();
+        }
 
         window.onload = () => {
             setTimeout(() => {
@@ -619,6 +506,7 @@
                     const mainWrapper = document.getElementById('mainWrapper');
                     if (mainWrapper) mainWrapper.classList.remove('hidden');
 
+                    loadHistory();
                     startClock();
                     syncEngine();
                     if (engineInterval) clearInterval(engineInterval);
@@ -637,17 +525,17 @@
 
             document.getElementById('pID').innerText = 'PERIOD: SYNCING...';
             document.getElementById('pRes').innerText = 'INIT';
-            lastProcessed = null;
-            seeded = false;
-            state.logs = [];
+            lastP = null;
+            nextP = null;
 
             syncEngine();
         }
 
         function clearHistory() {
-            if (confirm("Clear verified prediction history?")) {
-                state.logs = [];
-                render();
+            if (confirm("Clear verified neural history?")) {
+                historyLogs = [];
+                localStorage.removeItem(STORAGE_KEY);
+                renderHistoryTable();
             }
         }
 
@@ -655,39 +543,39 @@
             setInterval(() => {
                 const sec = new Date().getSeconds();
                 const rem = cycleSeconds - (sec % cycleSeconds);
-                const displayRem = (rem === cycleSeconds) ? 0 : rem;
+                const displayRem = rem === cycleSeconds ? 0 : rem;
                 const timerEl = document.getElementById('timer');
                 if (timerEl) {
                     timerEl.innerText = `00:${displayRem < 10 ? '0' + displayRem : displayRem}`;
                     if (displayRem === 5) sDing.play().catch(() => {});
-                    timerEl.style.color = (displayRem <= 5) ? "#ff3b3b" : "#00ff6a";
+                    timerEl.style.color = displayRem <= 5 ? "#ff10f0" : "#ccff00";
                 }
             }, 500);
         }
 
-        /* =========================================================
-           FETCH & ENGINE SYNC
-        ========================================================= */
         async function syncEngine() {
             const cfg = MODES[currentMode];
             let list = null;
 
             // 1. Primary Fetch
             try {
-                const res = await fetch(cfg.primaryApi + '?t=' + Date.now(), { cache: 'no-store' });
-                const json = await res.json();
-                if (json && json.data && Array.isArray(json.data.list) && json.data.list.length) {
-                    list = json.data.list;
+                const r = await fetch(cfg.primaryApi + '?t=' + Date.now(), { cache: 'no-store' });
+                const d = await r.json();
+                if (d && d.data && Array.isArray(d.data.list) && d.data.list.length) {
+                    list = d.data.list.map(x => ({
+                        issueNumber: String(x.issueNumber),
+                        number: String(x.number)
+                    }));
                 }
             } catch (e) {}
 
             // 2. Fallback Fetch
             if (!list) {
                 try {
-                    const res2 = await fetch(cfg.fallbackApi + '&t=' + Date.now(), { cache: 'no-store' });
-                    const json2 = await res2.json();
-                    if (json2 && Array.isArray(json2.rows) && json2.rows.length) {
-                        list = json2.rows.filter(x => x.state === 1 && x.number !== '').map(x => ({
+                    const r2 = await fetch(cfg.fallbackApi + '&t=' + Date.now(), { cache: 'no-store' });
+                    const d2 = await r2.json();
+                    if (d2 && Array.isArray(d2.rows) && d2.rows.length) {
+                        list = d2.rows.filter(x => x.state === 1 && x.number !== '').map(x => ({
                             issueNumber: String(x.issueNumber),
                             number: String(x.number)
                         }));
@@ -695,52 +583,26 @@
                 } catch (e) {}
             }
 
-            if (!list || !list.length) return;
-
-            const latest = list[0];
-            const nextPeriod = (BigInt(latest.issueNumber) + 1n).toString();
-
-            if (!seeded) {
-                state.logs = [];
-                for (let i = 0; i < Math.min(list.length, 15); i++) {
-                    const older = list.slice(i + 1);
-                    const rPred = (i % 2 === 0) ? 'SMALL' : 'BIG';
-                    const predNums = generateNumbers(rPred, older);
-
-                    const n = parseInt(list[i].number);
-                    const sz = n >= 5 ? 'BIG' : 'SMALL';
-                    const isJackpot = predNums.includes(n);
-                    state.logs.push({
-                        period: list[i].issueNumber,
-                        pred: rPred,
-                        nums: predNums,
-                        actualNum: n,
-                        actualSize: sz,
-                        isWin: (rPred === sz),
-                        isJackpot: isJackpot
-                    });
-                }
-
-                const r = predict(list);
-                state.prediction = r.pred;
-                state.confidence = r.confidence;
-                state.numbers = generateNumbers(r.pred, list);
-                state.period = nextPeriod;
-                seeded = true;
-                lastProcessed = latest.issueNumber;
-                render();
-                return;
+            if (list && list.length) {
+                const top = list[0];
+                processHybrid(top.issueNumber, parseInt(top.number), list);
             }
+        }
 
-            if (lastProcessed !== latest.issueNumber) {
-                const n = parseInt(latest.number);
-                const sz = n >= 5 ? 'BIG' : 'SMALL';
+        // =======================================================
+        // EXACT TGX 2-NUMBER PREDICTION ENGINE
+        // Preserved 100% as requested
+        // =======================================================
+        function processHybrid(p, num, list) {
+            const actual = num >= 5 ? "BIG" : "SMALL";
+            if (lastP !== p) {
+                if (nextP && lastP) {
+                    // Win condition: Direction match OR 2 opposite numbers match
+                    const directMatch = (nextP === actual);
+                    const hedgeMatch = targetNums.includes(num);
+                    const win = directMatch || hedgeMatch;
 
-                if (state.prediction) {
-                    const isJackpot = state.numbers.includes(n);
-                    const isWin = (state.prediction === sz);
-
-                    if (isWin || isJackpot) {
+                    if (win) {
                         sWin.play().catch(() => {});
                         currentLevel = 1;
                     } else {
@@ -749,167 +611,102 @@
                         if (currentLevel > 4) currentLevel = 1;
                     }
 
-                    const mult = currentLevel === 1 ? '1X' : (currentLevel === 2 ? '3X' : (currentLevel === 3 ? '9X' : '27X'));
-                    document.getElementById('mLevel').innerText = `MARTINGALE: LEVEL ${currentLevel} (${mult})`;
+                    const multiplier = currentLevel === 1 ? "1X" : (currentLevel === 2 ? "3X" : (currentLevel === 3 ? "9X" : "27X"));
+                    document.getElementById('mLevel').innerText = `MARTINGALE: LEVEL ${currentLevel} (${multiplier})`;
 
-                    state.logs.unshift({
-                        period: latest.issueNumber,
-                        pred: state.prediction,
-                        nums: [...state.numbers],
-                        actualNum: n,
-                        actualSize: sz,
-                        isWin: isWin,
-                        isJackpot: isJackpot
-                    });
-                    if (state.logs.length > 50) state.logs.pop();
-                }
-
-                const r = predict(list);
-                state.prediction = r.pred;
-                state.confidence = r.confidence;
-                state.numbers = generateNumbers(r.pred, list);
-                state.period = nextPeriod;
-                lastProcessed = latest.issueNumber;
-                render();
-            }
-        }
-
-        /* =========================================================
-           FIX LOGS LOGIC (DHANRAJ RECONCILIATION)
-        ========================================================= */
-        function fixLogs(logs) {
-            if (!logs || !logs.length) return [];
-
-            let processedLogs = [];
-            let realJackpotFound = false;
-            logs.forEach(log => {
-                if (log.isJackpot) realJackpotFound = true;
-            });
-
-            let fakeLossAdded = 0;
-            const maxLossAllowed = 1;
-
-            for (let i = logs.length - 1; i >= 0; i--) {
-                let log = logs[i];
-                let displayPred = log.pred;
-                let displayWin = true;
-                let displayJp = false;
-
-                if (log.isJackpot) {
-                    displayJp = true;
-                } else if (!log.isWin) {
-                    if (fakeLossAdded < maxLossAllowed && i % 6 === 0) {
-                        displayWin = false;
-                        fakeLossAdded++;
+                    let statusLabel = 'WIN';
+                    if (hedgeMatch && !directMatch) {
+                        statusLabel = 'HEDGE WIN 🛡️';
+                    } else if (directMatch) {
+                        statusLabel = 'DIRECT WIN 🏆';
                     } else {
-                        displayPred = log.actualSize;
+                        statusLabel = 'LOSS';
                     }
+
+                    const entry = {
+                        period: p.slice(-3),
+                        pred: nextP,
+                        opp: `[${targetNums.join(', ')}]`,
+                        result: `${actual}(${num})`,
+                        status: statusLabel,
+                        winClass: win ? 'win' : 'loss',
+                        isHedge: (hedgeMatch && !directMatch),
+                        isDirect: directMatch
+                    };
+
+                    historyLogs.unshift(entry);
+                    if (historyLogs.length > 100) historyLogs = historyLogs.slice(0, 100);
+                    saveHistory();
                 }
 
-                processedLogs.push({
-                    ...log,
-                    displayPred,
-                    displayWin,
-                    displayJp
-                });
-            }
+                lastP = p;
 
-            if (!realJackpotFound && processedLogs.length > 5) {
-                let jpAdded = 0;
-                for (let i = 0; i < processedLogs.length; i++) {
-                    if (processedLogs[i].displayWin && !processedLogs[i].displayJp && !processedLogs[i].isJackpot) {
-                        processedLogs[i].displayJp = true;
-                        jpAdded++;
-                        if (jpAdded >= 2) break;
-                    }
+                // Prediction Formula (Dragon Pulse vs Neural Reverse)
+                const last5 = list.slice(0, 5).map(x => parseInt(x.number) >= 5 ? "BIG" : "SMALL");
+                const lastNums = list.slice(0, 5).map(x => parseInt(x.number));
+                const stratDisp = document.getElementById('stratDisplay');
+
+                if (last5[0] === last5[1] && last5[1] === last5[2]) {
+                    nextP = last5[0];
+                    stratDisp.innerText = "MODE: DRAGON PULSE";
+                } else {
+                    nextP = (last5[0] === "BIG") ? "SMALL" : "BIG";
+                    stratDisp.innerText = "MODE: NEURAL REVERSE";
                 }
-            }
 
-            return processedLogs.reverse();
+                // EXACT 2 OPPOSITE NUMBERS LOGIC
+                const sum = lastNums.reduce((a, b) => a + b, 0);
+                if (nextP === "BIG") {
+                    targetNums = (sum > 20) ? [0, 2] : [1, 3];
+                } else {
+                    targetNums = (sum < 25) ? [7, 9] : [6, 8];
+                }
+
+                document.getElementById('pID').innerText = "PERIOD: " + (BigInt(p) + 1n).toString();
+                document.getElementById('pRes').innerText = nextP;
+                document.getElementById('pRes').style.color = nextP === "BIG" ? "#00ffff" : "#ccff00";
+                document.getElementById('numRow').innerHTML = `
+                    <div class="num-circle">${targetNums[0]}</div>
+                    <div class="num-circle">${targetNums[1]}</div>
+                `;
+            }
         }
 
-        /* =========================================================
-           RENDER
-        ========================================================= */
-        function render() {
-            document.getElementById('pID').innerText = 'PERIOD: ' + (state.period || '---');
+        function renderHistoryTable() {
+            const tbody = document.getElementById('logs');
+            if (!tbody) return;
 
-            const pResEl = document.getElementById('pRes');
-            pResEl.innerText = state.prediction || 'WAIT';
-
-            if (state.prediction === 'SMALL') {
-                pResEl.className = 'pred-val small';
+            if (!historyLogs.length) {
+                tbody.innerHTML = '<tr><td colspan="5" style="color:#64748b; padding:15px;">No neural logs yet</td></tr>';
             } else {
-                pResEl.className = 'pred-val big';
-            }
-
-            document.getElementById('confTxt').innerText = 'CONF ' + (state.confidence || 0) + '%';
-
-            // Numbers Row (Dhanraj Ball Chips)
-            const numRow = document.getElementById('numRow');
-            numRow.innerHTML = '';
-            if (state.numbers && state.numbers.length) {
-                state.numbers.forEach(n => {
-                    const img = document.createElement('img');
-                    img.src = numImgs[n];
-                    img.className = 'num-ball';
-                    img.onerror = () => {
-                        img.outerHTML = `<div class="num-fallback">${n}</div>`;
-                    };
-                    numRow.appendChild(img);
-                });
-            } else {
-                numRow.innerHTML = '<div class="num-fallback">?</div><div class="num-fallback">?</div>';
-            }
-
-            // History Table
-            const display = fixLogs(state.logs);
-            const box = document.getElementById('logs');
-            if (!box) return;
-
-            if (!display.length) {
-                box.innerHTML = '<tr><td colspan="5" style="color:#64748b; padding:15px;">Syncing neural logs...</td></tr>';
-                return;
-            }
-
-            let directWins = 0, jackpotWins = 0, losses = 0;
-
-            box.innerHTML = display.map(r => {
-                let statusHtml;
-                if (r.displayJp) {
-                    statusHtml = '<span class="s-jp">JACKPOT WIN 👑</span>';
-                    jackpotWins++;
-                } else if (r.displayWin) {
-                    statusHtml = '<span class="s-win">WIN ✅</span>';
-                    directWins++;
-                } else {
-                    statusHtml = '<span class="s-loss">LOSS ❌</span>';
-                    losses++;
-                }
-
-                const resText = `${r.actualSize} (${r.actualNum})`;
-                const numText = (r.nums && r.nums.length) ? `[${r.nums.join(', ')}]` : '-';
-                const pShort = String(r.period).slice(-4);
-
-                return `
+                tbody.innerHTML = historyLogs.map(r => `
                     <tr>
-                        <td>#${pShort}</td>
-                        <td style="color:${r.displayPred === 'BIG' ? 'var(--cyber-lime)' : 'var(--electric-red)'}; font-weight:800;">${r.displayPred}</td>
-                        <td style="color:var(--gold); font-family:monospace; font-weight:700;">${numText}</td>
-                        <td>${resText}</td>
-                        <td>${statusHtml}</td>
+                        <td>#${r.period}</td>
+                        <td style="color:${r.pred === 'BIG' ? '#00ffff' : '#ccff00'}; font-weight:800;">${r.pred}</td>
+                        <td style="color:var(--cyber-lime); font-family:monospace;">${r.opp || '-'}</td>
+                        <td>${r.result}</td>
+                        <td class="${r.winClass}">${r.status}</td>
                     </tr>
-                `;
-            }).join('');
+                `).join('');
+            }
 
             // Update Scoreboard Matrix
-            const total = directWins + jackpotWins + losses;
-            const winRate = total > 0 ? Math.round(((directWins + jackpotWins) / total) * 100) : 0;
+            let directs = 0, hedges = 0, losses = 0;
+            historyLogs.forEach(item => {
+                if (item.winClass === 'win') {
+                    if (item.isHedge) hedges++;
+                    else directs++;
+                } else if (item.winClass === 'loss') {
+                    losses++;
+                }
+            });
+            const total = directs + hedges + losses;
+            const rate = total > 0 ? Math.round(((directs + hedges) / total) * 100) : 0;
 
-            document.getElementById('statDirectWin').innerText = directWins;
-            document.getElementById('statJpWin').innerText = jackpotWins;
+            document.getElementById('statDirectWin').innerText = directs;
+            document.getElementById('statHedgeWin').innerText = hedges;
             document.getElementById('statLoss').innerText = losses;
-            document.getElementById('statRate').innerText = winRate + '%';
+            document.getElementById('statRate').innerText = rate + '%';
         }
     </script>
 </body>
