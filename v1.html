@@ -1,15 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>JASHVIP · TGX OWNER 2 LVL FIX</title>
     <!-- Firebase SDK (Compatible) -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Rajdhani:wght@600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Rajdhani:wght@600;700;800&family=Space+Grotesk:wght@500;700&display=swap"
+        rel="stylesheet">
     <style>
         :root {
             --glass: rgba(0, 255, 255, 0.08);
@@ -21,7 +25,8 @@
             --electric-pink: #ff10f0;
         }
 
-        body, html {
+        body,
+        html {
             min-height: 100%;
             margin: 0;
             padding: 0;
@@ -70,13 +75,25 @@
         }
 
         @keyframes typing {
-            from { width: 0; }
-            to { width: 100%; }
+            from {
+                width: 0;
+            }
+
+            to {
+                width: 100%;
+            }
         }
 
         @keyframes blink {
-            from, to { border-color: transparent; }
-            50% { border-color: var(--neon-cyan); }
+
+            from,
+            to {
+                border-color: transparent;
+            }
+
+            50% {
+                border-color: var(--neon-cyan);
+            }
         }
 
         .app-frame {
@@ -112,6 +129,7 @@
             gap: 10px;
             margin-bottom: 15px;
         }
+
         .mode-btn {
             background: rgba(0, 20, 30, 0.6);
             border: 1px solid var(--border);
@@ -126,6 +144,7 @@
             transition: all 0.2s ease;
             text-align: center;
         }
+
         .mode-btn.active {
             background: rgba(0, 255, 255, 0.15);
             border-color: var(--neon-cyan);
@@ -258,6 +277,7 @@
             gap: 6px;
             margin-top: 14px;
         }
+
         .stat-box {
             background: rgba(0, 0, 0, 0.4);
             border: 1px solid rgba(255, 255, 255, 0.08);
@@ -265,22 +285,36 @@
             padding: 8px 2px;
             text-align: center;
         }
+
         .stat-box b {
             display: block;
             font-family: 'Orbitron', monospace;
             font-size: 15px;
             font-weight: 800;
         }
+
         .stat-box span {
             font-size: 9px;
             color: #8b9bb4;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-        .stat-win b { color: var(--cyber-lime); }
-        .stat-hedge b { color: var(--neon-cyan); }
-        .stat-loss b { color: var(--electric-pink); }
-        .stat-rate b { color: #fff; }
+
+        .stat-win b {
+            color: var(--cyber-lime);
+        }
+
+        .stat-hedge b {
+            color: var(--neon-cyan);
+        }
+
+        .stat-loss b {
+            color: var(--electric-pink);
+        }
+
+        .stat-rate b {
+            color: #fff;
+        }
 
         .btn-clear {
             width: 100%;
@@ -360,6 +394,7 @@
         }
     </style>
 </head>
+
 <body>
 
     <div id="introScreen">
@@ -397,10 +432,10 @@
                     <div id="pID" style="margin-bottom: 6px;">PERIOD: ---</div>
                     <div id="pRes" class="pred-val">INIT</div>
                     <div id="mLevel" class="lvl-badge">MARTINGALE: LEVEL 1 (1X)</div>
-                    
-                    <!-- 2 NUMBERS PREDICTION AS REQUESTED -->
-                    <div class="opposite-header">⟁ OPPOSITE NUMBERS ⟁</div>
-                    <div class="num-row" id="numRow">
+
+                    <!-- 2 NUMBERS PREDICTION (1M) / PURE BIG-SMALL BADGE (30S) -->
+                    <div id="oppHeader" class="opposite-header">⚡ PURE BIG/SMALL ONLY · L3 OPP OVERRIDE ⚡</div>
+                    <div class="num-row" id="numRow" style="display: none;">
                         <div class="num-circle">?</div>
                         <div class="num-circle">?</div>
                     </div>
@@ -427,9 +462,11 @@
                 </div>
 
                 <div class="glass-card">
-                    <div style="font-size: 12px; color: var(--neon-cyan); margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; font-weight: 700;">
+                    <div
+                        style="font-size: 12px; color: var(--neon-cyan); margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; font-weight: 700;">
                         <span>🌀 NEURAL HISTORY (PERSISTENT)</span>
-                        <button class="btn-clear" onclick="clearHistory()" style="width: auto; margin-top: 0; padding: 6px 14px;">🗑️ CLEAR</button>
+                        <button class="btn-clear" onclick="clearHistory()"
+                            style="width: auto; margin-top: 0; padding: 6px 14px;">🗑️ CLEAR</button>
                     </div>
                     <div class="history-wrap">
                         <table>
@@ -472,7 +509,7 @@
             }
         };
 
-        let lastP = null, nextP = null, targetNums = [], currentLevel = 1;
+        let lastP = null, nextP = null, targetNums = [], currentLevel = 1, streakLosses30 = 0, wasOpp30 = false;
         let historyLogs = [];
         let engineInterval = null;
         let activeSyncId = 0;
@@ -511,7 +548,7 @@
         function saveHistory() {
             try {
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(historyLogs));
-            } catch (e) {}
+            } catch (e) { }
             renderHistoryTable();
         }
 
@@ -541,15 +578,28 @@
             document.getElementById('btn30s').classList.toggle('active', mode === '30S');
             document.getElementById('btn1m').classList.toggle('active', mode === '1M');
 
+            const oppHdr = document.getElementById('oppHeader');
+            const numRow = document.getElementById('numRow');
+            if (mode === '30S') {
+                if (oppHdr) oppHdr.innerText = '⚡ PURE BIG/SMALL ONLY · L3 OPP OVERRIDE ⚡';
+                if (numRow) numRow.style.display = 'none';
+            } else {
+                if (oppHdr) oppHdr.innerText = '⟁ OPPOSITE NUMBERS ⟁';
+                if (numRow) {
+                    numRow.style.display = 'flex';
+                    numRow.innerHTML = `<div class="num-circle">?</div><div class="num-circle">?</div>`;
+                }
+            }
+
             document.getElementById('pID').innerText = 'PERIOD: SYNCING...';
             document.getElementById('pRes').innerText = 'INIT';
-            document.getElementById('numRow').innerHTML = `
-                <div class="num-circle">?</div>
-                <div class="num-circle">?</div>
-            `;
+            document.getElementById('mLevel').innerText = 'MARTINGALE: LEVEL 1 (1X)';
             lastP = null;
             nextP = null;
             targetNums = [];
+            currentLevel = 1;
+            streakLosses30 = 0;
+            wasOpp30 = false;
 
             syncEngine();
         }
@@ -557,6 +607,10 @@
         function clearHistory() {
             if (confirm("Clear verified neural history?")) {
                 historyLogs = [];
+                streakLosses30 = 0;
+                currentLevel = 1;
+                wasOpp30 = false;
+                document.getElementById('mLevel').innerText = 'MARTINGALE: LEVEL 1 (1X)';
                 localStorage.removeItem(STORAGE_KEY);
                 renderHistoryTable();
             }
@@ -592,7 +646,7 @@
                         number: String(x.number)
                     }));
                 }
-            } catch (e) {}
+            } catch (e) { }
 
             // 2. Fallback Fetch
             if (!list) {
@@ -606,7 +660,7 @@
                             number: String(x.number)
                         }));
                     }
-                } catch (e) {}
+                } catch (e) { }
             }
 
             if (reqId !== activeSyncId || reqMode !== currentMode) return;
@@ -617,27 +671,39 @@
         }
 
         // =======================================================
-        // EXACT TGX 2-NUMBER PREDICTION ENGINE
-        // Preserved 100% as requested
+        // 30S: PURE BIG/SMALL ONLY + L3 OPP OVERRIDE
+        // 1M:  3-PERIOD MAJORITY + 2 OPPOSITE NUMBERS (UNTOUCHED)
         // =======================================================
         function processHybrid(p, num, list) {
             const actual = num >= 5 ? "BIG" : "SMALL";
             if (lastP !== p) {
                 if (nextP && lastP) {
-                    // Win condition: Direction match OR 2 opposite numbers match
                     const directMatch = (nextP === actual);
-                    const hedgeMatch = targetNums.includes(num);
+                    const hedgeMatch = currentMode === '1M' && targetNums.includes(num);
                     const win = directMatch || hedgeMatch;
 
-                    if (win) {
-                        currentLevel = 1;
+                    if (currentMode === '30S') {
+                        if (win) {
+                            streakLosses30 = 0;
+                            currentLevel = 1;
+                        } else {
+                            streakLosses30++;
+                            currentLevel = streakLosses30 + 1;
+                        }
+                        const mult30 = Math.pow(2, Math.min(currentLevel - 1, 5));
+                        document.getElementById('mLevel').innerText = streakLosses30 >= 2
+                            ? `LEVEL ${currentLevel} (${mult30}X) · ⚡ L3 OPP ACTIVE`
+                            : `MARTINGALE: LEVEL ${currentLevel} (${mult30}X)`;
                     } else {
-                        currentLevel++;
-                        if (currentLevel > 4) currentLevel = 1;
+                        if (win) {
+                            currentLevel = 1;
+                        } else {
+                            currentLevel++;
+                            if (currentLevel > 4) currentLevel = 1;
+                        }
+                        const multiplier = currentLevel === 1 ? "1X" : (currentLevel === 2 ? "3X" : (currentLevel === 3 ? "9X" : "27X"));
+                        document.getElementById('mLevel').innerText = `MARTINGALE: LEVEL ${currentLevel} (${multiplier})`;
                     }
-
-                    const multiplier = currentLevel === 1 ? "1X" : (currentLevel === 2 ? "3X" : (currentLevel === 3 ? "9X" : "27X"));
-                    document.getElementById('mLevel').innerText = `MARTINGALE: LEVEL ${currentLevel} (${multiplier})`;
 
                     let statusLabel = 'WIN';
                     if (hedgeMatch && !directMatch) {
@@ -651,7 +717,7 @@
                     const entry = {
                         period: p.slice(-3),
                         pred: nextP,
-                        opp: `[${targetNums.join(', ')}]`,
+                        opp: currentMode === '30S' ? (wasOpp30 ? 'L3 OPP*' : 'PURE') : `[${targetNums.join(', ')}]`,
                         result: `${actual}(${num})`,
                         status: statusLabel,
                         winClass: win ? 'win' : 'loss',
@@ -666,41 +732,58 @@
 
                 lastP = p;
                 const stratDisp = document.getElementById('stratDisplay');
+                const oppHdr = document.getElementById('oppHeader');
+                const numRow = document.getElementById('numRow');
 
                 if (currentMode === '1M') {
-                    // 1M Strategy: 3-Period Majority Vote + 2 Random Opposite Numbers
+                    // 1M Strategy: 3-Period Majority Vote + 2 Random Opposite Numbers (Unchanged)
                     nextP = calculate1MPrediction(list);
                     stratDisp.innerText = "MODE: TGX 3-PERIOD MAJORITY";
                     targetNums = generate1MOpposites();
+                    if (oppHdr) oppHdr.innerText = '⟁ OPPOSITE NUMBERS ⟁';
+                    if (numRow) {
+                        numRow.style.display = 'flex';
+                        numRow.innerHTML = `
+                            <div class="num-circle">${targetNums[0]}</div>
+                            <div class="num-circle">${targetNums[1]}</div>
+                        `;
+                    }
                 } else {
-                    // 30S Strategy (Untouched Original Dragon Pulse / Neural Reverse)
-                    const last5 = list.slice(0, 5).map(x => parseInt(x.number) >= 5 ? "BIG" : "SMALL");
-                    const lastNums = list.slice(0, 5).map(x => parseInt(x.number));
-
-                    if (last5[0] === last5[1] && last5[1] === last5[2]) {
-                        nextP = last5[0];
-                        stratDisp.innerText = "MODE: DRAGON PULSE";
-                    } else {
-                        nextP = (last5[0] === "BIG") ? "SMALL" : "BIG";
-                        stratDisp.innerText = "MODE: NEURAL REVERSE";
+                    // 30S Strategy: PURE BIG/SMALL ONLY · Flip(<3)/Dragon(>=3) + L3 OPP OVERRIDE
+                    const sizes30 = list.slice(0, 12).map(x => parseInt(x.number) >= 5 ? "BIG" : "SMALL");
+                    let streak = 1;
+                    for (let i = 1; i < sizes30.length; i++) {
+                        if (sizes30[i] === sizes30[0]) streak++;
+                        else break;
                     }
 
-                    // EXACT 2 OPPOSITE NUMBERS LOGIC
-                    const sum = lastNums.reduce((a, b) => a + b, 0);
-                    if (nextP === "BIG") {
-                        targetNums = (sum > 20) ? [0, 2] : [1, 3];
+                    let baseSide, baseMode;
+                    if (streak >= 3) {
+                        baseSide = sizes30[0];
+                        baseMode = `DRAGON PULSE (S${streak})`;
                     } else {
-                        targetNums = (sum < 25) ? [7, 9] : [6, 8];
+                        baseSide = sizes30[0] === "BIG" ? "SMALL" : "BIG";
+                        baseMode = streak === 2 ? "SHORT-RUN FLIP (S2)" : "CHOP ALTERNATION";
                     }
+
+                    const isOpp = streakLosses30 >= 2;
+                    wasOpp30 = isOpp;
+                    nextP = isOpp ? (baseSide === "BIG" ? "SMALL" : "BIG") : baseSide;
+                    targetNums = [];
+
+                    if (isOpp) {
+                        stratDisp.innerText = `⚡ L3 OPP: ${baseSide} → ${nextP}`;
+                        if (oppHdr) oppHdr.innerText = `⚡ L3 OPP OVERRIDE (LVL ${streakLosses30 + 1} · NO OPP NUMS) ⚡`;
+                    } else {
+                        stratDisp.innerText = `MODE: ${baseMode}`;
+                        if (oppHdr) oppHdr.innerText = '⚡ PURE BIG/SMALL ONLY · L3 OPP OVERRIDE ⚡';
+                    }
+                    if (numRow) numRow.style.display = 'none';
                 }
 
                 document.getElementById('pID').innerText = "PERIOD: " + (BigInt(p) + 1n).toString();
                 document.getElementById('pRes').innerText = nextP;
                 document.getElementById('pRes').style.color = nextP === "BIG" ? "#00ffff" : "#ccff00";
-                document.getElementById('numRow').innerHTML = `
-                    <div class="num-circle">${targetNums[0]}</div>
-                    <div class="num-circle">${targetNums[1]}</div>
-                `;
             }
         }
 
@@ -742,4 +825,5 @@
         }
     </script>
 </body>
+
 </html>
