@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>JASHVIP · XTR 30S + TGX 1M PRO</title>
+    <title>JASHVIP · DHANRAJ 30S + TGX 1M PRO</title>
     <!-- Firebase SDK (Compatible) -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -431,12 +431,11 @@
                     <div id="timer" class="timer-display">00:30</div>
                     <div id="pID" style="margin-bottom: 6px;">PERIOD: ---</div>
                     <div id="pRes" class="pred-val">INIT</div>
-                    <div id="colorPredBadge" class="lvl-badge" style="margin: 6px auto 10px; display: inline-block; padding: 6px 18px;">COLOR: --</div>
                     <div id="mLevel" class="lvl-badge">MARTINGALE: LEVEL 1 (1X)</div>
 
-                    <!-- XTR TARGET NUMBERS (30S) / 2 OPPOSITE NUMBERS (1M) -->
-                    <div id="oppHeader" class="opposite-header">🎯 XTR TARGET NUMBERS 🎯</div>
-                    <div class="num-row" id="numRow" style="display: flex;">
+                    <!-- 2 NUMBERS PREDICTION (1M) / PURE BIG-SMALL BADGE (30S) -->
+                    <div id="oppHeader" class="opposite-header">⚡ PURE BIG/SMALL ONLY ⚡</div>
+                    <div class="num-row" id="numRow" style="display: none;">
                         <div class="num-circle">?</div>
                         <div class="num-circle">?</div>
                     </div>
@@ -445,19 +444,19 @@
                     <div class="stats-grid">
                         <div class="stat-box stat-win">
                             <b id="statDirectWin">0</b>
-                            <span id="lblStat1">Size Win</span>
+                            <span>Direct Win</span>
                         </div>
                         <div class="stat-box stat-hedge">
                             <b id="statHedgeWin">0</b>
-                            <span id="lblStat2">Color Win</span>
+                            <span>Hedge Win</span>
                         </div>
                         <div class="stat-box stat-loss">
                             <b id="statLoss">0</b>
-                            <span id="lblStat3">Size Loss</span>
+                            <span>Loss</span>
                         </div>
                         <div class="stat-box stat-rate">
                             <b id="statRate">0%</b>
-                            <span id="lblStat4">Win/Win</span>
+                            <span>Win Rate</span>
                         </div>
                     </div>
                 </div>
@@ -475,7 +474,7 @@
                                 <tr>
                                     <th>PERIOD</th>
                                     <th>PRED</th>
-                                    <th id="thNums">TARGET NUMS</th>
+                                    <th>OPP NUMS</th>
                                     <th>RESULT</th>
                                     <th>STATUS</th>
                                 </tr>
@@ -510,7 +509,7 @@
             }
         };
 
-        let lastP = null, nextP = null, nextColorPred = null, pendingPeriod = null, targetNums = [], currentLevel = 1, streakLosses30 = 0;
+        let lastP = null, nextP = null, pendingPeriod = null, targetNums = [], currentLevel = 1, streakLosses30 = 0;
         let historyLogs = [];
         let engineInterval = null;
         let activeSyncId = 0;
@@ -518,63 +517,31 @@
         const SMALL_POOL = [0, 1, 2, 3, 4];
         const BIG_POOL = [5, 6, 7, 8, 9];
 
-        function getXtrSize(n) {
-            return n >= 5 ? "BIG" : "SMALL";
-        }
-
-        function getXtrColor(n) {
-            return (n % 2 === 0) ? "RED" : "GREEN";
-        }
-
-        function getXtrPredColor(sizeOutcome) {
-            if (sizeOutcome === "BIG") return "RED";
-            if (sizeOutcome === "SMALL") return "GREEN";
-            return "N/A";
-        }
-
-        function calculateXtr30SPrediction(sizeArr) {
-            const len = sizeArr.length;
-            if (!len) return { outcome: "SKIP", risk: true };
-            if (len < 3) {
-                return { outcome: sizeArr[len - 1] === "BIG" ? "SMALL" : "BIG", risk: false };
+        // DHANRAJ_MODS_UPDATED 30S Engine (Deterministic FNV-1a Hash + History Seq Bias, Pure BIG/SMALL)
+        function dhanrajHash(str) {
+            let h = 2166136261;
+            for (let i = 0; i < str.length; i++) {
+                h ^= str.charCodeAt(i);
+                h = (h * 16777619) >>> 0;
             }
-            const s1 = sizeArr[len - 1];
-            const s2 = sizeArr[len - 2];
-            const s3 = sizeArr[len - 3];
-            const s4 = sizeArr[len - 4];
-            const s5 = sizeArr[len - 5];
-            const s6 = sizeArr[len - 6];
-
-            if (len >= 3 && s3 === "BIG" && s2 === "BIG" && s1 === "SMALL") return { outcome: "BIG", risk: false };
-            if (len >= 3 && s3 === "SMALL" && s2 === "SMALL" && s1 === "BIG") return { outcome: "SMALL", risk: false };
-            if (len >= 6 && s6 === "BIG" && s5 === "BIG" && s4 === "SMALL" && s3 === "SMALL" && s2 === "BIG" && s1 === "BIG") return { outcome: "SMALL", risk: false };
-            if (len >= 6 && s6 === "SMALL" && s5 === "SMALL" && s4 === "BIG" && s3 === "BIG" && s2 === "SMALL" && s1 === "SMALL") return { outcome: "BIG", risk: false };
-            if (len >= 4 && s4 === "BIG" && s3 === "BIG" && s2 === "BIG" && s1 === "SMALL") return { outcome: "SMALL", risk: false };
-            if (len >= 4 && s4 === "BIG" && s3 === "BIG" && s2 === "BIG" && s1 === "BIG") return { outcome: "BIG", risk: false };
-            if (len >= 4 && s4 === "SMALL" && s3 === "SMALL" && s2 === "SMALL" && s1 === "SMALL") return { outcome: "SMALL", risk: false };
-            if (s3 === "BIG" && s2 === "BIG" && s1 === "BIG") return { outcome: "SMALL", risk: false };
-            if (s3 === "SMALL" && s2 === "SMALL" && s1 === "SMALL") return { outcome: "BIG", risk: false };
-            if (len >= 5 && s1 !== s2 && s2 !== s3 && s3 !== s4 && s4 !== s5) return { outcome: "SKIP", risk: true };
-            return { outcome: s1, risk: false };
+            return h >>> 0;
         }
 
-        function selectXtrTargetNumbers(lastNum, outcome) {
-            if (outcome === "SKIP") return [0, 0];
-            const map = {
-                "0": { BIG: [7, 8], SMALL: [0, 4] },
-                "1": { BIG: [5, 6], SMALL: [1, 0] },
-                "2": { BIG: [5, 6], SMALL: [4, 3] },
-                "3": { BIG: [5, 6], SMALL: [4, 1] },
-                "4": { BIG: [7, 9], SMALL: [0, 3] },
-                "5": { BIG: [5, 8], SMALL: [4, 3] },
-                "6": { BIG: [9, 5], SMALL: [1, 3] },
-                "7": { BIG: [9, 5], SMALL: [3, 0] },
-                "8": { BIG: [8, 6], SMALL: [1, 3] },
-                "9": { BIG: [5, 7], SMALL: [1, 2] }
-            };
-            const key = String(lastNum);
-            if (map[key] && map[key][outcome]) return map[key][outcome];
-            return outcome === "BIG" ? [5, 7] : [1, 3];
+        function calculateDhanraj30SPrediction(period, list) {
+            const pStr = String(period);
+            const h = dhanrajHash(pStr + '|bufalo|0');
+            let num = h % 10;
+            const nums = Array.isArray(list)
+                ? list.slice(0, 30).map(x => parseInt(x.number, 10)).filter(n => !isNaN(n) && n >= 0 && n <= 9)
+                : [];
+            if (nums.length) {
+                const last = nums[0];
+                const h2 = dhanrajHash(pStr + '|seq|' + nums.join(''));
+                if (h2 % 100 < 34) num = (last + 1 + (h2 % 3)) % 10;
+                else if (h2 % 100 < 52) num = (last + 10 - 1 - (h2 % 2)) % 10;
+            }
+            const conf = 68 + (dhanrajHash(pStr + '|c') % 29);
+            return { num, outcome: num >= 5 ? 'BIG' : 'SMALL', conf };
         }
 
         function generate1MOpposites() {
@@ -594,45 +561,17 @@
         }
 
         function applyModeUI(mode) {
-            const colorBadge = document.getElementById('colorPredBadge');
             const oppHdr = document.getElementById('oppHeader');
             const numRow = document.getElementById('numRow');
-            const thNums = document.getElementById('thNums');
-            const l1 = document.getElementById('lblStat1');
-            const l2 = document.getElementById('lblStat2');
-            const l3 = document.getElementById('lblStat3');
-            const l4 = document.getElementById('lblStat4');
-
             if (mode === '30S') {
-                if (colorBadge) {
-                    colorBadge.style.display = 'inline-block';
-                    colorBadge.innerText = 'COLOR: --';
-                    colorBadge.style.color = '#fff';
-                    colorBadge.style.borderColor = 'var(--neon-cyan)';
-                    colorBadge.style.boxShadow = '0 0 10px var(--neon-cyan)';
-                }
-                if (oppHdr) oppHdr.innerText = '🎯 XTR TARGET NUMBERS 🎯';
-                if (numRow) {
-                    numRow.style.display = 'flex';
-                    numRow.innerHTML = `<div class="num-circle">?</div><div class="num-circle">?</div>`;
-                }
-                if (thNums) thNums.innerText = 'TARGET NUMS';
-                if (l1) l1.innerText = 'Size Win';
-                if (l2) l2.innerText = 'Color Win';
-                if (l3) l3.innerText = 'Size Loss';
-                if (l4) l4.innerText = 'Win/Win';
+                if (oppHdr) oppHdr.innerText = '⚡ PURE BIG/SMALL ONLY ⚡';
+                if (numRow) numRow.style.display = 'none';
             } else {
-                if (colorBadge) colorBadge.style.display = 'none';
                 if (oppHdr) oppHdr.innerText = '⟁ OPPOSITE NUMBERS ⟁';
                 if (numRow) {
                     numRow.style.display = 'flex';
                     numRow.innerHTML = `<div class="num-circle">?</div><div class="num-circle">?</div>`;
                 }
-                if (thNums) thNums.innerText = 'OPP NUMS';
-                if (l1) l1.innerText = 'Direct Win';
-                if (l2) l2.innerText = 'Hedge Win';
-                if (l3) l3.innerText = 'Loss';
-                if (l4) l4.innerText = 'Win Rate';
             }
         }
 
@@ -690,13 +629,11 @@
             document.getElementById('mLevel').innerText = 'MARTINGALE: LEVEL 1 (1X)';
             lastP = null;
             nextP = null;
-            nextColorPred = null;
             pendingPeriod = null;
             targetNums = [];
             currentLevel = 1;
             streakLosses30 = 0;
 
-            renderHistoryTable();
             syncEngine();
         }
 
@@ -766,86 +703,33 @@
         }
 
         // =======================================================
-        // 30S: XTR HACKER ENGINE (SIZE + COLOR + TARGETS + WIN/LOSS)
+        // 30S: DHANRAJ_MODS PURE BIG/SMALL ONLY (NO OPP NUMBERS)
         // 1M:  3-PERIOD MAJORITY + 2 OPPOSITE NUMBERS (UNTOUCHED)
         // =======================================================
         function processHybrid(p, num, list) {
             if (!p || isNaN(num) || num < 0 || num > 9) return;
-            const actual = getXtrSize(num);
-            const actualColor = getXtrColor(num);
+            const actual = num >= 5 ? "BIG" : "SMALL";
 
             if (lastP !== p) {
                 const isExpected = (!pendingPeriod || pendingPeriod === p);
                 if (nextP && lastP && isExpected) {
                     const alreadyLogged = historyLogs.some(x => x.fullPeriod === p && x.mode === currentMode);
                     if (!alreadyLogged) {
+                        const directMatch = (nextP === actual);
+                        const hedgeMatch = currentMode === '1M' && targetNums.includes(num);
+                        const win = directMatch || hedgeMatch;
+
                         if (currentMode === '30S') {
-                            if (nextP === 'SKIP') {
-                                historyLogs.unshift({
-                                    fullPeriod: p,
-                                    mode: '30S',
-                                    period: p.slice(-4),
-                                    pred: 'SKIP',
-                                    predColor: 'N/A',
-                                    opp: 'SKIP',
-                                    num,
-                                    actual,
-                                    actualColor,
-                                    sizeOutcome: 'SKIP',
-                                    colorOutcome: 'SKIP',
-                                    numHit: false,
-                                    isXtrDual: true,
-                                    result: `${actual}(${num}) · ${actualColor}`,
-                                    status: 'SKIP',
-                                    winClass: 'skip',
-                                    isHedge: false,
-                                    isDirect: false
-                                });
+                            if (win) {
+                                streakLosses30 = 0;
+                                currentLevel = 1;
                             } else {
-                                const sizeWin = (nextP === actual);
-                                const colorWin = (nextColorPred === actualColor);
-                                const numHit = targetNums.includes(num);
-
-                                if (sizeWin) {
-                                    streakLosses30 = 0;
-                                    currentLevel = 1;
-                                } else {
-                                    streakLosses30++;
-                                    currentLevel = streakLosses30 + 1;
-                                }
-                                const mult30 = Math.pow(2, Math.min(currentLevel - 1, 5));
-                                document.getElementById('mLevel').innerText = `MARTINGALE: LEVEL ${currentLevel} (${mult30}X)`;
-
-                                const sizeOut = sizeWin ? 'WIN' : 'LOSS';
-                                const colorOut = colorWin ? 'WIN' : 'LOSS';
-
-                                historyLogs.unshift({
-                                    fullPeriod: p,
-                                    mode: '30S',
-                                    period: p.slice(-4),
-                                    pred: nextP,
-                                    predColor: nextColorPred,
-                                    opp: `[${targetNums.join(', ')}]`,
-                                    num,
-                                    actual,
-                                    actualColor,
-                                    sizeOutcome: sizeOut,
-                                    colorOutcome: colorOut,
-                                    numHit,
-                                    isXtrDual: true,
-                                    result: `${actual}(${num}) · ${actualColor}`,
-                                    status: `${sizeOut} / ${colorOut}`,
-                                    winClass: sizeWin ? 'win' : 'loss',
-                                    isHedge: false,
-                                    isDirect: sizeWin
-                                });
+                                streakLosses30++;
+                                currentLevel = streakLosses30 + 1;
                             }
-                            saveHistory();
+                            const mult30 = Math.pow(2, Math.min(currentLevel - 1, 5));
+                            document.getElementById('mLevel').innerText = `MARTINGALE: LEVEL ${currentLevel} (${mult30}X)`;
                         } else {
-                            const directMatch = (nextP === actual);
-                            const hedgeMatch = targetNums.includes(num);
-                            const win = directMatch || hedgeMatch;
-
                             if (win) {
                                 currentLevel = 1;
                             } else {
@@ -854,30 +738,30 @@
                             }
                             const multiplier = currentLevel === 1 ? "1X" : (currentLevel === 2 ? "3X" : (currentLevel === 3 ? "9X" : "27X"));
                             document.getElementById('mLevel').innerText = `MARTINGALE: LEVEL ${currentLevel} (${multiplier})`;
-
-                            let statusLabel = 'WIN';
-                            if (hedgeMatch && !directMatch) {
-                                statusLabel = 'HEDGE WIN 🛡️';
-                            } else if (directMatch) {
-                                statusLabel = 'DIRECT WIN 🏆';
-                            } else {
-                                statusLabel = 'LOSS';
-                            }
-
-                            historyLogs.unshift({
-                                fullPeriod: p,
-                                mode: '1M',
-                                period: p.slice(-3),
-                                pred: nextP,
-                                opp: `[${targetNums.join(', ')}]`,
-                                result: `${actual}(${num})`,
-                                status: statusLabel,
-                                winClass: win ? 'win' : 'loss',
-                                isHedge: (hedgeMatch && !directMatch),
-                                isDirect: directMatch
-                            });
-                            saveHistory();
                         }
+
+                        let statusLabel = 'WIN';
+                        if (hedgeMatch && !directMatch) {
+                            statusLabel = 'HEDGE WIN 🛡️';
+                        } else if (directMatch) {
+                            statusLabel = 'DIRECT WIN 🏆';
+                        } else {
+                            statusLabel = 'LOSS';
+                        }
+
+                        historyLogs.unshift({
+                            fullPeriod: p,
+                            mode: currentMode,
+                            period: p.slice(-3),
+                            pred: nextP,
+                            opp: currentMode === '30S' ? 'PURE' : `[${targetNums.join(', ')}]`,
+                            result: `${actual}(${num})`,
+                            status: statusLabel,
+                            winClass: win ? 'win' : 'loss',
+                            isHedge: (hedgeMatch && !directMatch),
+                            isDirect: directMatch
+                        });
+                        saveHistory();
                     }
                 }
 
@@ -886,15 +770,12 @@
                 const stratDisp = document.getElementById('stratDisplay');
                 const oppHdr = document.getElementById('oppHeader');
                 const numRow = document.getElementById('numRow');
-                const colorBadge = document.getElementById('colorPredBadge');
 
                 if (currentMode === '1M') {
                     // 1M Strategy: 3-Period Majority Vote + 2 Random Opposite Numbers (Unchanged)
                     nextP = calculate1MPrediction(list);
-                    nextColorPred = null;
                     stratDisp.innerText = "MODE: TGX 3-PERIOD MAJORITY";
                     targetNums = generate1MOpposites();
-                    if (colorBadge) colorBadge.style.display = 'none';
                     if (oppHdr) oppHdr.innerText = '⟁ OPPOSITE NUMBERS ⟁';
                     if (numRow) {
                         numRow.style.display = 'flex';
@@ -903,46 +784,19 @@
                             <div class="num-circle">${targetNums[1]}</div>
                         `;
                     }
-                    document.getElementById('pRes').style.color = nextP === "BIG" ? "#00ffff" : "#ccff00";
                 } else {
-                    // 30S Strategy: XTR HACKER Pattern Engine (Size + Color + Target Numbers)
-                    const recentNums = list.slice(0, 30).map(x => parseInt(x.number, 10)).filter(n => !isNaN(n) && n >= 0 && n <= 9).reverse();
-                    const recentSizes = recentNums.map(getXtrSize);
-                    const pred30 = calculateXtr30SPrediction(recentSizes);
+                    // 30S Strategy: DHANRAJ_MODS Prediction Logic (Pure BIG/SMALL ONLY, NO opp numbers)
+                    const pred30 = calculateDhanraj30SPrediction(pendingPeriod, list);
                     nextP = pred30.outcome;
-                    nextColorPred = getXtrPredColor(nextP);
-                    targetNums = selectXtrTargetNumbers(num, nextP);
-
-                    stratDisp.innerText = nextP === 'SKIP' ? "MODE: XTR ZIGZAG · SKIP" : "MODE: XTR PATTERN + COLOR";
-                    if (oppHdr) oppHdr.innerText = '🎯 XTR TARGET NUMBERS 🎯';
-                    if (colorBadge) {
-                        colorBadge.style.display = 'inline-block';
-                        colorBadge.innerText = `COLOR: ${nextColorPred}`;
-                        if (nextColorPred === 'GREEN') {
-                            colorBadge.style.color = '#10b981';
-                            colorBadge.style.borderColor = '#10b981';
-                            colorBadge.style.boxShadow = '0 0 12px rgba(16,185,129,0.6)';
-                        } else if (nextColorPred === 'RED') {
-                            colorBadge.style.color = '#ef4444';
-                            colorBadge.style.borderColor = '#ef4444';
-                            colorBadge.style.boxShadow = '0 0 12px rgba(239,68,68,0.6)';
-                        } else {
-                            colorBadge.style.color = '#94a3b8';
-                            colorBadge.style.borderColor = '#64748b';
-                            colorBadge.style.boxShadow = 'none';
-                        }
-                    }
-                    if (numRow) {
-                        numRow.style.display = 'flex';
-                        numRow.innerHTML = nextP === 'SKIP'
-                            ? `<div class="num-circle">-</div><div class="num-circle">-</div>`
-                            : `<div class="num-circle">${targetNums[0]}</div><div class="num-circle">${targetNums[1]}</div>`;
-                    }
-                    document.getElementById('pRes').style.color = nextP === "BIG" ? "#00ffff" : nextP === "SMALL" ? "#ccff00" : "#94a3b8";
+                    targetNums = [];
+                    stratDisp.innerText = `MODE: DHANRAJ AI (${pred30.conf}%)`;
+                    if (oppHdr) oppHdr.innerText = '⚡ PURE BIG/SMALL ONLY ⚡';
+                    if (numRow) numRow.style.display = 'none';
                 }
 
                 document.getElementById('pID').innerText = "PERIOD: " + pendingPeriod;
                 document.getElementById('pRes').innerText = nextP;
+                document.getElementById('pRes').style.color = nextP === "BIG" ? "#00ffff" : "#ccff00";
             }
         }
 
@@ -953,77 +807,34 @@
             if (!historyLogs.length) {
                 tbody.innerHTML = '<tr><td colspan="5" style="color:#64748b; padding:15px;">No neural logs yet</td></tr>';
             } else {
-                tbody.innerHTML = historyLogs.map(r => {
-                    if (r.isXtrDual) {
-                        const predColorCss = r.predColor === 'RED' ? '#ef4444' : r.predColor === 'GREEN' ? '#10b981' : '#94a3b8';
-                        const predCell = r.pred === 'SKIP'
-                            ? `<span style="color:#94a3b8;font-weight:800;">SKIP</span>`
-                            : `<span style="color:${r.pred === 'BIG' ? '#00ffff' : '#ccff00'};font-weight:800;">${r.pred}</span><br><span style="color:${predColorCss};font-weight:800;font-size:10px;">${r.predColor}</span>`;
-                        const actColorCss = r.actualColor === 'RED' ? '#ef4444' : '#10b981';
-                        const resCell = `<b>${r.num}</b> · ${r.actual}<br><span style="color:${actColorCss};font-weight:800;font-size:10px;">${r.actualColor}</span>`;
-                        const star = r.numHit ? ' <span style="color:#fbbf24;">★</span>' : '';
-                        const statusCell = r.sizeOutcome === 'SKIP'
-                            ? `<span style="color:#94a3b8;font-weight:800;">SKIP</span>`
-                            : `<span class="${r.sizeOutcome === 'WIN' ? 'win' : 'loss'}">${r.sizeOutcome}</span> <span style="color:#64748b;">/</span> <span class="${r.colorOutcome === 'WIN' ? 'win' : 'loss'}">${r.colorOutcome}</span>${star}`;
-                        return `
-                            <tr>
-                                <td>#${r.period}</td>
-                                <td>${predCell}</td>
-                                <td style="color:var(--cyber-lime); font-family:monospace;">${r.opp || '-'}</td>
-                                <td>${resCell}</td>
-                                <td>${statusCell}</td>
-                            </tr>
-                        `;
-                    }
-                    return `
-                        <tr>
-                            <td>#${r.period}</td>
-                            <td style="color:${r.pred === 'BIG' ? '#00ffff' : '#ccff00'}; font-weight:800;">${r.pred}</td>
-                            <td style="color:var(--cyber-lime); font-family:monospace;">${r.opp || '-'}</td>
-                            <td>${r.result}</td>
-                            <td class="${r.winClass}">${r.status}</td>
-                        </tr>
-                    `;
-                }).join('');
+                tbody.innerHTML = historyLogs.map(r => `
+                    <tr>
+                        <td>#${r.period}</td>
+                        <td style="color:${r.pred === 'BIG' ? '#00ffff' : '#ccff00'}; font-weight:800;">${r.pred}</td>
+                        <td style="color:var(--cyber-lime); font-family:monospace;">${r.opp || '-'}</td>
+                        <td>${r.result}</td>
+                        <td class="${r.winClass}">${r.status}</td>
+                    </tr>
+                `).join('');
             }
 
             // Update Scoreboard Matrix
-            if (currentMode === '30S') {
-                let sWins = 0, cWins = 0, sLosses = 0, bothWins = 0;
-                historyLogs.forEach(item => {
-                    if (item.mode === '30S' || item.isXtrDual) {
-                        if (item.sizeOutcome === 'WIN') sWins++;
-                        else if (item.sizeOutcome === 'LOSS') sLosses++;
-                        else if (!item.isXtrDual && item.winClass === 'win') sWins++;
-                        else if (!item.isXtrDual && item.winClass === 'loss') sLosses++;
-                        if (item.colorOutcome === 'WIN') cWins++;
-                        if (item.sizeOutcome === 'WIN' && item.colorOutcome === 'WIN') bothWins++;
-                    }
-                });
-                document.getElementById('statDirectWin').innerText = sWins;
-                document.getElementById('statHedgeWin').innerText = cWins;
-                document.getElementById('statLoss').innerText = sLosses;
-                document.getElementById('statRate').innerText = bothWins;
-            } else {
-                let directs = 0, hedges = 0, losses = 0;
-                historyLogs.forEach(item => {
-                    if (item.mode === '1M' || (!item.mode && !item.isXtrDual)) {
-                        if (item.winClass === 'win') {
-                            if (item.isHedge) hedges++;
-                            else directs++;
-                        } else if (item.winClass === 'loss') {
-                            losses++;
-                        }
-                    }
-                });
-                const total = directs + hedges + losses;
-                const rate = total > 0 ? Math.round(((directs + hedges) / total) * 100) : 0;
+            let directs = 0, hedges = 0, losses = 0;
+            historyLogs.forEach(item => {
+                if (item.winClass === 'win') {
+                    if (item.isHedge) hedges++;
+                    else directs++;
+                } else if (item.winClass === 'loss') {
+                    losses++;
+                }
+            });
+            const total = directs + hedges + losses;
+            const rate = total > 0 ? Math.round(((directs + hedges) / total) * 100) : 0;
 
-                document.getElementById('statDirectWin').innerText = directs;
-                document.getElementById('statHedgeWin').innerText = hedges;
-                document.getElementById('statLoss').innerText = losses;
-                document.getElementById('statRate').innerText = rate + '%';
-            }
+            document.getElementById('statDirectWin').innerText = directs;
+            document.getElementById('statHedgeWin').innerText = hedges;
+            document.getElementById('statLoss').innerText = losses;
+            document.getElementById('statRate').innerText = rate + '%';
         }
     </script>
 </body>
