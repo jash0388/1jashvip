@@ -434,7 +434,7 @@
                     <div id="mLevel" class="lvl-badge">MARTINGALE: LEVEL 1 (1X)</div>
 
                     <!-- 2 NUMBERS PREDICTION (1M) / PURE BIG-SMALL BADGE (30S) -->
-                    <div id="oppHeader" class="opposite-header">⚡ PURE BIG/SMALL ONLY · L3 OPP OVERRIDE ⚡</div>
+                    <div id="oppHeader" class="opposite-header">⚡ PURE BIG/SMALL ONLY ⚡</div>
                     <div class="num-row" id="numRow" style="display: none;">
                         <div class="num-circle">?</div>
                         <div class="num-circle">?</div>
@@ -509,7 +509,7 @@
             }
         };
 
-        let lastP = null, nextP = null, targetNums = [], currentLevel = 1, streakLosses30 = 0, wasOpp30 = false;
+        let lastP = null, nextP = null, targetNums = [], currentLevel = 1, streakLosses30 = 0;
         let historyLogs = [];
         let engineInterval = null;
         let activeSyncId = 0;
@@ -581,7 +581,7 @@
             const oppHdr = document.getElementById('oppHeader');
             const numRow = document.getElementById('numRow');
             if (mode === '30S') {
-                if (oppHdr) oppHdr.innerText = '⚡ PURE BIG/SMALL ONLY · L3 OPP OVERRIDE ⚡';
+                if (oppHdr) oppHdr.innerText = '⚡ PURE BIG/SMALL ONLY ⚡';
                 if (numRow) numRow.style.display = 'none';
             } else {
                 if (oppHdr) oppHdr.innerText = '⟁ OPPOSITE NUMBERS ⟁';
@@ -599,7 +599,6 @@
             targetNums = [];
             currentLevel = 1;
             streakLosses30 = 0;
-            wasOpp30 = false;
 
             syncEngine();
         }
@@ -609,7 +608,6 @@
                 historyLogs = [];
                 streakLosses30 = 0;
                 currentLevel = 1;
-                wasOpp30 = false;
                 document.getElementById('mLevel').innerText = 'MARTINGALE: LEVEL 1 (1X)';
                 localStorage.removeItem(STORAGE_KEY);
                 renderHistoryTable();
@@ -671,7 +669,7 @@
         }
 
         // =======================================================
-        // 30S: PURE BIG/SMALL ONLY + L3 OPP OVERRIDE
+        // 30S: PURE BIG/SMALL ONLY (NO L3/L4 REVERSE)
         // 1M:  3-PERIOD MAJORITY + 2 OPPOSITE NUMBERS (UNTOUCHED)
         // =======================================================
         function processHybrid(p, num, list) {
@@ -691,9 +689,7 @@
                             currentLevel = streakLosses30 + 1;
                         }
                         const mult30 = Math.pow(2, Math.min(currentLevel - 1, 5));
-                        document.getElementById('mLevel').innerText = streakLosses30 >= 2
-                            ? `LEVEL ${currentLevel} (${mult30}X) · ⚡ L3 OPP ACTIVE`
-                            : `MARTINGALE: LEVEL ${currentLevel} (${mult30}X)`;
+                        document.getElementById('mLevel').innerText = `MARTINGALE: LEVEL ${currentLevel} (${mult30}X)`;
                     } else {
                         if (win) {
                             currentLevel = 1;
@@ -717,7 +713,7 @@
                     const entry = {
                         period: p.slice(-3),
                         pred: nextP,
-                        opp: currentMode === '30S' ? (wasOpp30 ? 'L3 OPP*' : 'PURE') : `[${targetNums.join(', ')}]`,
+                        opp: currentMode === '30S' ? 'PURE' : `[${targetNums.join(', ')}]`,
                         result: `${actual}(${num})`,
                         status: statusLabel,
                         winClass: win ? 'win' : 'loss',
@@ -749,7 +745,7 @@
                         `;
                     }
                 } else {
-                    // 30S Strategy: PURE BIG/SMALL ONLY · Flip(<3)/Dragon(>=3) + L3 OPP OVERRIDE
+                    // 30S Strategy: PURE BIG/SMALL ONLY · Flip(<3)/Dragon(>=3)
                     const sizes30 = list.slice(0, 12).map(x => parseInt(x.number) >= 5 ? "BIG" : "SMALL");
                     let streak = 1;
                     for (let i = 1; i < sizes30.length; i++) {
@@ -757,27 +753,18 @@
                         else break;
                     }
 
-                    let baseSide, baseMode;
+                    let baseMode;
                     if (streak >= 3) {
-                        baseSide = sizes30[0];
+                        nextP = sizes30[0];
                         baseMode = `DRAGON PULSE (S${streak})`;
                     } else {
-                        baseSide = sizes30[0] === "BIG" ? "SMALL" : "BIG";
+                        nextP = sizes30[0] === "BIG" ? "SMALL" : "BIG";
                         baseMode = streak === 2 ? "SHORT-RUN FLIP (S2)" : "CHOP ALTERNATION";
                     }
 
-                    const isOpp = streakLosses30 >= 2;
-                    wasOpp30 = isOpp;
-                    nextP = isOpp ? (baseSide === "BIG" ? "SMALL" : "BIG") : baseSide;
                     targetNums = [];
-
-                    if (isOpp) {
-                        stratDisp.innerText = `⚡ L3 OPP: ${baseSide} → ${nextP}`;
-                        if (oppHdr) oppHdr.innerText = `⚡ L3 OPP OVERRIDE (LVL ${streakLosses30 + 1} · NO OPP NUMS) ⚡`;
-                    } else {
-                        stratDisp.innerText = `MODE: ${baseMode}`;
-                        if (oppHdr) oppHdr.innerText = '⚡ PURE BIG/SMALL ONLY · L3 OPP OVERRIDE ⚡';
-                    }
+                    stratDisp.innerText = `MODE: ${baseMode}`;
+                    if (oppHdr) oppHdr.innerText = '⚡ PURE BIG/SMALL ONLY ⚡';
                     if (numRow) numRow.style.display = 'none';
                 }
 
