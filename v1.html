@@ -514,29 +514,27 @@
         let engineInterval = null;
         let activeSyncId = 0;
 
-        const SMALL_POOL = [0, 1, 2, 3, 4];
-        const BIG_POOL = [5, 6, 7, 8, 9];
+        function calculate1MPrediction(issue, list) {
+            const seed = parseInt(issue.slice(-3));
+            const history = list.slice(0, 10).map(x => parseInt(x.number));
+            let bigBias = history.filter(n => n >= 5).length;
+            let trend = (seed % 2 === 0) ? (bigBias >= 5 ? "BIG" : "SMALL") : (history[0] >= 5 ? "SMALL" : "BIG");
 
-        function generate1MOpposites() {
-            const rSmall = SMALL_POOL[Math.floor(Math.random() * SMALL_POOL.length)];
-            const rBig = BIG_POOL[Math.floor(Math.random() * BIG_POOL.length)];
-            return Math.random() > 0.5 ? [rBig, rSmall] : [rSmall, rBig];
-        }
-
-        function calculate1MPrediction(list) {
-            let bigCount = 0;
-            const checkCount = Math.min(3, list.length);
-            for (let i = 0; i < checkCount; i++) {
-                const num = Number(list[i].number);
-                if (!isNaN(num) && num >= 5) bigCount++;
+            let n1, n2;
+            if (trend === "BIG") {
+                n1 = [5, 6, 7, 8, 9][(seed + history[0]) % 5];
+                n2 = [0, 1, 2, 3, 4][(seed * 3) % 5];
+            } else {
+                n1 = [0, 1, 2, 3, 4][(seed + history[0]) % 5];
+                n2 = [5, 6, 7, 8, 9][(seed * 7) % 5];
             }
-            return bigCount >= 2 ? "BIG" : "SMALL";
+            return { size: trend, nums: [n1, n2] };
         }
 
         function applyModeUI() {
             const oppHdr = document.getElementById('oppHeader');
             const numRow = document.getElementById('numRow');
-            if (oppHdr) oppHdr.innerText = '⟁ OPPOSITE NUMBERS ⟁';
+            if (oppHdr) oppHdr.innerText = currentMode === '1M' ? '⟁ TARGET NUMBERS ⟁' : '⟁ OPPOSITE NUMBERS ⟁';
             if (numRow) {
                 numRow.style.display = 'flex';
                 numRow.innerHTML = `<div class="num-circle">?</div><div class="num-circle">?</div>`;
@@ -670,7 +668,7 @@
 
         // =======================================================
         // 30S: EXACT TGX OWNER 2 LVL FIX (DRAGON PULSE / NEURAL REVERSE + 2 OPPOSITE NUMBERS)
-        // 1M:  3-PERIOD MAJORITY + 2 OPPOSITE NUMBERS (UNTOUCHED)
+        // 1M:  EXACT TGX VIP SERVER PRO (SEED-BIAS TREND + 2 TARGET NUMBERS)
         // =======================================================
         function processHybrid(p, num, list) {
             if (!p || isNaN(num) || num < 0 || num > 9) return;
@@ -726,10 +724,11 @@
                 const stratDisp = document.getElementById('stratDisplay');
 
                 if (currentMode === '1M') {
-                    // 1M Strategy: 3-Period Majority Vote + 2 Random Opposite Numbers (Unchanged)
-                    nextP = calculate1MPrediction(list);
-                    stratDisp.innerText = "MODE: TGX 3-PERIOD MAJORITY";
-                    targetNums = generate1MOpposites();
+                    // 1M Strategy: EXACT TGX VIP SERVER PRO (crack 1.html)
+                    const pred1M = calculate1MPrediction(p, list);
+                    nextP = pred1M.size;
+                    targetNums = pred1M.nums;
+                    stratDisp.innerText = "MODE: TGX VIP 1M";
                 } else {
                     // 30S Strategy: EXACT TGX OWNER 2 LVL FIX (Dragon Pulse / Neural Reverse + 2 Opp Nums)
                     const last5 = list.slice(0, 5).map(x => parseInt(x.number, 10) >= 5 ? "BIG" : "SMALL");
