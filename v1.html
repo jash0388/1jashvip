@@ -434,7 +434,7 @@
                     <div id="mLevel" class="lvl-badge">MARTINGALE: LEVEL 1 (1X)</div>
 
                     <!-- 2 NUMBERS PREDICTION (BOTH 30S & 1M) -->
-                    <div id="oppHeader" class="opposite-header">⟁ OPPOSITE NUMBERS ⟁</div>
+                    <div id="oppHeader" class="opposite-header">⟁ TARGET NUMBERS ⟁</div>
                     <div class="num-row" id="numRow" style="display: flex;">
                         <div class="num-circle">?</div>
                         <div class="num-circle">?</div>
@@ -514,7 +514,7 @@
         let engineInterval = null;
         let activeSyncId = 0;
 
-        function calculate1MPrediction(issue, list) {
+        function calculateTGXPrediction(issue, list) {
             const seed = parseInt(issue.slice(-3));
             const history = list.slice(0, 10).map(x => parseInt(x.number));
             let bigBias = history.filter(n => n >= 5).length;
@@ -534,7 +534,7 @@
         function applyModeUI() {
             const oppHdr = document.getElementById('oppHeader');
             const numRow = document.getElementById('numRow');
-            if (oppHdr) oppHdr.innerText = currentMode === '1M' ? '⟁ TARGET NUMBERS ⟁' : '⟁ OPPOSITE NUMBERS ⟁';
+            if (oppHdr) oppHdr.innerText = '⟁ TARGET NUMBERS ⟁';
             if (numRow) {
                 numRow.style.display = 'flex';
                 numRow.innerHTML = `<div class="num-circle">?</div><div class="num-circle">?</div>`;
@@ -667,8 +667,7 @@
         }
 
         // =======================================================
-        // 30S: EXACT TGX OWNER 2 LVL FIX (DRAGON PULSE / NEURAL REVERSE + 2 OPPOSITE NUMBERS)
-        // 1M:  EXACT TGX VIP SERVER PRO (SEED-BIAS TREND + 2 TARGET NUMBERS)
+        // BOTH 30S & 1M: EXACT TGX VIP SERVER PRO (crack 1.html)
         // =======================================================
         function processHybrid(p, num, list) {
             if (!p || isNaN(num) || num < 0 || num > 9) return;
@@ -723,32 +722,11 @@
                 pendingPeriod = (BigInt(p) + 1n).toString();
                 const stratDisp = document.getElementById('stratDisplay');
 
-                if (currentMode === '1M') {
-                    // 1M Strategy: EXACT TGX VIP SERVER PRO (crack 1.html)
-                    const pred1M = calculate1MPrediction(p, list);
-                    nextP = pred1M.size;
-                    targetNums = pred1M.nums;
-                    stratDisp.innerText = "MODE: TGX VIP 1M";
-                } else {
-                    // 30S Strategy: EXACT TGX OWNER 2 LVL FIX (Dragon Pulse / Neural Reverse + 2 Opp Nums)
-                    const last5 = list.slice(0, 5).map(x => parseInt(x.number, 10) >= 5 ? "BIG" : "SMALL");
-                    const lastNums = list.slice(0, 5).map(x => parseInt(x.number, 10)).filter(n => !isNaN(n));
-
-                    if (last5.length >= 3 && last5[0] === last5[1] && last5[1] === last5[2]) {
-                        nextP = last5[0];
-                        stratDisp.innerText = "MODE: DRAGON PULSE";
-                    } else {
-                        nextP = (last5[0] === "BIG") ? "SMALL" : "BIG";
-                        stratDisp.innerText = "MODE: NEURAL REVERSE";
-                    }
-
-                    const sum = lastNums.reduce((a, b) => a + b, 0);
-                    if (nextP === "BIG") {
-                        targetNums = (sum > 20) ? [0, 2] : [1, 3];
-                    } else {
-                        targetNums = (sum < 25) ? [7, 9] : [6, 8];
-                    }
-                }
+                // Both 30S and 1M use EXACT TGX VIP SERVER PRO (crack 1.html)
+                const pred = calculateTGXPrediction(p, list);
+                nextP = pred.size;
+                targetNums = pred.nums;
+                stratDisp.innerText = currentMode === '1M' ? "MODE: TGX VIP 1M" : "MODE: TGX VIP 30S";
 
                 document.getElementById('pID').innerText = "PERIOD: " + pendingPeriod;
                 document.getElementById('pRes').innerText = nextP;
