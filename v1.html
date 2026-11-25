@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>JASHVIP · TGX OWNER 2 LVL FIX</title>
+    <title>JASHVIP · XTR 30S + TGX 1M PRO</title>
     <!-- Firebase SDK (Compatible) -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -431,11 +431,12 @@
                     <div id="timer" class="timer-display">00:30</div>
                     <div id="pID" style="margin-bottom: 6px;">PERIOD: ---</div>
                     <div id="pRes" class="pred-val">INIT</div>
+                    <div id="colorPredBadge" class="lvl-badge" style="margin: 6px auto 10px; display: inline-block; padding: 6px 18px;">COLOR: --</div>
                     <div id="mLevel" class="lvl-badge">MARTINGALE: LEVEL 1 (1X)</div>
 
-                    <!-- 2 NUMBERS PREDICTION (1M) / PURE BIG-SMALL BADGE (30S) -->
-                    <div id="oppHeader" class="opposite-header">⚡ PURE BIG/SMALL ONLY ⚡</div>
-                    <div class="num-row" id="numRow" style="display: none;">
+                    <!-- XTR TARGET NUMBERS (30S) / 2 OPPOSITE NUMBERS (1M) -->
+                    <div id="oppHeader" class="opposite-header">🎯 XTR TARGET NUMBERS 🎯</div>
+                    <div class="num-row" id="numRow" style="display: flex;">
                         <div class="num-circle">?</div>
                         <div class="num-circle">?</div>
                     </div>
@@ -444,19 +445,19 @@
                     <div class="stats-grid">
                         <div class="stat-box stat-win">
                             <b id="statDirectWin">0</b>
-                            <span>Direct Win</span>
+                            <span id="lblStat1">Size Win</span>
                         </div>
                         <div class="stat-box stat-hedge">
                             <b id="statHedgeWin">0</b>
-                            <span>Hedge Win</span>
+                            <span id="lblStat2">Color Win</span>
                         </div>
                         <div class="stat-box stat-loss">
                             <b id="statLoss">0</b>
-                            <span>Loss</span>
+                            <span id="lblStat3">Size Loss</span>
                         </div>
                         <div class="stat-box stat-rate">
                             <b id="statRate">0%</b>
-                            <span>Win Rate</span>
+                            <span id="lblStat4">Win/Win</span>
                         </div>
                     </div>
                 </div>
@@ -474,7 +475,7 @@
                                 <tr>
                                     <th>PERIOD</th>
                                     <th>PRED</th>
-                                    <th>OPP NUMS</th>
+                                    <th id="thNums">TARGET NUMS</th>
                                     <th>RESULT</th>
                                     <th>STATUS</th>
                                 </tr>
@@ -509,13 +510,72 @@
             }
         };
 
-        let lastP = null, nextP = null, targetNums = [], currentLevel = 1, streakLosses30 = 0;
+        let lastP = null, nextP = null, nextColorPred = null, pendingPeriod = null, targetNums = [], currentLevel = 1, streakLosses30 = 0;
         let historyLogs = [];
         let engineInterval = null;
         let activeSyncId = 0;
 
         const SMALL_POOL = [0, 1, 2, 3, 4];
         const BIG_POOL = [5, 6, 7, 8, 9];
+
+        function getXtrSize(n) {
+            return n >= 5 ? "BIG" : "SMALL";
+        }
+
+        function getXtrColor(n) {
+            return (n % 2 === 0) ? "RED" : "GREEN";
+        }
+
+        function getXtrPredColor(sizeOutcome) {
+            if (sizeOutcome === "BIG") return "RED";
+            if (sizeOutcome === "SMALL") return "GREEN";
+            return "N/A";
+        }
+
+        function calculateXtr30SPrediction(sizeArr) {
+            const len = sizeArr.length;
+            if (!len) return { outcome: "SKIP", risk: true };
+            if (len < 3) {
+                return { outcome: sizeArr[len - 1] === "BIG" ? "SMALL" : "BIG", risk: false };
+            }
+            const s1 = sizeArr[len - 1];
+            const s2 = sizeArr[len - 2];
+            const s3 = sizeArr[len - 3];
+            const s4 = sizeArr[len - 4];
+            const s5 = sizeArr[len - 5];
+            const s6 = sizeArr[len - 6];
+
+            if (len >= 3 && s3 === "BIG" && s2 === "BIG" && s1 === "SMALL") return { outcome: "BIG", risk: false };
+            if (len >= 3 && s3 === "SMALL" && s2 === "SMALL" && s1 === "BIG") return { outcome: "SMALL", risk: false };
+            if (len >= 6 && s6 === "BIG" && s5 === "BIG" && s4 === "SMALL" && s3 === "SMALL" && s2 === "BIG" && s1 === "BIG") return { outcome: "SMALL", risk: false };
+            if (len >= 6 && s6 === "SMALL" && s5 === "SMALL" && s4 === "BIG" && s3 === "BIG" && s2 === "SMALL" && s1 === "SMALL") return { outcome: "BIG", risk: false };
+            if (len >= 4 && s4 === "BIG" && s3 === "BIG" && s2 === "BIG" && s1 === "SMALL") return { outcome: "SMALL", risk: false };
+            if (len >= 4 && s4 === "BIG" && s3 === "BIG" && s2 === "BIG" && s1 === "BIG") return { outcome: "BIG", risk: false };
+            if (len >= 4 && s4 === "SMALL" && s3 === "SMALL" && s2 === "SMALL" && s1 === "SMALL") return { outcome: "SMALL", risk: false };
+            if (s3 === "BIG" && s2 === "BIG" && s1 === "BIG") return { outcome: "SMALL", risk: false };
+            if (s3 === "SMALL" && s2 === "SMALL" && s1 === "SMALL") return { outcome: "BIG", risk: false };
+            if (len >= 5 && s1 !== s2 && s2 !== s3 && s3 !== s4 && s4 !== s5) return { outcome: "SKIP", risk: true };
+            return { outcome: s1, risk: false };
+        }
+
+        function selectXtrTargetNumbers(lastNum, outcome) {
+            if (outcome === "SKIP") return [0, 0];
+            const map = {
+                "0": { BIG: [7, 8], SMALL: [0, 4] },
+                "1": { BIG: [5, 6], SMALL: [1, 0] },
+                "2": { BIG: [5, 6], SMALL: [4, 3] },
+                "3": { BIG: [5, 6], SMALL: [4, 1] },
+                "4": { BIG: [7, 9], SMALL: [0, 3] },
+                "5": { BIG: [5, 8], SMALL: [4, 3] },
+                "6": { BIG: [9, 5], SMALL: [1, 3] },
+                "7": { BIG: [9, 5], SMALL: [3, 0] },
+                "8": { BIG: [8, 6], SMALL: [1, 3] },
+                "9": { BIG: [5, 7], SMALL: [1, 2] }
+            };
+            const key = String(lastNum);
+            if (map[key] && map[key][outcome]) return map[key][outcome];
+            return outcome === "BIG" ? [5, 7] : [1, 3];
+        }
 
         function generate1MOpposites() {
             const rSmall = SMALL_POOL[Math.floor(Math.random() * SMALL_POOL.length)];
@@ -533,12 +593,56 @@
             return bigCount >= 2 ? "BIG" : "SMALL";
         }
 
+        function applyModeUI(mode) {
+            const colorBadge = document.getElementById('colorPredBadge');
+            const oppHdr = document.getElementById('oppHeader');
+            const numRow = document.getElementById('numRow');
+            const thNums = document.getElementById('thNums');
+            const l1 = document.getElementById('lblStat1');
+            const l2 = document.getElementById('lblStat2');
+            const l3 = document.getElementById('lblStat3');
+            const l4 = document.getElementById('lblStat4');
+
+            if (mode === '30S') {
+                if (colorBadge) {
+                    colorBadge.style.display = 'inline-block';
+                    colorBadge.innerText = 'COLOR: --';
+                    colorBadge.style.color = '#fff';
+                    colorBadge.style.borderColor = 'var(--neon-cyan)';
+                    colorBadge.style.boxShadow = '0 0 10px var(--neon-cyan)';
+                }
+                if (oppHdr) oppHdr.innerText = '🎯 XTR TARGET NUMBERS 🎯';
+                if (numRow) {
+                    numRow.style.display = 'flex';
+                    numRow.innerHTML = `<div class="num-circle">?</div><div class="num-circle">?</div>`;
+                }
+                if (thNums) thNums.innerText = 'TARGET NUMS';
+                if (l1) l1.innerText = 'Size Win';
+                if (l2) l2.innerText = 'Color Win';
+                if (l3) l3.innerText = 'Size Loss';
+                if (l4) l4.innerText = 'Win/Win';
+            } else {
+                if (colorBadge) colorBadge.style.display = 'none';
+                if (oppHdr) oppHdr.innerText = '⟁ OPPOSITE NUMBERS ⟁';
+                if (numRow) {
+                    numRow.style.display = 'flex';
+                    numRow.innerHTML = `<div class="num-circle">?</div><div class="num-circle">?</div>`;
+                }
+                if (thNums) thNums.innerText = 'OPP NUMS';
+                if (l1) l1.innerText = 'Direct Win';
+                if (l2) l2.innerText = 'Hedge Win';
+                if (l3) l3.innerText = 'Loss';
+                if (l4) l4.innerText = 'Win Rate';
+            }
+        }
+
         // Site muted: no sound effects on countdown, win, or loss
 
         // Load persisted history on boot
         function loadHistory() {
             try {
                 historyLogs = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+                if (!Array.isArray(historyLogs)) historyLogs = [];
             } catch (e) {
                 historyLogs = [];
             }
@@ -561,6 +665,7 @@
                     const mainWrapper = document.getElementById('mainWrapper');
                     if (mainWrapper) mainWrapper.classList.remove('hidden');
 
+                    applyModeUI(currentMode);
                     loadHistory();
                     startClock();
                     syncEngine();
@@ -578,28 +683,20 @@
             document.getElementById('btn30s').classList.toggle('active', mode === '30S');
             document.getElementById('btn1m').classList.toggle('active', mode === '1M');
 
-            const oppHdr = document.getElementById('oppHeader');
-            const numRow = document.getElementById('numRow');
-            if (mode === '30S') {
-                if (oppHdr) oppHdr.innerText = '⚡ PURE BIG/SMALL ONLY ⚡';
-                if (numRow) numRow.style.display = 'none';
-            } else {
-                if (oppHdr) oppHdr.innerText = '⟁ OPPOSITE NUMBERS ⟁';
-                if (numRow) {
-                    numRow.style.display = 'flex';
-                    numRow.innerHTML = `<div class="num-circle">?</div><div class="num-circle">?</div>`;
-                }
-            }
+            applyModeUI(mode);
 
             document.getElementById('pID').innerText = 'PERIOD: SYNCING...';
             document.getElementById('pRes').innerText = 'INIT';
             document.getElementById('mLevel').innerText = 'MARTINGALE: LEVEL 1 (1X)';
             lastP = null;
             nextP = null;
+            nextColorPred = null;
+            pendingPeriod = null;
             targetNums = [];
             currentLevel = 1;
             streakLosses30 = 0;
 
+            renderHistoryTable();
             syncEngine();
         }
 
@@ -664,78 +761,140 @@
             if (reqId !== activeSyncId || reqMode !== currentMode) return;
             if (list && list.length) {
                 const top = list[0];
-                processHybrid(top.issueNumber, parseInt(top.number), list);
+                processHybrid(top.issueNumber, parseInt(top.number, 10), list);
             }
         }
 
         // =======================================================
-        // 30S: PURE BIG/SMALL ONLY (NO L3/L4 REVERSE)
+        // 30S: XTR HACKER ENGINE (SIZE + COLOR + TARGETS + WIN/LOSS)
         // 1M:  3-PERIOD MAJORITY + 2 OPPOSITE NUMBERS (UNTOUCHED)
         // =======================================================
         function processHybrid(p, num, list) {
-            const actual = num >= 5 ? "BIG" : "SMALL";
+            if (!p || isNaN(num) || num < 0 || num > 9) return;
+            const actual = getXtrSize(num);
+            const actualColor = getXtrColor(num);
+
             if (lastP !== p) {
-                if (nextP && lastP) {
-                    const directMatch = (nextP === actual);
-                    const hedgeMatch = currentMode === '1M' && targetNums.includes(num);
-                    const win = directMatch || hedgeMatch;
+                const isExpected = (!pendingPeriod || pendingPeriod === p);
+                if (nextP && lastP && isExpected) {
+                    const alreadyLogged = historyLogs.some(x => x.fullPeriod === p && x.mode === currentMode);
+                    if (!alreadyLogged) {
+                        if (currentMode === '30S') {
+                            if (nextP === 'SKIP') {
+                                historyLogs.unshift({
+                                    fullPeriod: p,
+                                    mode: '30S',
+                                    period: p.slice(-4),
+                                    pred: 'SKIP',
+                                    predColor: 'N/A',
+                                    opp: 'SKIP',
+                                    num,
+                                    actual,
+                                    actualColor,
+                                    sizeOutcome: 'SKIP',
+                                    colorOutcome: 'SKIP',
+                                    numHit: false,
+                                    isXtrDual: true,
+                                    result: `${actual}(${num}) · ${actualColor}`,
+                                    status: 'SKIP',
+                                    winClass: 'skip',
+                                    isHedge: false,
+                                    isDirect: false
+                                });
+                            } else {
+                                const sizeWin = (nextP === actual);
+                                const colorWin = (nextColorPred === actualColor);
+                                const numHit = targetNums.includes(num);
 
-                    if (currentMode === '30S') {
-                        if (win) {
-                            streakLosses30 = 0;
-                            currentLevel = 1;
+                                if (sizeWin) {
+                                    streakLosses30 = 0;
+                                    currentLevel = 1;
+                                } else {
+                                    streakLosses30++;
+                                    currentLevel = streakLosses30 + 1;
+                                }
+                                const mult30 = Math.pow(2, Math.min(currentLevel - 1, 5));
+                                document.getElementById('mLevel').innerText = `MARTINGALE: LEVEL ${currentLevel} (${mult30}X)`;
+
+                                const sizeOut = sizeWin ? 'WIN' : 'LOSS';
+                                const colorOut = colorWin ? 'WIN' : 'LOSS';
+
+                                historyLogs.unshift({
+                                    fullPeriod: p,
+                                    mode: '30S',
+                                    period: p.slice(-4),
+                                    pred: nextP,
+                                    predColor: nextColorPred,
+                                    opp: `[${targetNums.join(', ')}]`,
+                                    num,
+                                    actual,
+                                    actualColor,
+                                    sizeOutcome: sizeOut,
+                                    colorOutcome: colorOut,
+                                    numHit,
+                                    isXtrDual: true,
+                                    result: `${actual}(${num}) · ${actualColor}`,
+                                    status: `${sizeOut} / ${colorOut}`,
+                                    winClass: sizeWin ? 'win' : 'loss',
+                                    isHedge: false,
+                                    isDirect: sizeWin
+                                });
+                            }
+                            saveHistory();
                         } else {
-                            streakLosses30++;
-                            currentLevel = streakLosses30 + 1;
+                            const directMatch = (nextP === actual);
+                            const hedgeMatch = targetNums.includes(num);
+                            const win = directMatch || hedgeMatch;
+
+                            if (win) {
+                                currentLevel = 1;
+                            } else {
+                                currentLevel++;
+                                if (currentLevel > 4) currentLevel = 1;
+                            }
+                            const multiplier = currentLevel === 1 ? "1X" : (currentLevel === 2 ? "3X" : (currentLevel === 3 ? "9X" : "27X"));
+                            document.getElementById('mLevel').innerText = `MARTINGALE: LEVEL ${currentLevel} (${multiplier})`;
+
+                            let statusLabel = 'WIN';
+                            if (hedgeMatch && !directMatch) {
+                                statusLabel = 'HEDGE WIN 🛡️';
+                            } else if (directMatch) {
+                                statusLabel = 'DIRECT WIN 🏆';
+                            } else {
+                                statusLabel = 'LOSS';
+                            }
+
+                            historyLogs.unshift({
+                                fullPeriod: p,
+                                mode: '1M',
+                                period: p.slice(-3),
+                                pred: nextP,
+                                opp: `[${targetNums.join(', ')}]`,
+                                result: `${actual}(${num})`,
+                                status: statusLabel,
+                                winClass: win ? 'win' : 'loss',
+                                isHedge: (hedgeMatch && !directMatch),
+                                isDirect: directMatch
+                            });
+                            saveHistory();
                         }
-                        const mult30 = Math.pow(2, Math.min(currentLevel - 1, 5));
-                        document.getElementById('mLevel').innerText = `MARTINGALE: LEVEL ${currentLevel} (${mult30}X)`;
-                    } else {
-                        if (win) {
-                            currentLevel = 1;
-                        } else {
-                            currentLevel++;
-                            if (currentLevel > 4) currentLevel = 1;
-                        }
-                        const multiplier = currentLevel === 1 ? "1X" : (currentLevel === 2 ? "3X" : (currentLevel === 3 ? "9X" : "27X"));
-                        document.getElementById('mLevel').innerText = `MARTINGALE: LEVEL ${currentLevel} (${multiplier})`;
                     }
-
-                    let statusLabel = 'WIN';
-                    if (hedgeMatch && !directMatch) {
-                        statusLabel = 'HEDGE WIN 🛡️';
-                    } else if (directMatch) {
-                        statusLabel = 'DIRECT WIN 🏆';
-                    } else {
-                        statusLabel = 'LOSS';
-                    }
-
-                    const entry = {
-                        period: p.slice(-3),
-                        pred: nextP,
-                        opp: currentMode === '30S' ? 'PURE' : `[${targetNums.join(', ')}]`,
-                        result: `${actual}(${num})`,
-                        status: statusLabel,
-                        winClass: win ? 'win' : 'loss',
-                        isHedge: (hedgeMatch && !directMatch),
-                        isDirect: directMatch
-                    };
-
-                    historyLogs.unshift(entry);
-                    if (historyLogs.length > 100) historyLogs = historyLogs.slice(0, 100);
-                    saveHistory();
                 }
 
                 lastP = p;
+                pendingPeriod = (BigInt(p) + 1n).toString();
                 const stratDisp = document.getElementById('stratDisplay');
                 const oppHdr = document.getElementById('oppHeader');
                 const numRow = document.getElementById('numRow');
+                const colorBadge = document.getElementById('colorPredBadge');
 
                 if (currentMode === '1M') {
                     // 1M Strategy: 3-Period Majority Vote + 2 Random Opposite Numbers (Unchanged)
                     nextP = calculate1MPrediction(list);
+                    nextColorPred = null;
                     stratDisp.innerText = "MODE: TGX 3-PERIOD MAJORITY";
                     targetNums = generate1MOpposites();
+                    if (colorBadge) colorBadge.style.display = 'none';
                     if (oppHdr) oppHdr.innerText = '⟁ OPPOSITE NUMBERS ⟁';
                     if (numRow) {
                         numRow.style.display = 'flex';
@@ -744,33 +903,46 @@
                             <div class="num-circle">${targetNums[1]}</div>
                         `;
                     }
+                    document.getElementById('pRes').style.color = nextP === "BIG" ? "#00ffff" : "#ccff00";
                 } else {
-                    // 30S Strategy: PURE BIG/SMALL ONLY · Flip(<3)/Dragon(>=3)
-                    const sizes30 = list.slice(0, 12).map(x => parseInt(x.number) >= 5 ? "BIG" : "SMALL");
-                    let streak = 1;
-                    for (let i = 1; i < sizes30.length; i++) {
-                        if (sizes30[i] === sizes30[0]) streak++;
-                        else break;
-                    }
+                    // 30S Strategy: XTR HACKER Pattern Engine (Size + Color + Target Numbers)
+                    const recentNums = list.slice(0, 30).map(x => parseInt(x.number, 10)).filter(n => !isNaN(n) && n >= 0 && n <= 9).reverse();
+                    const recentSizes = recentNums.map(getXtrSize);
+                    const pred30 = calculateXtr30SPrediction(recentSizes);
+                    nextP = pred30.outcome;
+                    nextColorPred = getXtrPredColor(nextP);
+                    targetNums = selectXtrTargetNumbers(num, nextP);
 
-                    let baseMode;
-                    if (streak >= 3) {
-                        nextP = sizes30[0];
-                        baseMode = `DRAGON PULSE (S${streak})`;
-                    } else {
-                        nextP = sizes30[0] === "BIG" ? "SMALL" : "BIG";
-                        baseMode = streak === 2 ? "SHORT-RUN FLIP (S2)" : "CHOP ALTERNATION";
+                    stratDisp.innerText = nextP === 'SKIP' ? "MODE: XTR ZIGZAG · SKIP" : "MODE: XTR PATTERN + COLOR";
+                    if (oppHdr) oppHdr.innerText = '🎯 XTR TARGET NUMBERS 🎯';
+                    if (colorBadge) {
+                        colorBadge.style.display = 'inline-block';
+                        colorBadge.innerText = `COLOR: ${nextColorPred}`;
+                        if (nextColorPred === 'GREEN') {
+                            colorBadge.style.color = '#10b981';
+                            colorBadge.style.borderColor = '#10b981';
+                            colorBadge.style.boxShadow = '0 0 12px rgba(16,185,129,0.6)';
+                        } else if (nextColorPred === 'RED') {
+                            colorBadge.style.color = '#ef4444';
+                            colorBadge.style.borderColor = '#ef4444';
+                            colorBadge.style.boxShadow = '0 0 12px rgba(239,68,68,0.6)';
+                        } else {
+                            colorBadge.style.color = '#94a3b8';
+                            colorBadge.style.borderColor = '#64748b';
+                            colorBadge.style.boxShadow = 'none';
+                        }
                     }
-
-                    targetNums = [];
-                    stratDisp.innerText = `MODE: ${baseMode}`;
-                    if (oppHdr) oppHdr.innerText = '⚡ PURE BIG/SMALL ONLY ⚡';
-                    if (numRow) numRow.style.display = 'none';
+                    if (numRow) {
+                        numRow.style.display = 'flex';
+                        numRow.innerHTML = nextP === 'SKIP'
+                            ? `<div class="num-circle">-</div><div class="num-circle">-</div>`
+                            : `<div class="num-circle">${targetNums[0]}</div><div class="num-circle">${targetNums[1]}</div>`;
+                    }
+                    document.getElementById('pRes').style.color = nextP === "BIG" ? "#00ffff" : nextP === "SMALL" ? "#ccff00" : "#94a3b8";
                 }
 
-                document.getElementById('pID').innerText = "PERIOD: " + (BigInt(p) + 1n).toString();
+                document.getElementById('pID').innerText = "PERIOD: " + pendingPeriod;
                 document.getElementById('pRes').innerText = nextP;
-                document.getElementById('pRes').style.color = nextP === "BIG" ? "#00ffff" : "#ccff00";
             }
         }
 
@@ -781,34 +953,77 @@
             if (!historyLogs.length) {
                 tbody.innerHTML = '<tr><td colspan="5" style="color:#64748b; padding:15px;">No neural logs yet</td></tr>';
             } else {
-                tbody.innerHTML = historyLogs.map(r => `
-                    <tr>
-                        <td>#${r.period}</td>
-                        <td style="color:${r.pred === 'BIG' ? '#00ffff' : '#ccff00'}; font-weight:800;">${r.pred}</td>
-                        <td style="color:var(--cyber-lime); font-family:monospace;">${r.opp || '-'}</td>
-                        <td>${r.result}</td>
-                        <td class="${r.winClass}">${r.status}</td>
-                    </tr>
-                `).join('');
+                tbody.innerHTML = historyLogs.map(r => {
+                    if (r.isXtrDual) {
+                        const predColorCss = r.predColor === 'RED' ? '#ef4444' : r.predColor === 'GREEN' ? '#10b981' : '#94a3b8';
+                        const predCell = r.pred === 'SKIP'
+                            ? `<span style="color:#94a3b8;font-weight:800;">SKIP</span>`
+                            : `<span style="color:${r.pred === 'BIG' ? '#00ffff' : '#ccff00'};font-weight:800;">${r.pred}</span><br><span style="color:${predColorCss};font-weight:800;font-size:10px;">${r.predColor}</span>`;
+                        const actColorCss = r.actualColor === 'RED' ? '#ef4444' : '#10b981';
+                        const resCell = `<b>${r.num}</b> · ${r.actual}<br><span style="color:${actColorCss};font-weight:800;font-size:10px;">${r.actualColor}</span>`;
+                        const star = r.numHit ? ' <span style="color:#fbbf24;">★</span>' : '';
+                        const statusCell = r.sizeOutcome === 'SKIP'
+                            ? `<span style="color:#94a3b8;font-weight:800;">SKIP</span>`
+                            : `<span class="${r.sizeOutcome === 'WIN' ? 'win' : 'loss'}">${r.sizeOutcome}</span> <span style="color:#64748b;">/</span> <span class="${r.colorOutcome === 'WIN' ? 'win' : 'loss'}">${r.colorOutcome}</span>${star}`;
+                        return `
+                            <tr>
+                                <td>#${r.period}</td>
+                                <td>${predCell}</td>
+                                <td style="color:var(--cyber-lime); font-family:monospace;">${r.opp || '-'}</td>
+                                <td>${resCell}</td>
+                                <td>${statusCell}</td>
+                            </tr>
+                        `;
+                    }
+                    return `
+                        <tr>
+                            <td>#${r.period}</td>
+                            <td style="color:${r.pred === 'BIG' ? '#00ffff' : '#ccff00'}; font-weight:800;">${r.pred}</td>
+                            <td style="color:var(--cyber-lime); font-family:monospace;">${r.opp || '-'}</td>
+                            <td>${r.result}</td>
+                            <td class="${r.winClass}">${r.status}</td>
+                        </tr>
+                    `;
+                }).join('');
             }
 
             // Update Scoreboard Matrix
-            let directs = 0, hedges = 0, losses = 0;
-            historyLogs.forEach(item => {
-                if (item.winClass === 'win') {
-                    if (item.isHedge) hedges++;
-                    else directs++;
-                } else if (item.winClass === 'loss') {
-                    losses++;
-                }
-            });
-            const total = directs + hedges + losses;
-            const rate = total > 0 ? Math.round(((directs + hedges) / total) * 100) : 0;
+            if (currentMode === '30S') {
+                let sWins = 0, cWins = 0, sLosses = 0, bothWins = 0;
+                historyLogs.forEach(item => {
+                    if (item.mode === '30S' || item.isXtrDual) {
+                        if (item.sizeOutcome === 'WIN') sWins++;
+                        else if (item.sizeOutcome === 'LOSS') sLosses++;
+                        else if (!item.isXtrDual && item.winClass === 'win') sWins++;
+                        else if (!item.isXtrDual && item.winClass === 'loss') sLosses++;
+                        if (item.colorOutcome === 'WIN') cWins++;
+                        if (item.sizeOutcome === 'WIN' && item.colorOutcome === 'WIN') bothWins++;
+                    }
+                });
+                document.getElementById('statDirectWin').innerText = sWins;
+                document.getElementById('statHedgeWin').innerText = cWins;
+                document.getElementById('statLoss').innerText = sLosses;
+                document.getElementById('statRate').innerText = bothWins;
+            } else {
+                let directs = 0, hedges = 0, losses = 0;
+                historyLogs.forEach(item => {
+                    if (item.mode === '1M' || (!item.mode && !item.isXtrDual)) {
+                        if (item.winClass === 'win') {
+                            if (item.isHedge) hedges++;
+                            else directs++;
+                        } else if (item.winClass === 'loss') {
+                            losses++;
+                        }
+                    }
+                });
+                const total = directs + hedges + losses;
+                const rate = total > 0 ? Math.round(((directs + hedges) / total) * 100) : 0;
 
-            document.getElementById('statDirectWin').innerText = directs;
-            document.getElementById('statHedgeWin').innerText = hedges;
-            document.getElementById('statLoss').innerText = losses;
-            document.getElementById('statRate').innerText = rate + '%';
+                document.getElementById('statDirectWin').innerText = directs;
+                document.getElementById('statHedgeWin').innerText = hedges;
+                document.getElementById('statLoss').innerText = losses;
+                document.getElementById('statRate').innerText = rate + '%';
+            }
         }
     </script>
 </body>
