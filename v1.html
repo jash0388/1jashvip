@@ -509,26 +509,65 @@
             }
         };
 
-        let lastP = null, nextP = null, pendingPeriod = null, targetNums = [], currentLevel = 1;
+        let lastP = null, nextP = null, pendingPeriod = null, targetNums = [], currentLevel = 1, consecLosses = 0;
         let historyLogs = [];
         let engineInterval = null;
         let activeSyncId = 0;
 
-        function calculateTGXPrediction(issue, list) {
-            const seed = parseInt(issue.slice(-3));
-            const history = list.slice(0, 10).map(x => parseInt(x.number));
-            let bigBias = history.filter(n => n >= 5).length;
-            let trend = (seed % 2 === 0) ? (bigBias >= 5 ? "BIG" : "SMALL") : (history[0] >= 5 ? "SMALL" : "BIG");
-
-            let n1, n2;
-            if (trend === "BIG") {
-                n1 = [5, 6, 7, 8, 9][(seed + history[0]) % 5];
-                n2 = [0, 1, 2, 3, 4][(seed * 3) % 5];
-            } else {
-                n1 = [0, 1, 2, 3, 4][(seed + history[0]) % 5];
-                n2 = [5, 6, 7, 8, 9][(seed * 7) % 5];
+        function pickHotDigit(history, isBig, seed) {
+            const pool = isBig ? [5, 6, 7, 8, 9] : [0, 1, 2, 3, 4];
+            const score = new Map(pool.map(d => [d, 0]));
+            history.forEach((n, idx) => {
+                if (score.has(n)) score.set(n, score.get(n) + (idx < 4 ? 2 : 1));
+            });
+            let best = pool[(seed + (history[0] || 0)) % 5], bestScore = -1;
+            for (let i = 0; i < pool.length; i++) {
+                const d = pool[(seed + i) % 5];
+                const s = score.get(d);
+                if (s > bestScore) { bestScore = s; best = d; }
             }
-            return { size: trend, nums: [n1, n2] };
+            return best;
+        }
+
+        function calculate30SPrediction(issue, list, lossStreak) {
+            const seed = parseInt(String(issue).slice(-3), 10) || 0;
+            const nums = list.slice(0, 10).map(x => parseInt(x.number, 10)).filter(n => !isNaN(n));
+            const flip = s => (s === "BIG" ? "SMALL" : "BIG");
+            if (!nums.length) {
+                const size = (seed % 2 === 0) ? "BIG" : "SMALL";
+                return { size, nums: [pickHotDigit([], size === "BIG", seed), pickHotDigit([], size !== "BIG", seed * 3)], strat: "TGX PRO 30S" };
+            }
+            const sides = nums.map(n => n >= 5 ? "BIG" : "SMALL");
+            let runLen = 1;
+            for (let i = 1; i < sides.length && sides[i] === sides[0]; i++) runLen++;
+
+            let size, strat;
+            if (runLen >= 3) {
+                size = runLen >= 6 ? flip(sides[0]) : sides[0];
+                strat = runLen >= 6 ? "DRAGON BREAK" : "DRAGON PULSE";
+            } else if (sides.length >= 3 && sides[0] !== sides[1] && sides[1] !== sides[2]) {
+                size = flip(sides[0]);
+                strat = "ZIG-ZAG SYNC";
+            } else {
+                if (runLen === 2) {
+                    size = sides[0];
+                    strat = "MOMENTUM PAIR";
+                } else {
+                    const big6 = sides.slice(0, 6).filter(s => s === "BIG").length;
+                    size = big6 >= 3 ? "BIG" : "SMALL";
+                    strat = "TREND FLOW";
+                }
+                if (lossStreak >= 2) {
+                    size = flip(size);
+                    strat = "ADAPTIVE REVERSE";
+                }
+            }
+            const predBig = size === "BIG";
+            return {
+                size,
+                nums: [pickHotDigit(nums, predBig, seed), pickHotDigit(nums, !predBig, seed * 3)],
+                strat
+            };
         }
 
         function calculate1MPrediction(issue) {
@@ -606,6 +645,7 @@
             pendingPeriod = null;
             targetNums = [];
             currentLevel = 1;
+            consecLosses = 0;
 
             syncEngine();
         }
@@ -614,6 +654,7 @@
             if (confirm("Clear verified neural history?")) {
                 historyLogs = [];
                 currentLevel = 1;
+                consecLosses = 0;
                 document.getElementById('mLevel').innerText = 'MARTINGALE: LEVEL 1 (1X)';
                 localStorage.removeItem(STORAGE_KEY);
                 renderHistoryTable();
@@ -675,7 +716,7 @@
         }
 
         // =======================================================
-        // 30S: EXACT TGX VIP SERVER PRO (crack 1.html)
+        // 30S: ADAPTIVE TGX PRO 30S (dragon/zig-zag/trend + loss-guard + hot opposite hedge)
         // 1M:  EXACT TGXFREE-2 ROYAL SERVER (seed parity + [n1, n2])
         // =======================================================
         function processHybrid(p, num, list) {
@@ -693,8 +734,10 @@
 
                         if (win) {
                             currentLevel = 1;
+                            consecLosses = 0;
                         } else {
                             currentLevel++;
+                            consecLosses++;
                             if (currentLevel > 4) currentLevel = 1;
                         }
 
@@ -731,13 +774,13 @@
                 pendingPeriod = (BigInt(p) + 1n).toString();
                 const stratDisp = document.getElementById('stratDisplay');
 
-                // 30S keeps crack 1.html strategy; 1M uses tgxfree-2.html strategy
+                // 30S uses Adaptive TGX PRO engine; 1M stays untouched (tgxfree-2.html)
                 const pred = currentMode === '1M'
                     ? calculate1MPrediction(p)
-                    : calculateTGXPrediction(p, list);
+                    : calculate30SPrediction(p, list, consecLosses);
                 nextP = pred.size;
                 targetNums = pred.nums;
-                stratDisp.innerText = currentMode === '1M' ? "MODE: TGX ROYAL 1M" : "MODE: TGX VIP 30S";
+                stratDisp.innerText = currentMode === '1M' ? "MODE: TGX ROYAL 1M" : ("MODE: " + pred.strat);
 
                 document.getElementById('pID').innerText = "PERIOD: " + pendingPeriod;
                 document.getElementById('pRes').innerText = nextP;
