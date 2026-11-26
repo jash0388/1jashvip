@@ -529,13 +529,13 @@
             return best;
         }
 
-        function calculate30SPrediction(issue, list, lossStreak) {
+        function calculateAdaptivePrediction(issue, list, lossStreak) {
             const seed = parseInt(String(issue).slice(-3), 10) || 0;
             const nums = list.slice(0, 10).map(x => parseInt(x.number, 10)).filter(n => !isNaN(n));
             const flip = s => (s === "BIG" ? "SMALL" : "BIG");
             if (!nums.length) {
                 const size = (seed % 2 === 0) ? "BIG" : "SMALL";
-                return { size, nums: [pickHotDigit([], size === "BIG", seed), pickHotDigit([], size !== "BIG", seed * 3)], strat: "TGX PRO 30S" };
+                return { size, nums: [pickHotDigit([], size === "BIG", seed), pickHotDigit([], size !== "BIG", seed * 3)], strat: "ADAPTIVE SYNC" };
             }
             const sides = nums.map(n => n >= 5 ? "BIG" : "SMALL");
             let runLen = 1;
@@ -568,14 +568,6 @@
                 nums: [pickHotDigit(nums, predBig, seed), pickHotDigit(nums, !predBig, seed * 3)],
                 strat
             };
-        }
-
-        function calculate1MPrediction(issue) {
-            const seed = parseInt(issue.slice(-3));
-            const trend = (seed % 2 === 0) ? "BIG" : "SMALL";
-            const n1 = trend === "BIG" ? [5, 6, 7, 8, 9][seed % 5] : [0, 1, 2, 3, 4][seed % 5];
-            const n2 = (seed * 7) % 10;
-            return { size: trend, nums: [n1, n2] };
         }
 
         function applyModeUI() {
@@ -716,8 +708,7 @@
         }
 
         // =======================================================
-        // 30S: ADAPTIVE TGX PRO 30S (dragon/zig-zag/trend + loss-guard + hot opposite hedge)
-        // 1M:  EXACT TGXFREE-2 ROYAL SERVER (seed parity + [n1, n2])
+        // BOTH 30S & 1M: CRACKED TGX ADAPTIVE ENGINE (dragon/zig-zag/trend + loss-guard + hot opposite hedge)
         // =======================================================
         function processHybrid(p, num, list) {
             if (!p || isNaN(num) || num < 0 || num > 9) return;
@@ -774,13 +765,11 @@
                 pendingPeriod = (BigInt(p) + 1n).toString();
                 const stratDisp = document.getElementById('stratDisplay');
 
-                // 30S uses Adaptive TGX PRO engine; 1M stays untouched (tgxfree-2.html)
-                const pred = currentMode === '1M'
-                    ? calculate1MPrediction(p)
-                    : calculate30SPrediction(p, list, consecLosses);
+                // Both 30S and 1M use Adaptive Engine matching cracked tgx.html + hot dual target numbers
+                const pred = calculateAdaptivePrediction(p, list, consecLosses);
                 nextP = pred.size;
                 targetNums = pred.nums;
-                stratDisp.innerText = currentMode === '1M' ? "MODE: TGX ROYAL 1M" : ("MODE: " + pred.strat);
+                stratDisp.innerText = `MODE: ${pred.strat} (${currentMode})`;
 
                 document.getElementById('pID').innerText = "PERIOD: " + pendingPeriod;
                 document.getElementById('pRes').innerText = nextP;
