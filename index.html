@@ -433,10 +433,9 @@
                     <div id="pRes" class="pred-val">INIT</div>
                     <div id="mLevel" class="lvl-badge">MARTINGALE: LEVEL 1 (1X)</div>
 
-                    <!-- 2 NUMBERS PREDICTION (BOTH 30S & 1M) -->
-                    <div id="oppHeader" class="opposite-header">⟁ TARGET NUMBERS ⟁</div>
+                    <!-- SINGLE OPPOSITE NUMBER PREDICTION (BOTH 30S & 1M) -->
+                    <div id="oppHeader" class="opposite-header">⟁ OPPOSITE NUMBER ⟁</div>
                     <div class="num-row" id="numRow" style="display: flex;">
-                        <div class="num-circle">?</div>
                         <div class="num-circle">?</div>
                     </div>
 
@@ -474,7 +473,7 @@
                                 <tr>
                                     <th>PERIOD</th>
                                     <th>PRED</th>
-                                    <th>OPP NUMS</th>
+                                    <th>OPP NUM</th>
                                     <th>RESULT</th>
                                     <th>STATUS</th>
                                 </tr>
@@ -509,74 +508,41 @@
             }
         };
 
-        let lastP = null, nextP = null, pendingPeriod = null, targetNums = [], currentLevel = 1, consecLosses = 0;
+        let lastP = null, nextP = null, pendingPeriod = null, targetNums = [], currentLevel = 1;
         let historyLogs = [];
         let engineInterval = null;
         let activeSyncId = 0;
 
-        function pickHotDigit(history, isBig, seed) {
-            const pool = isBig ? [5, 6, 7, 8, 9] : [0, 1, 2, 3, 4];
-            const score = new Map(pool.map(d => [d, 0]));
-            history.forEach((n, idx) => {
-                if (score.has(n)) score.set(n, score.get(n) + (idx < 4 ? 2 : 1));
-            });
-            let best = pool[(seed + (history[0] || 0)) % 5], bestScore = -1;
-            for (let i = 0; i < pool.length; i++) {
-                const d = pool[(seed + i) % 5];
-                const s = score.get(d);
-                if (s > bestScore) { bestScore = s; best = d; }
-            }
-            return best;
-        }
-
-        function calculateAdaptivePrediction(issue, list, lossStreak) {
-            const seed = parseInt(String(issue).slice(-3), 10) || 0;
-            const nums = list.slice(0, 10).map(x => parseInt(x.number, 10)).filter(n => !isNaN(n));
-            const flip = s => (s === "BIG" ? "SMALL" : "BIG");
-            if (!nums.length) {
-                const size = (seed % 2 === 0) ? "BIG" : "SMALL";
-                return { size, nums: [pickHotDigit([], size === "BIG", seed), pickHotDigit([], size !== "BIG", seed * 3)], strat: "ADAPTIVE SYNC" };
-            }
-            const sides = nums.map(n => n >= 5 ? "BIG" : "SMALL");
-            let runLen = 1;
-            for (let i = 1; i < sides.length && sides[i] === sides[0]; i++) runLen++;
+        function calculateTGX2LvlPrediction(list) {
+            const last5 = list.slice(0, 5).map(x => parseInt(x.number, 10) >= 5 ? "BIG" : "SMALL");
+            const lastNums = list.slice(0, 5).map(x => parseInt(x.number, 10)).filter(n => !isNaN(n));
 
             let size, strat;
-            if (runLen >= 3) {
-                size = runLen >= 6 ? flip(sides[0]) : sides[0];
-                strat = runLen >= 6 ? "DRAGON BREAK" : "DRAGON PULSE";
-            } else if (sides.length >= 3 && sides[0] !== sides[1] && sides[1] !== sides[2]) {
-                size = flip(sides[0]);
-                strat = "ZIG-ZAG SYNC";
+            if (last5.length >= 3 && last5[0] === last5[1] && last5[1] === last5[2]) {
+                size = last5[0];
+                strat = "DRAGON PULSE";
             } else {
-                if (runLen === 2) {
-                    size = sides[0];
-                    strat = "MOMENTUM PAIR";
-                } else {
-                    const big6 = sides.slice(0, 6).filter(s => s === "BIG").length;
-                    size = big6 >= 3 ? "BIG" : "SMALL";
-                    strat = "TREND FLOW";
-                }
-                if (lossStreak >= 2) {
-                    size = flip(size);
-                    strat = "ADAPTIVE REVERSE";
-                }
+                size = (last5[0] === "BIG") ? "SMALL" : "BIG";
+                strat = "NEURAL REVERSE";
             }
-            const predBig = size === "BIG";
-            return {
-                size,
-                nums: [pickHotDigit(nums, predBig, seed), pickHotDigit(nums, !predBig, seed * 3)],
-                strat
-            };
+
+            const sum = lastNums.reduce((a, b) => a + b, 0);
+            let nums;
+            if (size === "BIG") {
+                nums = (sum > 20) ? [2] : [3];
+            } else {
+                nums = (sum < 25) ? [9] : [8];
+            }
+            return { size, nums, strat };
         }
 
         function applyModeUI() {
             const oppHdr = document.getElementById('oppHeader');
             const numRow = document.getElementById('numRow');
-            if (oppHdr) oppHdr.innerText = '⟁ TARGET NUMBERS ⟁';
+            if (oppHdr) oppHdr.innerText = '⟁ OPPOSITE NUMBER ⟁';
             if (numRow) {
                 numRow.style.display = 'flex';
-                numRow.innerHTML = `<div class="num-circle">?</div><div class="num-circle">?</div>`;
+                numRow.innerHTML = `<div class="num-circle">?</div>`;
             }
         }
 
@@ -637,7 +603,6 @@
             pendingPeriod = null;
             targetNums = [];
             currentLevel = 1;
-            consecLosses = 0;
 
             syncEngine();
         }
@@ -646,7 +611,6 @@
             if (confirm("Clear verified neural history?")) {
                 historyLogs = [];
                 currentLevel = 1;
-                consecLosses = 0;
                 document.getElementById('mLevel').innerText = 'MARTINGALE: LEVEL 1 (1X)';
                 localStorage.removeItem(STORAGE_KEY);
                 renderHistoryTable();
@@ -708,7 +672,7 @@
         }
 
         // =======================================================
-        // BOTH 30S & 1M: CRACKED TGX ADAPTIVE ENGINE (dragon/zig-zag/trend + loss-guard + hot opposite hedge)
+        // BOTH 30S & 1M: EXACT TGX OWNER 2 LVL FIX (DRAGON PULSE / NEURAL REVERSE + 2ND OPPOSITE NUMBER)
         // =======================================================
         function processHybrid(p, num, list) {
             if (!p || isNaN(num) || num < 0 || num > 9) return;
@@ -725,10 +689,8 @@
 
                         if (win) {
                             currentLevel = 1;
-                            consecLosses = 0;
                         } else {
                             currentLevel++;
-                            consecLosses++;
                             if (currentLevel > 4) currentLevel = 1;
                         }
 
@@ -765,18 +727,17 @@
                 pendingPeriod = (BigInt(p) + 1n).toString();
                 const stratDisp = document.getElementById('stratDisplay');
 
-                // Both 30S and 1M use Adaptive Engine matching cracked tgx.html + hot dual target numbers
-                const pred = calculateAdaptivePrediction(p, list, consecLosses);
+                // Both 30S and 1M use TGX OWNER 2 LVL FIX (2nd opposite number only)
+                const pred = calculateTGX2LvlPrediction(list);
                 nextP = pred.size;
                 targetNums = pred.nums;
-                stratDisp.innerText = `MODE: ${pred.strat} (${currentMode})`;
+                stratDisp.innerText = `MODE: ${pred.strat}`;
 
                 document.getElementById('pID').innerText = "PERIOD: " + pendingPeriod;
                 document.getElementById('pRes').innerText = nextP;
                 document.getElementById('pRes').style.color = nextP === "BIG" ? "#00ffff" : "#ccff00";
                 document.getElementById('numRow').innerHTML = `
                     <div class="num-circle">${targetNums[0]}</div>
-                    <div class="num-circle">${targetNums[1]}</div>
                 `;
             }
         }
