@@ -531,6 +531,14 @@
             return { size: trend, nums: [n1, n2] };
         }
 
+        function calculate1MPrediction(issue) {
+            const seed = parseInt(issue.slice(-3));
+            const trend = (seed % 2 === 0) ? "BIG" : "SMALL";
+            const n1 = trend === "BIG" ? [5, 6, 7, 8, 9][seed % 5] : [0, 1, 2, 3, 4][seed % 5];
+            const n2 = (seed * 7) % 10;
+            return { size: trend, nums: [n1, n2] };
+        }
+
         function applyModeUI() {
             const oppHdr = document.getElementById('oppHeader');
             const numRow = document.getElementById('numRow');
@@ -667,7 +675,8 @@
         }
 
         // =======================================================
-        // BOTH 30S & 1M: EXACT TGX VIP SERVER PRO (crack 1.html)
+        // 30S: EXACT TGX VIP SERVER PRO (crack 1.html)
+        // 1M:  EXACT TGXFREE-2 ROYAL SERVER (seed parity + [n1, n2])
         // =======================================================
         function processHybrid(p, num, list) {
             if (!p || isNaN(num) || num < 0 || num > 9) return;
@@ -722,11 +731,13 @@
                 pendingPeriod = (BigInt(p) + 1n).toString();
                 const stratDisp = document.getElementById('stratDisplay');
 
-                // Both 30S and 1M use EXACT TGX VIP SERVER PRO (crack 1.html)
-                const pred = calculateTGXPrediction(p, list);
+                // 30S keeps crack 1.html strategy; 1M uses tgxfree-2.html strategy
+                const pred = currentMode === '1M'
+                    ? calculate1MPrediction(p)
+                    : calculateTGXPrediction(p, list);
                 nextP = pred.size;
                 targetNums = pred.nums;
-                stratDisp.innerText = currentMode === '1M' ? "MODE: TGX VIP 1M" : "MODE: TGX VIP 30S";
+                stratDisp.innerText = currentMode === '1M' ? "MODE: TGX ROYAL 1M" : "MODE: TGX VIP 30S";
 
                 document.getElementById('pID').innerText = "PERIOD: " + pendingPeriod;
                 document.getElementById('pRes').innerText = nextP;
